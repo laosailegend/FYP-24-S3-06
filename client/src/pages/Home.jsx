@@ -10,7 +10,6 @@ const Home = () => {
             <div className="main-content">
                 <button className="login">Login</button>
                 <button className="logout">Logout</button>
-                <button className="admin-create-users">Create new users admin</button>
             </div>
         
         </>
