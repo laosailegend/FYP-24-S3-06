@@ -10,7 +10,7 @@ const db = mysql.createConnection({
     host:"localhost",
     user:"root",
     password:"root",
-    database:"test",
+    database:"emproster",
 });
 
 //if auth problem, copy statement into mysql and execute it
@@ -34,6 +34,21 @@ app.get("/books", (req, res) => {
 });
 
 // question mark is used to prevent SQL injection
+// #21 admin create user accounts
+app.post("/createUser", (req, res) => {
+    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`) VALUES (?)"
+    const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email]
+
+    // console.log(values);
+
+    db.query(q, [values], (err, data) => {
+        if (err) return res.json(err);
+        return res.json("user created successfully");
+    })
+});
+
+
+// ----------------------------------- these will no longer work if you change the database to emproster---------------------------
 
 //endpoint to create book
 app.post("/books", (req, res) =>{
