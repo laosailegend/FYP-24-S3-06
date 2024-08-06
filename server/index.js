@@ -23,15 +23,7 @@ app.get("/", (req, res) => {
     res.send("Hello world!");
 })
 
-app.get("/books", (req, res) => {
-    const q = "SELECT * FROM books"
-    db.query(q, (err, data) => {
-        if (err) {
-            return res.json(err)
-        }
-        return res.json(data);
-    })
-});
+
 
 // question mark is used to prevent SQL injection
 // #21 admin create user accounts
@@ -47,8 +39,29 @@ app.post("/createUser", (req, res) => {
     })
 });
 
+// #43 retrieve user details (actually its only admin details but ill just do retrieve a list of deets lol)
+app.get("/users", (req, res) => {
+    // inner join to also get their role type as well
+    const q = "SELECT * FROM users INNER JOIN roles ON users.roleid = roles.roleid"
+    db.query(q, (err, data) => {
+        if (err) {
+            return res.json(err)
+        }
+        return res.json(data);
+    })
+});
 
 // ----------------------------------- these will no longer work if you change the database to emproster---------------------------
+
+app.get("/books", (req, res) => {
+    const q = "SELECT * FROM books"
+    db.query(q, (err, data) => {
+        if (err) {
+            return res.json(err)
+        }
+        return res.json(data);
+    })
+});
 
 //endpoint to create book
 app.post("/books", (req, res) =>{
