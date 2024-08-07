@@ -9,65 +9,92 @@ const db = mysql.createConnection({
     //change your configurations accordingly
     host:"localhost",
     user:"root",
-    password:"root",
-    database:"test",
+    password:"tuckyew",
+    database:"emproster",
 });
 
-//if auth problem, copy statement into mysql and execute it
-// ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
+
 
 app.use(express.json());
 app.use(cors());
 
-app.get("/", (req, res) => {
-    res.send("Hello world!");
-})
-
-app.get("/books", (req, res) => {
-    const q = "SELECT * FROM books"
-    db.query(q, (err, data) => {
-        if (err) {
-            return res.json(err)
-        }
-        return res.json(data);
-    })
+db.connect((err) => {
+    if (err) {
+        console.error("Error connecting to the database:", err);
+        process.exit(1);
+    } else {
+        console.log("Connected to the database");
+    }
 });
 
-// question mark is used to prevent SQL injection
+// Endpoint to view a user by userid
+app.get('/users/:userid', (req, res) => {
+    const { userid } = req.params;
+    const query = "SELECT * FROM users WHERE userid = ?";
 
-//endpoint to create book
-app.post("/books", (req, res) =>{
-    const q = "INSERT INTO books (`title`, `desc`, `price`, `cover`) VALUES (?)"
-    const values = [req.body.title, req.body.desc, req.body.price, req.body.cover]
+    db.query(query, [userid], (err, results) => {
+        if (err) {
+            console.error("Error fetching data from users table:", err);
+            return res.status(500).json({ error: err });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json(results[0]);
+    });
+});
 
-    db.query(q, [values], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("Book created successfully");
-    })
-})
+//create user account
+app.post('/users', (req, res) => {
+    const { roleid, nric, fname, lname, contact, email } = req.body;
+    const query = "INSERT INTO users (roleid, nric, fname, lname, contact, email) VALUES (?, ?, ?, ?, ?, ?)";
+    const values = [roleid, nric, fname, lname, contact, email];
 
-// delete book
-app.delete("/books/:id", (req, res) => {
-    const bookId = req.params.id;
-    const q = "DELETE FROM books WHERE id = ?"
+    db.query(query, values, (err, result) => {
+        if (err) {
+            console.error("Error inserting data into users table:", err);
+            return res.status(500).json({ error: err });
+        }
+        return res.status(201).json({ message: "User created successfully", userId: result.insertId });
+    });
+});
 
-    db.query(q, [bookId], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("book has been deleted succ.");
-    })
-})
+// Endpoint to update a user by userid
+app.put('/users/:userid', (req, res) => {
+    const { userid } = req.params;
+    const { roleid, nric, fname, lname, contact, email } = req.body;
+    const query = "UPDATE users SET roleid = ?, nric = ?, fname = ?, lname = ?, contact = ?, email = ? WHERE userid = ?";
+    const values = [roleid, nric, fname, lname, contact, email, userid];
 
-// update a book's information
-app.put("/books/:id", (req, res) => {
-    const bookId = req.params.id;
-    const q = "update books set `title` = ?, `desc` = ?, `price` = ?, `cover` = ? where id = ?"
+    db.query(query, values, (err, result) => {
+        if (err) {
+            console.error("Error updating data in users table:", err);
+            return res.status(500).json({ error: err });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json({ message: "User updated successfully" });
+    });
+});
 
-    const values = [req.body.title, req.body.desc, req.body.price, req.body.cover];
+// Endpoint to delete a user by userid
+app.delete('/users/:userid', (req, res) => {
+    const { userid } = req.params;
+    const query = "DELETE FROM users WHERE userid = ?";
 
-    db.query(q, [...values, bookId], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("book has been updated succ.");
-    })
-})
+    db.query(query, [userid], (err, result) => {
+        if (err) {
+            console.error("Error deleting data from users table:", err);
+            return res.status(500).json({ error: err });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json({ message: "User deleted successfully" });
+    });
+});
+
+
 
 app.listen(8800, console.log("server started on port 8800"));
