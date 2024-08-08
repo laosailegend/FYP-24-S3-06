@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 const CreateUser = () => {
@@ -51,6 +51,7 @@ const CreateUser = () => {
             <div className="form">
                 <h1>add new user</h1>
                 <select name="roleid" onChange={handleChange}>
+                    <option value="" disabled selected>Select one</option>
                     <option value="1">admin</option>
                     <option value="2">manager</option>
                     <option value="3">employee</option>
@@ -61,6 +62,7 @@ const CreateUser = () => {
                 <input type="text" placeholder='last name' onChange={handleChange} name='lname' />
                 <input type="text" placeholder='contact' onChange={handleChange} name='contact' maxLength={8} />
                 <input type="email" placeholder="email" onChange={handleChange} name='email' />
+                <input type="password" placeholder="password" onChange={handleChange} name='password' />
 
                 <button onClick={handleClick}>add</button>
             </div>
@@ -75,8 +77,9 @@ const CreateUser = () => {
                             <p>{user.nric}</p>
                             <p>{user.email}</p>
                             <p>{user.contact}</p>
+                            <p>{user.password}</p>
                             {/* <button className="delete" onClick={() => handleDelete(user.id)}>delete</button> */}
-                            {/* <button className="update"><Link to={`/update/${user.id}`}>update</Link></button> */}
+                            <button className="update"><Link to={`/update/${user.userid}`}>update</Link></button>
                         </div>
                     ))}
                 </div>

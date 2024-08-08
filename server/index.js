@@ -7,10 +7,10 @@ const mysql = require('mysql');
 
 const db = mysql.createConnection({
     //change your configurations accordingly
-    host:"localhost",
-    user:"root",
-    password:"root",
-    database:"emproster",
+    host: "localhost",
+    user: "root",
+    password: "root",
+    database: "emproster",
 });
 
 //if auth problem, copy statement into mysql and execute it
@@ -24,12 +24,11 @@ app.get("/", (req, res) => {
 })
 
 
-
 // question mark is used to prevent SQL injection
 // #21 admin create user accounts
 app.post("/createUser", (req, res) => {
-    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`) VALUES (?)"
-    const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email]
+    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`) VALUES (?)"
+    const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, req.body.password]
 
     // console.log(values);
 
@@ -51,6 +50,36 @@ app.get("/users", (req, res) => {
     })
 });
 
+// #44 update user details - modified so that those empty fields are removed
+app.put("/user/:id", (req, res) => {
+    const userid = req.params.id;
+    const updates = [];
+    const values = [];
+
+    // Dynamically build the update query and values array
+    for (const [key, value] of Object.entries(req.body)) {
+        if (value) { // Only add non-empty fields
+            updates.push(`${key} = ?`);
+            values.push(value);
+        }
+    }
+
+    // If there are no updates, return early
+    if (updates.length === 0) {
+        return res.json("No updates provided");
+    }
+
+    // Add the user id as the last value for the WHERE clause
+    values.push(userid);
+
+    const q = `UPDATE users SET ${updates.join(', ')} WHERE userid = ?`;
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.json(err);
+        return res.json("User info has been updated successfully");
+    });
+})
+
 // ----------------------------------- these will no longer work if you change the database to emproster---------------------------
 
 app.get("/books", (req, res) => {
@@ -64,7 +93,7 @@ app.get("/books", (req, res) => {
 });
 
 //endpoint to create book
-app.post("/books", (req, res) =>{
+app.post("/books", (req, res) => {
     const q = "INSERT INTO books (`title`, `desc`, `price`, `cover`) VALUES (?)"
     const values = [req.body.title, req.body.desc, req.body.price, req.body.cover]
 
