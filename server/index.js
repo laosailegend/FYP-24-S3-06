@@ -65,17 +65,13 @@ app.put("/users/:userid", (req, res) => {
     const userId = req.params.userid;
     const { nric, fname, lname, contact, email } = req.body;
 
-    // Define the SQL query
     const q = "UPDATE users SET nric = ?, fname = ?, lname = ?, contact = ?, email = ? WHERE userid = ?";
-
-    // Define the values array
     const values = [nric, fname, lname, contact, email, userId];
 
-    // Execute the SQL query
     db.query(q, values, (err, result) => {
         if (err) {
-            console.error("Database error:", err); // Log the error to the console
-            return res.status(500).json(err); // Return a 500 status code for server error
+            console.error("Database error:", err); 
+            return res.status(500).json(err); 
         }
         return res.json("User has been updated successfully");
     });
