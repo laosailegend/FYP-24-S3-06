@@ -80,6 +80,17 @@ app.put("/user/:id", (req, res) => {
     });
 })
 
+// #45 delete user account
+app.delete("/user/:id", (req, res) => {
+    const userid = req.params.id;
+    const q = "DELETE FROM users WHERE userid = ?"
+
+    db.query(q, [userid], (err, data) => {
+        if (err) return res.json(err);
+        return res.json("book has been deleted succ.");
+    })
+})
+
 // ----------------------------------- these will no longer work if you change the database to emproster---------------------------
 
 app.get("/books", (req, res) => {

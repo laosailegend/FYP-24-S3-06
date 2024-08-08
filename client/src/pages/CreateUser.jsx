@@ -46,12 +46,21 @@ const CreateUser = () => {
         fetchAllUsers();
     }, []);
 
+    const handleDelete = async(id) => {
+        try {
+            await axios.delete(`http://localhost:8800/user/${id}`);
+            window.location.reload();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     return (
         <>
             <div className="form">
                 <h1>add new user</h1>
                 <select name="roleid" onChange={handleChange}>
-                    <option value="" disabled selected>Select one</option>
+                    <option disabled selected>Select one</option>
                     <option value="1">admin</option>
                     <option value="2">manager</option>
                     <option value="3">employee</option>
@@ -78,8 +87,8 @@ const CreateUser = () => {
                             <p>{user.email}</p>
                             <p>{user.contact}</p>
                             <p>{user.password}</p>
-                            {/* <button className="delete" onClick={() => handleDelete(user.id)}>delete</button> */}
                             <button className="update"><Link to={`/update/${user.userid}`}>update</Link></button>
+                            <button className="delete" onClick={() => handleDelete(user.userid)}>delete</button>
                         </div>
                     ))}
                 </div>
