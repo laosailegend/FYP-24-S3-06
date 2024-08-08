@@ -1,88 +1,96 @@
-// import cors from "cors";
-
-const express = require('express');
-const cors = require('cors');
-const app = express();
-const mysql = require('mysql');
+const express = require('express')
+const cors = require('cors')
+const app = express()
+const mysql = require('mysql')
 
 const db = mysql.createConnection({
-    //change your configurations accordingly
     host:"localhost",
     user:"root",
-    password:"root",
+    password:"1234",
     database:"emproster",
-});
-
-//if auth problem, copy statement into mysql and execute it
-// ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
-
-app.use(express.json());
-app.use(cors());
-
-app.get("/", (req, res) => {
-    res.send("Hello world!");
 })
 
-app.get("/books", (req, res) => {
-    const q = "SELECT * FROM books"
-    db.query(q, (err, data) => {
-        if (err) {
-            return res.json(err)
+
+app.use(express.json())
+app.use(cors())
+
+//Create account
+app.post("/register", (req, res) => {
+    const q = "INSERT INTO managers (`username`, `password`, `email`, `firstName`, `lastName`) VALUES (?)"
+    const values = [
+       req.body.username,
+       req.body.password,
+       req.body.email,
+       req.body.firstName,
+       req.body.lastName,
+    ]
+
+    db.query(q, [values], (err, data) => {
+        if (err) return res.json(err)
+        return res.json("User has been created successfully.")
+    })
+})
+
+//Login to account
+app.post("/login", (req, res) => {
+    const { username, password } = req.body;
+    const q = "SELECT * FROM managers WHERE username = ?";
+
+    db.query(q, [username], (err, data) => {
+        if (err) return res.json(err)
+        if (data.length === 0) return res.status(401).json("Invalid credentials");
+
+        const user = data[0];
+        // Verify password
+        if (password !== user.password) {
+            return res.status(401).json("Invalid credentials");
         }
-        return res.json(data);
-    })
-});
 
-// question mark is used to prevent SQL injection
-// #21 admin create user accounts
-app.post("/createUser", (req, res) => {
-    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`) VALUES (?)"
-    const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email]
+        return res.json("Login successful");
+    });
+})
 
-    // console.log(values);
+//Retrieve personal information
+app.get("/profile/:id", (req, res) => {
+    const managerId = req.params.id;
+    const q = "SELECT * FROM managers WHERE id = ?";
 
-    db.query(q, [values], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("user created successfully");
-    })
-});
-
-
-// ----------------------------------- these will no longer work if you change the database to emproster---------------------------
-
-//endpoint to create book
-app.post("/books", (req, res) =>{
-    const q = "INSERT INTO books (`title`, `desc`, `price`, `cover`) VALUES (?)"
-    const values = [req.body.title, req.body.desc, req.body.price, req.body.cover]
-
-    db.query(q, [values], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("Book created successfully");
+    db.query(q, [managerId], (err, data) => {
+        if (err) return res.json(err)
+        return res.json(data[0])
     })
 })
 
-// delete book
-app.delete("/books/:id", (req, res) => {
-    const bookId = req.params.id;
-    const q = "DELETE FROM books WHERE id = ?"
+//Update personal details
+app.put("/profile/:id", (req, res) => {
+    const managerId = req.params.id;
+    const q = "UPDATE managers SET `username` = ?, `password` = ?, `email` = ?, `firstName` = ?, `lastName` = ? WHERE id = ?";
 
-    db.query(q, [bookId], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("book has been deleted succ.");
+    const values = [
+        req.body.username,
+        req.body.password,
+        req.body.email,
+        req.body.firstName,
+        req.body.lastName,
+    ]
+
+    db.query(q, [...values, managerId], (err, data) => {
+        if (err) return res.json(err)
+        return res.json("Profile has been updated successfully.")
     })
 })
 
-// update a book's information
-app.put("/books/:id", (req, res) => {
-    const bookId = req.params.id;
-    const q = "update books set `title` = ?, `desc` = ?, `price` = ?, `cover` = ? where id = ?"
+//Delete personal details
+app.delete("/profile/:id", (req, res) => {
+    const managerId = req.params.id;
+    const q = "DELETE FROM managers WHERE id = ?";
 
-    const values = [req.body.title, req.body.desc, req.body.price, req.body.cover];
-
-    db.query(q, [...values, bookId], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("book has been updated succ.");
+    db.query(q, [managerId], (err, data) => {
+        if (err) return res.json(err)
+        return res.json("Profile has been deleted successfully.")
     })
 })
 
-app.listen(8800, console.log("server started on port 8800"));
+app.listen(8800, () =>{
+    console.log("Connected to backend!")
+})
