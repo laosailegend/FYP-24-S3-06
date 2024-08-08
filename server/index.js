@@ -1,9 +1,11 @@
-// import cors from "cors";
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const mysql = require('mysql');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const db = mysql.createConnection({
     //change your configurations accordingly
@@ -19,22 +21,70 @@ const db = mysql.createConnection({
 app.use(express.json());
 app.use(cors());
 
+const SECRET_KEY = process.env.JWT_SECRET;
+
 app.get("/", (req, res) => {
     res.send("Hello world!");
 })
 
+// login
+app.post("/login", (req, res) => {
+    const { email, password } = req.body;
+
+    // Check if email and password are provided
+    if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const q = "SELECT * FROM users WHERE email = ?";
+
+    db.query(q, [email], async (err, data) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+
+        // If no user is found with the provided email
+        if (data.length === 0) {
+            return res.status(401).json({ error: "Invalid email or password" });
+        }
+
+        const user = data[0];
+
+        // Compare the provided password with the hashed password in the database
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordCorrect) {
+            return res.status(401).json({ error: "Invalid email or password" });
+        }
+        
+        //gen jwt token
+        const token = jwt.sign(
+            { id: user.userid, email: user.email, role: user.roleid },
+            SECRET_KEY,
+            { expiresIn: '1h' } // Token expires in 1 hour
+        );
+
+        return res.json({ message: "Login successful", token });
+    });
+})
 
 // question mark is used to prevent SQL injection
 // #21 admin create user accounts
 app.post("/createUser", (req, res) => {
     const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`) VALUES (?)"
-    const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, req.body.password]
 
-    // console.log(values);
+    // password hashing, then store the hash in the db
+    const saltRounds = 10;
+    const password = req.body.password;
 
-    db.query(q, [values], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("user created successfully");
+    // hash + salt 
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+        if (err) return;
+        // console.log(hash);
+        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash]
+
+        db.query(q, [values], (err, data) => {
+            if (err) return res.json(err);
+            return res.json("user created successfully");
+        })
     })
 });
 
