@@ -1,100 +1,133 @@
-// import cors from "cors";
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const mysql = require('mysql');
-
-const db = mysql.createConnection({
-    //change your configurations accordingly
-    host:"localhost",
-    user:"root",
-    password:"tuckyew",
-    database:"emproster",
-});
-
-
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const db = require('./dbConfig');
 
 app.use(express.json());
 app.use(cors());
 
-db.connect((err) => {
-    if (err) {
-        console.error("Error connecting to the database:", err);
-        process.exit(1);
-    } else {
-        console.log("Connected to the database");
+const SECRET_KEY = process.env.JWT_SECRET;
+
+app.get("/", (req, res) => {
+    res.send("Hello world!");
+})
+
+// login
+app.post("/login", (req, res) => {
+    const { email, password } = req.body;
+
+    // Check if email and password are provided
+    if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
     }
-});
 
-// Endpoint to view a user by userid
-app.get('/users/:userid', (req, res) => {
-    const { userid } = req.params;
-    const query = "SELECT * FROM users WHERE userid = ?";
+    const q = "SELECT * FROM users WHERE email = ?";
 
-    db.query(query, [userid], (err, results) => {
-        if (err) {
-            console.error("Error fetching data from users table:", err);
-            return res.status(500).json({ error: err });
+    db.query(q, [email], async (err, data) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+
+        // If no user is found with the provided email
+        if (data.length === 0) {
+            return res.status(401).json({ error: "Invalid email or password" });
         }
-        if (results.length === 0) {
-            return res.status(404).json({ message: "User not found" });
+
+        const user = data[0];
+
+        // Compare the provided password with the hashed password in the database
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordCorrect) {
+            return res.status(401).json({ error: "Invalid email or password" });
         }
-        return res.status(200).json(results[0]);
+        
+        //gen jwt token
+        const token = jwt.sign(
+            { id: user.userid, email: user.email, role: user.roleid },
+            SECRET_KEY,
+            { expiresIn: '1h' } // Token expires in 1 hour
+        );
+
+        return res.json({ message: "Login successful", token });
     });
+})
+
+// question mark is used to prevent SQL injection
+// #21 admin create user accounts
+app.post("/createUser", (req, res) => {
+    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`) VALUES (?)"
+
+    // password hashing, then store the hash in the db
+    const saltRounds = 10;
+    const password = req.body.password;
+
+    // hash + salt 
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+        if (err) return;
+        // console.log(hash);
+        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash]
+
+        db.query(q, [values], (err, data) => {
+            if (err) return res.json(err);
+            return res.json("user created successfully");
+        })
+    })
 });
 
-//create user account
-app.post('/users', (req, res) => {
-    const { roleid, nric, fname, lname, contact, email } = req.body;
-    const query = "INSERT INTO users (roleid, nric, fname, lname, contact, email) VALUES (?, ?, ?, ?, ?, ?)";
-    const values = [roleid, nric, fname, lname, contact, email];
-
-    db.query(query, values, (err, result) => {
+// #43 retrieve user details (actually its only admin details but ill just do retrieve a list of deets lol)
+app.get("/users", (req, res) => {
+    // inner join to also get their role type as well
+    const q = "SELECT * FROM users INNER JOIN roles ON users.roleid = roles.roleid"
+    db.query(q, (err, data) => {
         if (err) {
-            console.error("Error inserting data into users table:", err);
-            return res.status(500).json({ error: err });
+            return res.json(err)
         }
-        return res.status(201).json({ message: "User created successfully", userId: result.insertId });
-    });
+        return res.json(data);
+    })
 });
 
-// Endpoint to update a user by userid
-app.put('/users/:userid', (req, res) => {
-    const { userid } = req.params;
-    const { roleid, nric, fname, lname, contact, email } = req.body;
-    const query = "UPDATE users SET roleid = ?, nric = ?, fname = ?, lname = ?, contact = ?, email = ? WHERE userid = ?";
-    const values = [roleid, nric, fname, lname, contact, email, userid];
+// #44 update user details - modified so that those empty fields are removed
+app.put("/user/:id", (req, res) => {
+    const userid = req.params.id;
+    const updates = [];
+    const values = [];
 
-    db.query(query, values, (err, result) => {
-        if (err) {
-            console.error("Error updating data in users table:", err);
-            return res.status(500).json({ error: err });
+    // Dynamically build the update query and values array
+    for (const [key, value] of Object.entries(req.body)) {
+        if (value) { // Only add non-empty fields
+            updates.push(`${key} = ?`);
+            values.push(value);
         }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        return res.status(200).json({ message: "User updated successfully" });
+    }
+
+    // If there are no updates, return early
+    if (updates.length === 0) {
+        return res.json("No updates provided");
+    }
+
+    // Add the user id as the last value for the WHERE clause
+    values.push(userid);
+
+    const q = `UPDATE users SET ${updates.join(', ')} WHERE userid = ?`;
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.json(err);
+        return res.json("User info has been updated successfully");
     });
-});
+})
 
-// Endpoint to delete a user by userid
-app.delete('/users/:userid', (req, res) => {
-    const { userid } = req.params;
-    const query = "DELETE FROM users WHERE userid = ?";
+// #45 delete user account
+app.delete("/user/:id", (req, res) => {
+    const userid = req.params.id;
+    const q = "DELETE FROM users WHERE userid = ?"
 
-    db.query(query, [userid], (err, result) => {
-        if (err) {
-            console.error("Error deleting data from users table:", err);
-            return res.status(500).json({ error: err });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        return res.status(200).json({ message: "User deleted successfully" });
-    });
-});
-
-
+    db.query(q, [userid], (err, data) => {
+        if (err) return res.json(err);
+        return res.json("book has been deleted succ.");
+    })
+})
 
 app.listen(8800, console.log("server started on port 8800"));
