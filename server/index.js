@@ -7,13 +7,16 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('./dbConfig');
 
+// parse every request as json
 app.use(express.json());
+
+// enable cors
 app.use(cors());
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
 app.get("/", (req, res) => {
-    res.send("Hello world!");
+    res.send("Homepage");
 })
 
 // login
@@ -36,6 +39,7 @@ app.post("/login", (req, res) => {
         }
 
         const user = data[0];
+        
 
         // Compare the provided password with the hashed password in the database
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
@@ -46,10 +50,11 @@ app.post("/login", (req, res) => {
         
         //gen jwt token
         const token = jwt.sign(
-            { id: user.userid, email: user.email, role: user.roleid },
+            { id: user.userid, email: user.email, role: user.roleid, fname: user.fname, lname: user.lname },
             SECRET_KEY,
-            { expiresIn: '1h' } // Token expires in 1 hour
+            { expiresIn: '1d' } // Token expires in 1 day
         );
+        console.log(JSON.parse(atob(token.split('.')[1])));
 
         return res.json({ message: "Login successful", token });
     });
