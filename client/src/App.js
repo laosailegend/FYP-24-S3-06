@@ -8,7 +8,7 @@ import Pricing from './pages/Pricing'; // Import the Pricing component
 import scheduleImage from './images/Schedule.png'; // Schedule Image
 import { AuthContext } from './auth/AuthContext';
 
-import NonAdmin from './pages/NonAdmin';
+import Admin from './pages/Admin';
 
 function Home() {
   return (
@@ -53,7 +53,7 @@ function Home() {
 
 function App() {
   const { isLoggedIn, logout, tokenObj } = useContext(AuthContext);
-
+  
   return (
     <Router>
       <div className="App">
@@ -85,7 +85,7 @@ function App() {
             <Route path="/pricing" element={<Pricing />} /> 
             <Route path="/contact" element={<Contact />} /> 
             <Route path="/login" element={<Login />} />
-            <Route path="/nonadmin" element={<NonAdmin/>}/>
+            <Route path="/admin" element={<Admin/>}/>
           </Routes>
         </main>
       </div>

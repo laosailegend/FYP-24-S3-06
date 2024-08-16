@@ -135,4 +135,13 @@ app.delete("/user/:id", (req, res) => {
     })
 })
 
+// get all permissions to display on the admin page
+app.get("/permissions", (req, res) => {
+    const q = "SELECT * FROM permissions";
+    db.query(q, (err, data) => {
+        if (err) return res.json(err);
+        return res.json(data);
+    })
+})
+
 app.listen(8800, console.log("server started on port 8800"));
