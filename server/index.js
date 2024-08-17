@@ -129,4 +129,97 @@ app.delete("/user/:id", (req, res) => {
     })
 })
 
+// #81 Manager create a task
+app.post("/task", (req, res) => {
+    const q = "INSERT INTO tasks (`taskname`, `description`, `manpower_required`, `timeslot`) VALUES (?)";
+    const values = [req.body.taskname, req.body.description, req.body.manpower_required, req.body.timeslot];
+
+    db.query(q, [values], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(201).json("Task created successfully");
+    });
+});
+
+// #3 Manager retrieve employee particulars
+app.get("/employees", (req, res) => {
+    const q = "SELECT userid, fname, lname, email, contact FROM users WHERE roleid = 2"; // Assuming roleid 2 is for employees
+    db.query(q, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json(data);
+    });
+});
+
+// #42 Manager update timeslot
+app.put("/task/:id/timeslot", (req, res) => {
+    const taskid = req.params.id;
+    const q = "UPDATE tasks SET timeslot = ? WHERE taskid = ?";
+    const values = [req.body.timeslot, taskid];
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.json(err);
+        return res.json("Timeslot updated successfully");
+    });
+});
+
+// #15 Manager update job details
+app.put("/task/:id", (req, res) => {
+    const taskid = req.params.id;
+    const updates = [];
+    const values = [];
+
+    // Dynamically build the update query and values array
+    for (const [key, value] of Object.entries(req.body)) {
+        if (value) { // Only add non-empty fields
+            updates.push(`${key} = ?`);
+            values.push(value);
+        }
+    }
+
+    if (updates.length === 0) {
+        return res.status(400).json("No updates provided");
+    }
+
+    values.push(taskid);
+    const q = `UPDATE tasks SET ${updates.join(', ')} WHERE taskid = ?`;
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Task details updated successfully");
+    });
+});
+
+// #42 Manager update timeslot
+app.put("/task/:id/timeslot", (req, res) => {
+    const taskid = req.params.id;
+    const q = "UPDATE tasks SET timeslot = ? WHERE taskid = ?";
+    const values = [req.body.timeslot, taskid];
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Timeslot updated successfully");
+    });
+});
+
+// #17 Manager delete job
+app.delete("/task/:id", (req, res) => {
+    const taskid = req.params.id;
+    const q = "DELETE FROM tasks WHERE taskid = ?";
+
+    db.query(q, [taskid], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Task deleted successfully");
+    });
+});
+
+// #16 Manager delete timeslot
+app.delete("/task/:id/timeslot", (req, res) => {
+    const taskid = req.params.id;
+    const q = "UPDATE tasks SET timeslot = NULL WHERE taskid = ?"; // Assuming we set it to null to remove the timeslot
+
+    db.query(q, [taskid], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Timeslot removed successfully");
+    });
+});
+
 app.listen(8800, console.log("server started on port 8800"));
