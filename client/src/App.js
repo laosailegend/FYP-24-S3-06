@@ -5,7 +5,9 @@ import Login from './Login';
 import Features from './Features'; // Import the Features component
 import Contact from './Contact'; // Import the Contact component
 import Pricing from './Pricing'; // Import the Pricing component
+import Schedule from './Schedule'; // Import the Schedule component
 import scheduleImage from './Schedule.png'; // Schedule Image
+
 
 function Home() {
   return (
@@ -67,6 +69,7 @@ function App() {
             <Link to="/features">Features</Link> {/* Add Feautres link */}
             <Link to="/pricing">Pricing</Link> {/* Add Pricing link */}
             <Link to="/contact">Contact</Link> {/* Add Contact link */}
+            <Link to="/schedule">Schedule</Link> {/* Add Schedule link */}
             <Link to="/login" className="login">Login</Link> {/* Add Login link */}
           </nav>
         </header>
@@ -76,6 +79,7 @@ function App() {
             <Route path="/features" element={<Features />} /> {/* Add Features route */}
             <Route path="/pricing" element={<Pricing />} /> {/* Add Pricing route */}
             <Route path="/contact" element={<Contact />} /> {/* Add Contact route */}
+            <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
             <Route path="/login" element={<Login onLogin={handleLogin} />} /> {/* Add Login route */}
           </Routes>
         </main>
