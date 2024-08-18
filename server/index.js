@@ -89,6 +89,43 @@ app.get("/users", (req, res) => {
     })
 });
 
+//10 As a employee, I want to be able to view the schedule of the timesheet so that I know who I will be working with on that shift
+app.get("/schedules", (req, res) => {
+    const q = "SELECT * FROM schedules"
+    db.query(q, (err, data) => {
+        if (err) {
+            return res.json(err)
+        }
+        return res.json(data);
+    })
+});
+
+//13
+app.put('/update-availability/:id', (req, res) => {
+    const availabilityId = req.params.id;
+    const values = [
+        req.body.available_date, 
+        req.body.start_time, 
+        req.body.end_time, 
+        req.body.status
+    ];
+
+    const sql = `
+        UPDATE availability 
+        SET available_date = ?, 
+            start_time = ?, 
+            end_time = ?, 
+            status = ? 
+        WHERE availability_id = ?`;
+
+    db.query(sql, [...values, availabilityId], (err, result) => {
+        if (err) {
+            return res.status(500).json(err);
+        }
+        res.status(200).json("Availability updated successfully");
+    });
+});
+
 // #44 update user details - modified so that those empty fields are removed
 app.put("/user/:id", (req, res) => {
     const userid = req.params.id;
