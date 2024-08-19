@@ -9,6 +9,7 @@ import scheduleImage from './images/Schedule.png'; // Schedule Image
 import { AuthContext } from './auth/AuthContext';
 
 import Admin from './pages/Admin';
+import Schedule from './pages/Schedule'; // Import the Schedule component
 
 function Home() {
   return (
@@ -71,6 +72,7 @@ function App() {
             <Link to="/features">Features</Link> {/* Add Feautres link */}
             <Link to="/pricing">Pricing</Link> {/* Add Pricing link */}
             <Link to="/contact">Contact</Link> {/* Add Contact link */}
+            <Link to="/schedule">Schedule</Link>
             {isLoggedIn ? (
               <button className="logout" onClick={logout}>Logout</button>
             ) : (
@@ -86,6 +88,7 @@ function App() {
             <Route path="/contact" element={<Contact />} /> 
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin/>}/>
+            <Route path="/schedule" element={<Schedule />} /> 
           </Routes>
         </main>
       </div>

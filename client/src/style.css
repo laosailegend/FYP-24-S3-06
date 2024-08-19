@@ -33,7 +33,7 @@ nav a {
     color: #333;
 }
 
-nav .login, .logout {
+nav .login {
     background-color:#006eff93;
     color: white;
     padding: 10px 20px;
@@ -132,7 +132,6 @@ footer {
     width: 30%;
     border-radius: 5px;
 }
-
 
 /* Contact Page Styles */
 .contact {
@@ -253,3 +252,79 @@ footer {
 .request-pricing-button:hover {
     background-color: #e64a19;
 }
+
+ /*Schedule.js design */
+ .schedule-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%; /* Adjust width as needed */
+    max-width: 500px; /* Maximum width for large screens */
+    height: 100vh; /* Adjust height as needed */
+    margin: 0 auto; /* Center container horizontally */
+    text-align: center;
+  }
+  
+  .schedule-details {
+    margin-top: 20px;
+  }
+  
+  .schedule-details h3 {
+    color: #333;
+  }
+  
+  .schedule-details ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .schedule-details li {
+    background-color: #f9f9f9;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .add-shift-form {
+    margin-top: 20px;
+  }
+  
+  .add-shift-form h3 {
+    color: #333;
+  }
+  
+  .add-shift-form form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .add-shift-form form div {
+    margin-bottom: 10px;
+  }
+  
+  .add-shift-form form label {
+    margin-right: 10px;
+    width: 100px;
+  }
+  
+  .add-shift-form form input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+  }
+  
+  .add-shift-form button {
+    padding: 10px 20px;
+    background-color: #006eff93;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .add-shift-form button:hover {
+    background-color: #006eff93;
+  }
+  
