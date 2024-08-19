@@ -101,7 +101,7 @@ app.get("/schedules", (req, res) => {
 });
 
 //13 As a employee, I want to be able to update my availability so that my manager knows my availability
-app.put('/update-availability/:id', (req, res) => {
+app.put('/updateAvailability/:id', (req, res) => {
     const availabilityId = req.params.id;
     const values = [
         req.body.available_date, 
