@@ -7,13 +7,16 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('./dbConfig');
 
+// parse every request as json
 app.use(express.json());
+
+// enable cors
 app.use(cors());
 
 const SECRET_KEY = process.env.JWT_SECRET;
 
 app.get("/", (req, res) => {
-    res.send("Hello world!");
+    res.send("Homepage");
 })
 
 // login
@@ -37,19 +40,21 @@ app.post("/login", (req, res) => {
 
         const user = data[0];
 
+
         // Compare the provided password with the hashed password in the database
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
         if (!isPasswordCorrect) {
             return res.status(401).json({ error: "Invalid email or password" });
         }
-        
+
         //gen jwt token
         const token = jwt.sign(
-            { id: user.userid, email: user.email, role: user.roleid },
+            { id: user.userid, email: user.email, role: user.roleid, fname: user.fname, lname: user.lname },
             SECRET_KEY,
-            { expiresIn: '1h' } // Token expires in 1 hour
+            { expiresIn: '1d' } // Token expires in 1 day
         );
+        // console.log(JSON.parse(atob(token.split('.')[1])));
 
         return res.json({ message: "Login successful", token });
     });
@@ -81,6 +86,17 @@ app.post("/createUser", (req, res) => {
 app.get("/users", (req, res) => {
     // inner join to also get their role type as well
     const q = "SELECT * FROM users INNER JOIN roles ON users.roleid = roles.roleid"
+    db.query(q, (err, data) => {
+        if (err) {
+            return res.json(err)
+        }
+        return res.json(data);
+    })
+});
+
+// retrive role details
+app.get("/roles", (req, res) => {
+    const q = "SELECT * FROM roles"
     db.query(q, (err, data) => {
         if (err) {
             return res.json(err)
@@ -129,5 +145,84 @@ app.delete("/user/:id", (req, res) => {
         return res.json("book has been deleted succ.");
     })
 })
+
+// get all permissions to display on the admin page
+app.get("/permissions", (req, res) => {
+    const q = "SELECT permissions.*, roles.role FROM roles INNER JOIN permissions ON `roles`.roleid = permissions.roleid;";
+    db.query(q, (err, data) => {
+        if (err) return res.json(err);
+        
+        return res.json(data);
+    })
+})
+
+// update permissions
+app.put("/updatePerms/:id", (req, res) => {
+    const permission_id = req.params.id; // Extract the permission_id from the URL
+    const { can_create, can_read, can_update, can_delete } = req.body; // Extract the permission fields from the request body
+
+    // Validate the required fields
+    if (can_create === undefined || can_read === undefined || can_update === undefined || can_delete === undefined) {
+        return res.status(400).json({ error: "Invalid data format. Missing permission fields." });
+    }
+
+    // SQL query to update the permission based on permission_id
+    const query = `
+        UPDATE permissions 
+        SET can_create = ?, can_read = ?, can_update = ?, can_delete = ? 
+        WHERE permission_id = ?
+    `;
+    const values = [can_create, can_read, can_update, can_delete, permission_id];
+
+    // Execute the query
+    db.query(query, values, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "An error occurred while updating the permission." });
+        }
+        res.json({ message: "Permission updated successfully." });
+    });
+});
+
+// create permissions
+app.post("/createPerms", (req, res) => {
+    const { roleid, resource, can_create, can_read, can_update, can_delete } = req.body;
+
+    if (!roleid || !resource || can_create === undefined || can_read === undefined || can_update === undefined || can_delete === undefined) {
+        return res.status(400).json({ error: "Invalid data format. Missing permission fields." });
+    }
+
+    const query = `
+        INSERT INTO permissions (roleid, resource, can_create, can_read, can_update, can_delete) 
+        VALUES (?, ?, ?, ?, ?, ?);
+    `;
+    const values = [roleid, resource, can_create, can_read, can_update, can_delete];
+
+    db.query(query, values, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "An error occurred while creating the permission." });
+        }
+
+        res.json({ message: "Permission created successfully." });
+    });
+});
+
+
+// delete permissions
+app.delete("/deletePerms/:id", (req, res) => {
+    const permission_id = req.params.id; // Extract the permission_id from the URL
+    const query = `DELETE FROM permissions WHERE permission_id = ?`;
+    const values = [permission_id];
+
+    // Execute the query
+    db.query(query, values, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "An error occurred while deleting the permission." });
+        }
+        res.json({ message: "Permission deleted successfully." });
+    });
+});
 
 app.listen(8800, console.log("server started on port 8800"));
