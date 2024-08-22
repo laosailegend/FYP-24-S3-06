@@ -96,15 +96,32 @@ app.get("/users", (req, res) => {
 
 
 //10 As a employee, I want to be able to view the schedule of the timesheet so that I know who I will be working with on that shift
-app.get("/schedules", (req, res) => {
-    const q = "SELECT * FROM schedules"
-    db.query(q, (err, data) => {
-        if (err) {
-            return res.json(err)
-        }
-        return res.json(data);
-    })
-});
+app.get('/schedules', (req, res) => {
+    const shiftDate = req.query.shift_date;
+  
+    if (!shiftDate) {
+      return res.status(400).send({ error: 'shift_date is required' });
+    }
+  
+    const query = `
+      SELECT schedules.schedule_id, schedules.start_time, schedules.end_time, 
+             COALESCE(users.fname, 'NULL') AS fname, 
+             COALESCE(users.lname, '') AS lname
+      FROM schedules
+      LEFT JOIN users ON schedules.userid = users.userid
+      WHERE schedules.shift_date = ?
+    `;
+  
+    db.query(query, [shiftDate], (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send(err);
+      }
+      res.json(results);
+    });
+  });
+  
+  
 
 // retrive role details
 app.get("/roles", (req, res) => {
