@@ -252,79 +252,110 @@ footer {
 .request-pricing-button:hover {
     background-color: #e64a19;
 }
-
- /*Schedule.js design */
- .schedule-container {
+/* Schedule.js design */
+.schedule-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%; /* Adjust width as needed */
-    max-width: 500px; /* Maximum width for large screens */
-    height: 100vh; /* Adjust height as needed */
-    margin: 0 auto; /* Center container horizontally */
+    width: 90%;
+    max-width: 600px;
+    height: 100vh;
+    margin: 0 auto;
     text-align: center;
+    background-color: #f0f4f8;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
   
   .schedule-details {
     margin-top: 20px;
+    width: 100%;
   }
   
   .schedule-details h3 {
-    color: #333;
+    color: #2c3e50;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 5px;
   }
   
   .schedule-details ul {
     list-style-type: none;
     padding: 0;
+    margin: 0;
   }
   
   .schedule-details li {
-    background-color: #f9f9f9;
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
+    background-color: #ecf0f1;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #34495e;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
   
   .add-shift-form {
-    margin-top: 20px;
+    margin-top: 30px;
+    width: 100%;
   }
   
   .add-shift-form h3 {
-    color: #333;
+    color: #2c3e50;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 5px;
   }
   
   .add-shift-form form {
     display: flex;
     flex-direction: column;
-  }
-  
-  .add-shift-form form div {
-    margin-bottom: 10px;
-  }
-  
-  .add-shift-form form label {
-    margin-right: 10px;
-    width: 100px;
-  }
-  
-  .add-shift-form form input {
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
     width: 100%;
   }
   
+  .add-shift-form form div {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .add-shift-form form label {
+    font-size: 1rem;
+    color: #2c3e50;
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  .add-shift-form form input {
+    padding: 8px;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 250px;
+    font-size: 1rem;
+  }
+  
   .add-shift-form button {
-    padding: 10px 20px;
-    background-color: #006eff93;
+    padding: 12px 30px;
+    background-color: #3498db;
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+    align-self: center;
+    width: 50%;
+    max-width: 200px;
+    margin-top: 10px;
   }
   
   .add-shift-form button:hover {
-    background-color: #006eff93;
+    background-color: #2980b9;
   }
   

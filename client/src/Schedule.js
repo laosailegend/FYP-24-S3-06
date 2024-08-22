@@ -11,6 +11,7 @@ function Schedule() {
     shift_date: '',
     start_time: '',
     end_time: '',
+    salary_per_hour: '', // New state for salary
   });
 
   useEffect(() => {
@@ -21,6 +22,11 @@ function Schedule() {
 
   const onChange = (date) => {
     setDate(date);
+    // Update the shift date to the selected date
+    setShiftDetails({
+      ...shiftDetails,
+      shift_date: moment(date).format('DD/MM/YYYY'),
+    });
   };
 
   const renderSchedules = (date) => {
@@ -43,24 +49,35 @@ function Schedule() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setShiftDetails({ ...shiftDetails, [name]: value });
+    if (name === 'shift_date') {
+      // Convert date from dd/mm/yyyy to yyyy-mm-dd for backend
+      const formattedDate = moment(value, 'DD/MM/YYYY').isValid()
+        ? value
+        : moment(value, 'YYYY-MM-DD').format('DD/MM/YYYY');
+      setShiftDetails({ ...shiftDetails, [name]: formattedDate });
+    } else {
+      setShiftDetails({ ...shiftDetails, [name]: value });
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { shift_date, start_time, end_time } = shiftDetails;
+    const { shift_date, start_time, end_time, salary_per_hour } = shiftDetails;
+
+    // Convert shift_date from dd/mm/yyyy to yyyy-mm-dd for backend
+    const formattedShiftDate = moment(shift_date, 'DD/MM/YYYY').format('YYYY-MM-DD');
 
     fetch('/schedule', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ shift_date, start_time, end_time }),
+      body: JSON.stringify({ shift_date: formattedShiftDate, start_time, end_time, salary_per_hour }),
     })
       .then((res) => res.json())
       .then((data) => {
         alert('Shift added successfully');
-        setSchedules([...schedules, { schedule_id: data.id, shift_date, start_time, end_time }]);
+        setSchedules([...schedules, { schedule_id: data.id, shift_date: formattedShiftDate, start_time, end_time, salary_per_hour }]);
       })
       .catch((err) => {
         console.error('Error:', err);
@@ -72,7 +89,7 @@ function Schedule() {
   const formatDate = (date) => moment(date).format('DD/MM/YYYY');
 
   // Ensure input value is in yyyy-mm-dd format
-  const formatInputDate = (date) => moment(date).format('YYYY-MM-DD');
+  const formatInputDate = (date) => moment(date, 'DD/MM/YYYY').format('YYYY-MM-DD');
 
   return (
     <div className="schedule-container">
@@ -89,10 +106,11 @@ function Schedule() {
           <div>
             <label>Shift Date:</label>
             <input
-              type="date"
+              type="text" // Changed from date to text to handle custom format
               name="shift_date"
-              value={formatInputDate(shiftDetails.shift_date)}
+              value={shiftDetails.shift_date}
               onChange={handleInputChange}
+              placeholder="dd/mm/yyyy"
               required
             />
           </div>
@@ -113,6 +131,17 @@ function Schedule() {
               name="end_time"
               value={shiftDetails.end_time}
               onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <label>Salary per Hour:</label>
+            <input
+              type="number"
+              name="salary_per_hour"
+              value={shiftDetails.salary_per_hour}
+              onChange={handleInputChange}
+              placeholder="Enter salary"
               required
             />
           </div>
