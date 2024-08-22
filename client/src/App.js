@@ -8,6 +8,9 @@ import Pricing from './pages/Pricing'; // Import the Pricing component
 import scheduleImage from './images/Schedule.png'; // Schedule Image
 import { AuthContext } from './auth/AuthContext';
 
+import Admin from './pages/Admin';
+import Schedule from './pages/Schedule'; // Import the Schedule component
+
 function Home() {
   return (
     <>
@@ -50,11 +53,16 @@ function Home() {
 }
 
 function App() {
-  const { isLoggedIn, logout } = useContext(AuthContext);
-
+  const { isLoggedIn, logout, tokenObj } = useContext(AuthContext);
+  
   return (
     <Router>
       <div className="App">
+        {isLoggedIn ? (
+          <span>Welcome, {tokenObj.fname} {tokenObj.lname}!</span>
+        ) : (
+          <></>
+        )}
         <header>
           <div className="logo">
             <h1>EmpRoster</h1>
@@ -64,6 +72,7 @@ function App() {
             <Link to="/features">Features</Link> {/* Add Feautres link */}
             <Link to="/pricing">Pricing</Link> {/* Add Pricing link */}
             <Link to="/contact">Contact</Link> {/* Add Contact link */}
+            <Link to="/schedule">Schedule</Link>
             {isLoggedIn ? (
               <button className="logout" onClick={logout}>Logout</button>
             ) : (
@@ -74,10 +83,12 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/features" element={<Features />} /> {/* Add Features route */}
-            <Route path="/pricing" element={<Pricing />} /> {/* Add Pricing route */}
-            <Route path="/contact" element={<Contact />} /> {/* Add Contact route */}
+            <Route path="/features" element={<Features />} /> 
+            <Route path="/pricing" element={<Pricing />} /> 
+            <Route path="/contact" element={<Contact />} /> 
             <Route path="/login" element={<Login />} />
+            <Route path="/admin" element={<Admin/>}/>
+            <Route path="/schedule" element={<Schedule />} /> 
           </Routes>
         </main>
       </div>
