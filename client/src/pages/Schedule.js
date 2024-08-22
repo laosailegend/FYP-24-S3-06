@@ -13,25 +13,27 @@ function Schedule() {
     end_time: '',
   });
 
-  useEffect(() => {
-    fetch('/schedules')
-      .then((res) => res.json())
-      .then((data) => setSchedules(data));
-  }, []);
-
   const onChange = (date) => {
     setDate(date);
   };
 
-  const renderSchedules = (date) => {
-    const daySchedules = schedules.filter(
-      (schedule) => moment(schedule.shift_date).isSame(date, 'day')
-    );
+  useEffect(() => {
+    fetchSchedulesByDate(date);
+  }, [date]);
+const fetchSchedulesByDate = (selectedDate) => {
+    const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+    fetch(`http://localhost:8800/schedules?shift_date=${formattedDate}`)
+      .then((res) => res.json())
+      .then((data) => setSchedules(data))
+      .catch((err) => console.error('Error fetching schedules:', err));
+  };
 
-    return daySchedules.length > 0 ? (
+  const renderSchedules = () => {
+    return schedules.length > 0 ? (
       <ul>
-        {daySchedules.map((schedule) => (
+        {schedules.map((schedule) => (
           <li key={schedule.schedule_id}>
+            {schedule.fname === 'NULL' ? 'NULL' : `${schedule.fname} ${schedule.lname}`} - 
             Shift: {schedule.start_time} - {schedule.end_time}
           </li>
         ))}
