@@ -90,9 +90,8 @@ app.get("/users", (req, res) => {
         if (err) {
             return res.json(err)
         }
-        return res.json(data);
     })
-});
+})
 
 // retrive role details
 app.get("/roles", (req, res) => {
@@ -222,6 +221,127 @@ app.delete("/deletePerms/:id", (req, res) => {
             return res.status(500).json({ error: "An error occurred while deleting the permission." });
         }
         res.json({ message: "Permission deleted successfully." });
+    });
+});
+
+// #81 Manager create a task
+app.post("/createTask", (req, res) => {
+    const q = "INSERT INTO tasks (`taskname`, `description`, `manpower_required`, `timeslot`) VALUES (?, ?, ?, ?)";
+    const values = [req.body.taskname, req.body.description, req.body.manpower_required, req.body.timeslot];
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(201).json("Task created successfully");
+    });
+});
+
+// #3 Manager retrieve employee particulars
+app.get("/employees", (req, res) => {
+    // Extract query parameters
+    const { userid, fname, lname, email, contact, roleid } = req.query;
+
+    // Base query
+    let q = "SELECT userid, fname, lname, email, contact FROM users";
+    const values = [];
+
+    // Add conditions based on provided parameters
+    if (roleid) {
+        q += " WHERE roleid = ?";
+        values.push(roleid);
+    } else {
+        q += " WHERE 1=1"; // Ensures that WHERE clause is valid if no roleid is provided
+    }
+
+    if (userid) {
+        q += " AND userid = ?";
+        values.push(userid);
+    }
+    if (fname) {
+        q += " AND fname LIKE ?";
+        values.push(`%${fname}%`);
+    }
+    if (lname) {
+        q += " AND lname LIKE ?";
+        values.push(`%${lname}%`);
+    }
+    if (email) {
+        q += " AND email LIKE ?";
+        values.push(`%${email}%`);
+    }
+    if (contact) {
+        q += " AND contact LIKE ?";
+        values.push(`%${contact}%`);
+    }
+
+    // Execute query
+    db.query(q, values, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json(data);
+    });
+});
+
+// #42 Manager update timeslot
+app.put("/task/:id/timeslot", (req, res) => {
+    const taskid = req.params.id;
+    const q = "UPDATE tasks SET timeslot = ? WHERE taskid = ?";
+    const values = [req.body.timeslot, taskid];
+
+    db.query(q, values, (err, data) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Failed to update timeslot" });
+        }
+        return res.json("Timeslot updated successfully");
+    });
+});
+
+// #15 Manager update task details
+app.put("/task/:id", (req, res) => {
+    const taskid = req.params.id;
+    const updates = [];
+    const values = [];
+
+    // Dynamically build the update query and values array
+    for (const [key, value] of Object.entries(req.body)) {
+        if (value) { // Only add non-empty fields
+            updates.push(`${key} = ?`);
+            values.push(value);
+        }
+    }
+
+    if (updates.length === 0) {
+        return res.status(400).json("No updates provided");
+    }
+
+    values.push(taskid);
+    const q = `UPDATE tasks SET ${updates.join(', ')} WHERE taskid = ?`;
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Task details updated successfully");
+    });
+});
+
+
+// #17 Manager delete task
+app.delete("/task/:id", (req, res) => {
+    const taskid = req.params.id;
+    const q = "DELETE FROM tasks WHERE taskid = ?";
+
+    db.query(q, [taskid], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Task deleted successfully");
+    });
+});
+
+// #16 Manager delete timeslot
+app.delete("/task/:id/timeslot", (req, res) => {
+    const taskid = req.params.id;
+    const q = "UPDATE tasks SET timeslot = NULL WHERE taskid = ?"; // Assuming we set it to null to remove the timeslot
+
+    db.query(q, [taskid], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Timeslot removed successfully");
     });
 });
 
