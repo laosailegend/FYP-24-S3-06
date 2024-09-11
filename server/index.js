@@ -90,9 +90,8 @@ app.get("/users", (req, res) => {
         if (err) {
             return res.json(err)
         }
-        return res.json(data);
     })
-});
+})
 
 
 //10 As a employee, I want to be able to view the schedule of the timesheet so that I know who I will be working with on that shift
@@ -208,7 +207,7 @@ app.get("/permissions", (req, res) => {
     const q = "SELECT permissions.*, roles.role FROM roles INNER JOIN permissions ON `roles`.roleid = permissions.roleid;";
     db.query(q, (err, data) => {
         if (err) return res.json(err);
-        
+
         return res.json(data);
     })
 })
@@ -279,6 +278,178 @@ app.delete("/deletePerms/:id", (req, res) => {
             return res.status(500).json({ error: "An error occurred while deleting the permission." });
         }
         res.json({ message: "Permission deleted successfully." });
+    });
+});
+
+// #81 Manager create a task
+app.post("/createTask", (req, res) => {
+    const q = "INSERT INTO tasks (`taskname`, `description`, `manpower_required`, `timeslot`) VALUES (?, ?, ?, ?)";
+    const values = [req.body.taskname, req.body.description, req.body.manpower_required, req.body.timeslot];
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(201).json("Task created successfully");
+    });
+});
+
+// #3 Manager retrieve employee particulars
+app.get("/employees", (req, res) => {
+    // Extract query parameters
+    const { userid, fname, lname, email, contact, roleid } = req.query;
+
+    // Base query
+    let q = "SELECT userid, fname, lname, email, contact FROM users";
+    const values = [];
+
+    // Add conditions based on provided parameters
+    if (roleid) {
+        q += " WHERE roleid = ?";
+        values.push(roleid);
+    } else {
+        q += " WHERE 1=1"; // Ensures that WHERE clause is valid if no roleid is provided
+    }
+
+    if (userid) {
+        q += " AND userid = ?";
+        values.push(userid);
+    }
+    if (fname) {
+        q += " AND fname LIKE ?";
+        values.push(`%${fname}%`);
+    }
+    if (lname) {
+        q += " AND lname LIKE ?";
+        values.push(`%${lname}%`);
+    }
+    if (email) {
+        q += " AND email LIKE ?";
+        values.push(`%${email}%`);
+    }
+    if (contact) {
+        q += " AND contact LIKE ?";
+        values.push(`%${contact}%`);
+    }
+
+    // Execute query
+    db.query(q, values, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json(data);
+    });
+});
+
+// #42 Manager update timeslot
+app.put("/task/:id/timeslot", (req, res) => {
+    const taskid = req.params.id;
+    const q = "UPDATE tasks SET timeslot = ? WHERE taskid = ?";
+    const values = [req.body.timeslot, taskid];
+
+    db.query(q, values, (err, data) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Failed to update timeslot" });
+        }
+        return res.json("Timeslot updated successfully");
+    });
+});
+
+// #15 Manager update task details
+app.put("/task/:id", (req, res) => {
+    const taskid = req.params.id;
+    const updates = [];
+    const values = [];
+
+    // Dynamically build the update query and values array
+    for (const [key, value] of Object.entries(req.body)) {
+        if (value) { // Only add non-empty fields
+            updates.push(`${key} = ?`);
+            values.push(value);
+        }
+    }
+
+    if (updates.length === 0) {
+        return res.status(400).json("No updates provided");
+    }
+
+    values.push(taskid);
+    const q = `UPDATE tasks SET ${updates.join(', ')} WHERE taskid = ?`;
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Task details updated successfully");
+    });
+});
+
+
+// #17 Manager delete task
+app.delete("/task/:id", (req, res) => {
+    const taskid = req.params.id;
+    const q = "DELETE FROM tasks WHERE taskid = ?";
+
+    db.query(q, [taskid], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Task deleted successfully");
+    });
+});
+
+// #16 Manager delete timeslot
+app.delete("/task/:id/timeslot", (req, res) => {
+    const taskid = req.params.id;
+    const q = "UPDATE tasks SET timeslot = NULL WHERE taskid = ?"; // Assuming we set it to null to remove the timeslot
+
+    db.query(q, [taskid], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).json("Timeslot removed successfully");
+    });
+});
+
+//10 As a employee, I want to be able to view the schedule of the timesheet so that I know who I will be working with on that shift
+app.get('/schedules', (req, res) => {
+    const shiftDate = req.query.shift_date;
+
+    if (!shiftDate) {
+        return res.status(400).send({ error: 'shift_date is required' });
+    }
+
+    const query = `
+        SELECT schedules.schedule_id, schedules.start_time, schedules.end_time, 
+            COALESCE(users.fname, 'NULL') AS fname, 
+            COALESCE(users.lname, '') AS lname
+        FROM schedules
+        LEFT JOIN users ON schedules.userid = users.userid
+        WHERE schedules.shift_date = ?
+    `;
+
+    db.query(query, [shiftDate], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send(err);
+        }
+        res.json(results);
+    });
+});
+//13 As a employee, I want to be able to update my availability so that my manager knows my availability
+app.put('/updateAvailability/:id', (req, res) => {
+    const availabilityId = req.params.id;
+    const values = [
+        req.body.available_date,
+        req.body.start_time,
+        req.body.end_time,
+        req.body.status
+    ];
+
+    const sql = `
+        UPDATE availability 
+        SET available_date = ?, 
+            start_time = ?, 
+            end_time = ?, 
+            status = ? 
+        WHERE availability_id = ?`;
+
+    db.query(sql, [...values, availabilityId], (err, result) => {
+        if (err) {
+            return res.status(500).json(err);
+        }
+        res.status(200).json("Availability updated successfully");
     });
 });
 

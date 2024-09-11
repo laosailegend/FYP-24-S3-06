@@ -13,15 +13,14 @@ function Schedule() {
     end_time: '',
   });
 
-  useEffect(() => {
-    fetchSchedulesByDate(date);
-  }, [date]);
-
   const onChange = (date) => {
     setDate(date);
   };
 
-  const fetchSchedulesByDate = (selectedDate) => {
+  useEffect(() => {
+    fetchSchedulesByDate(date);
+  }, [date]);
+const fetchSchedulesByDate = (selectedDate) => {
     const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
     fetch(`http://localhost:8800/schedules?shift_date=${formattedDate}`)
       .then((res) => res.json())
@@ -43,8 +42,6 @@ function Schedule() {
       <p>No schedules for this day.</p>
     );
   };
-  
-  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -85,7 +82,7 @@ function Schedule() {
       <Calendar onChange={onChange} value={date} />
       <div className="schedule-details">
         <h3>Schedules for {formatDate(date)}</h3>
-        {renderSchedules()}
+        {renderSchedules(date)}
       </div>
 
       <div className="add-shift-form">
