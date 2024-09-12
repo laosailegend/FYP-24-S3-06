@@ -150,7 +150,7 @@ app.get("/permissions", (req, res) => {
     const q = "SELECT permissions.*, roles.role FROM roles INNER JOIN permissions ON `roles`.roleid = permissions.roleid;";
     db.query(q, (err, data) => {
         if (err) return res.json(err);
-        
+
         return res.json(data);
     })
 })
@@ -342,6 +342,57 @@ app.delete("/task/:id/timeslot", (req, res) => {
     db.query(q, [taskid], (err, data) => {
         if (err) return res.status(500).json(err);
         return res.status(200).json("Timeslot removed successfully");
+    });
+});
+
+//10 As a employee, I want to be able to view the schedule of the timesheet so that I know who I will be working with on that shift
+app.get('/schedules', (req, res) => {
+    const shiftDate = req.query.shift_date;
+
+    if (!shiftDate) {
+        return res.status(400).send({ error: 'shift_date is required' });
+    }
+
+    const query = `
+        SELECT schedules.schedule_id, schedules.start_time, schedules.end_time, 
+            COALESCE(users.fname, 'NULL') AS fname, 
+            COALESCE(users.lname, '') AS lname
+        FROM schedules
+        LEFT JOIN users ON schedules.userid = users.userid
+        WHERE schedules.shift_date = ?
+    `;
+
+    db.query(query, [shiftDate], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send(err);
+        }
+        res.json(results);
+    });
+});
+//13 As a employee, I want to be able to update my availability so that my manager knows my availability
+app.put('/updateAvailability/:id', (req, res) => {
+    const availabilityId = req.params.id;
+    const values = [
+        req.body.available_date,
+        req.body.start_time,
+        req.body.end_time,
+        req.body.status
+    ];
+
+    const sql = `
+        UPDATE availability 
+        SET available_date = ?, 
+            start_time = ?, 
+            end_time = ?, 
+            status = ? 
+        WHERE availability_id = ?`;
+
+    db.query(sql, [...values, availabilityId], (err, result) => {
+        if (err) {
+            return res.status(500).json(err);
+        }
+        res.status(200).json("Availability updated successfully");
     });
 });
 
