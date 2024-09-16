@@ -7,64 +7,90 @@ import './style.css';
 function Schedule() {
   const [date, setDate] = useState(new Date());
   const [schedules, setSchedules] = useState([]);
+  const [tasks, setTasks] = useState([]); // State for tasks
+  const [employees, setEmployees] = useState([]);
   const [shiftDetails, setShiftDetails] = useState({
     shift_date: '',
     start_time: '',
     end_time: '',
-    salary_per_hour: '', // New state for salary
+    salary_per_hour: '',
+    employee_id: '',
   });
 
   useEffect(() => {
     fetch('/schedules')
       .then((res) => res.json())
       .then((data) => setSchedules(data));
+
+    fetch('/employees')
+      .then((res) => res.json())
+      .then((data) => setEmployees(data));
+
+    // Load tasks from local storage
+    const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    setTasks(savedTasks);
   }, []);
 
   const onChange = (date) => {
     setDate(date);
-    // Update the shift date to the selected date
     setShiftDetails({
       ...shiftDetails,
       shift_date: moment(date).format('DD/MM/YYYY'),
     });
   };
 
-  const renderSchedules = (date) => {
+  const renderSchedulesAndTasks = (date) => {
     const daySchedules = schedules.filter(
       (schedule) => moment(schedule.shift_date).isSame(date, 'day')
     );
 
-    return daySchedules.length > 0 ? (
-      <ul>
-        {daySchedules.map((schedule) => (
-          <li key={schedule.schedule_id}>
-            Shift: {schedule.start_time} - {schedule.end_time}
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <p>No schedules for this day.</p>
+    const dayTasks = tasks.filter(
+      (task) => moment(task.task_date).isSame(date, 'day')
+    );
+
+    return (
+      <div>
+        <div className="schedules">
+          <h4>Shifts:</h4>
+          {daySchedules.length > 0 ? (
+            <ul>
+              {daySchedules.map((schedule) => (
+                <li key={schedule.schedule_id}>
+                  Shift: {schedule.start_time} - {schedule.end_time} | Salary: {schedule.salary_per_hour} | Employee: {employees.find(emp => emp.id === schedule.employee_id)?.name}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No shifts for this day.</p>
+          )}
+        </div>
+        <div className="tasks">
+          <h4>Tasks:</h4>
+          {dayTasks.length > 0 ? (
+            <ul>
+              {dayTasks.map((task, index) => (
+                <li key={index}>
+                  Task: {task.job_scope} | Description: {task.description} | Manpower Required: {task.manpower_required}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No tasks for this day.</p>
+          )}
+        </div>
+      </div>
     );
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'shift_date') {
-      // Convert date from dd/mm/yyyy to yyyy-mm-dd for backend
-      const formattedDate = moment(value, 'DD/MM/YYYY').isValid()
-        ? value
-        : moment(value, 'YYYY-MM-DD').format('DD/MM/YYYY');
-      setShiftDetails({ ...shiftDetails, [name]: formattedDate });
-    } else {
-      setShiftDetails({ ...shiftDetails, [name]: value });
-    }
+    setShiftDetails({ ...shiftDetails, [name]: value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { shift_date, start_time, end_time, salary_per_hour } = shiftDetails;
+    const { shift_date, start_time, end_time, salary_per_hour, employee_id } = shiftDetails;
 
-    // Convert shift_date from dd/mm/yyyy to yyyy-mm-dd for backend
     const formattedShiftDate = moment(shift_date, 'DD/MM/YYYY').format('YYYY-MM-DD');
 
     fetch('/schedule', {
@@ -72,12 +98,12 @@ function Schedule() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ shift_date: formattedShiftDate, start_time, end_time, salary_per_hour }),
+      body: JSON.stringify({ shift_date: formattedShiftDate, start_time, end_time, salary_per_hour, employee_id }),
     })
       .then((res) => res.json())
       .then((data) => {
         alert('Shift added successfully');
-        setSchedules([...schedules, { schedule_id: data.id, shift_date: formattedShiftDate, start_time, end_time, salary_per_hour }]);
+        setSchedules([...schedules, { schedule_id: data.id, shift_date: formattedShiftDate, start_time, end_time, salary_per_hour, employee_id }]);
       })
       .catch((err) => {
         console.error('Error:', err);
@@ -85,19 +111,15 @@ function Schedule() {
       });
   };
 
-  // Convert date to dd/mm/yyyy format for display
   const formatDate = (date) => moment(date).format('DD/MM/YYYY');
-
-  // Ensure input value is in yyyy-mm-dd format
-  const formatInputDate = (date) => moment(date, 'DD/MM/YYYY').format('YYYY-MM-DD');
 
   return (
     <div className="schedule-container">
       <h2>Employee Schedule</h2>
       <Calendar onChange={onChange} value={date} />
       <div className="schedule-details">
-        <h3>Schedules for {formatDate(date)}</h3>
-        {renderSchedules(date)}
+        <h3>Details for {formatDate(date)}</h3>
+        {renderSchedulesAndTasks(date)}
       </div>
 
       <div className="add-shift-form">
@@ -106,7 +128,7 @@ function Schedule() {
           <div>
             <label>Shift Date:</label>
             <input
-              type="text" // Changed from date to text to handle custom format
+              type="text"
               name="shift_date"
               value={shiftDetails.shift_date}
               onChange={handleInputChange}
@@ -144,6 +166,22 @@ function Schedule() {
               placeholder="Enter salary"
               required
             />
+          </div>
+          <div>
+            <label>Employee:</label>
+            <select
+              name="employee_id"
+              value={shiftDetails.employee_id}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Employee</option>
+              {employees.map((employee) => (
+                <option key={employee.id} value={employee.id}>
+                  {employee.name}
+                </option>
+              ))}
+            </select>
           </div>
           <button type="submit">Add Shift</button>
         </form>

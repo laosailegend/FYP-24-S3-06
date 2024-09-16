@@ -9,7 +9,7 @@ body {
 }
 
 .App {
-    max-width: 1200px;
+    max-width: 1500px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -18,28 +18,37 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 50px;
+    padding: 2rem 30px; /* Increased padding for more space */
+    height: 80px; /* Adjusted height */
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .logo h1 {
     color: #0000ff;
+    font-size: 1.8rem; /* Adjust font size if needed */
+}
+
+nav {
+    display: flex;
+    align-items: center;
 }
 
 nav a {
-    margin: 0 15px;
+    margin: 0 20px; /* Increased margin for spacing */
     text-decoration: none;
     color: #333;
+    font-size: 1.1rem; /* Adjust font size if needed */
 }
 
 nav .login {
-    background-color:#006eff93;
+    background-color: #006eff93;
     color: white;
-    padding: 10px 20px;
+    padding: 12px 24px; /* Adjust padding for button */
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 1rem; /* Adjust font size if needed */
 }
 
 main {
@@ -358,4 +367,136 @@ footer {
   .add-shift-form button:hover {
     background-color: #2980b9;
   }
+/* Availability*/
+
+.availability-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
   
+  .availability-details {
+    margin-top: 20px;
+  }
+  
+  .availability-list {
+    margin-top: 20px;
+  }
+  
+  button {
+    margin-top: 10px;
+  }
+  
+  /* Center the calendar */
+  .react-calendar {
+    margin: 0 auto;
+  }
+  
+  /* Time Off Request */
+  .time-off-request-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  form {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  form div {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  input, textarea {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  
+  button {
+    margin-top: 10px;
+    padding: 10px;
+  }
+  
+  .request-history {
+    margin-top: 20px;
+  }
+  
+  .request-history ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .request-history li {
+    margin-bottom: 10px;
+  }
+  
+  .calendar {
+    margin: 0 auto;
+  }
+  
+  /* Tasks */
+  /* Tasks Page Styles */
+.tasks-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.tasks-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tasks-form h2 {
+    color: #006eff93;
+    margin-bottom: 20px;
+}
+
+.tasks-form label {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.tasks-form input {
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.tasks-form button {
+    background-color: #006eff93;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.tasks-form button:hover {
+    background-color: #0056b3;
+}

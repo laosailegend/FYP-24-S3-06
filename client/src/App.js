@@ -4,6 +4,10 @@ import './style.css';
 import Login from './Login';
 import Features from './Features'; // Import the Features component
 import Contact from './Contact'; // Import the Contact component
+import TimeOffRequest from './TimeOffRequest'; // Import the Contact component
+import Availability from './Availability'; // Import the Availability component
+import Tasks from './Tasks'; // Import the Tasks component
+import Payroll from './Payroll'; // Import the Payroll component
 import Pricing from './Pricing'; // Import the Pricing component
 import Schedule from './Schedule'; // Import the Schedule component
 import scheduleImage from './Schedule.png'; // Schedule Image
@@ -69,7 +73,11 @@ function App() {
             <Link to="/features">Features</Link> {/* Add Feautres link */}
             <Link to="/pricing">Pricing</Link> {/* Add Pricing link */}
             <Link to="/contact">Contact</Link> {/* Add Contact link */}
-            <Link to="/schedule">Schedule</Link> {/* Add Schedule link */}
+            <Link to="/Availability">Availability(Employee)</Link> {/* Add Features link */}
+            <Link to="/Tasks">Tasks(Manager)</Link> {/* Add Features link */}
+            <Link to="/Payroll">Payroll(HR)</Link> {/* Add Payroll link */}
+            <Link to="/schedule">Create Schedule(Manager)</Link> {/* Add Schedule link */}
+            <Link to="/TimeOffRequest">Request Time Off(Employee)</Link> {/* Add Request time off link */}
             <Link to="/login" className="login">Login</Link> {/* Add Login link */}
           </nav>
         </header>
@@ -79,7 +87,11 @@ function App() {
             <Route path="/features" element={<Features />} /> {/* Add Features route */}
             <Route path="/pricing" element={<Pricing />} /> {/* Add Pricing route */}
             <Route path="/contact" element={<Contact />} /> {/* Add Contact route */}
+            <Route path="/Tasks" element={<Tasks />} /> {/* Add Contact route */}
+            <Route path="/Payroll" element={<Payroll />} /> {/* Add Payroll route */}
+            <Route path="/Availability" element={<Availability />} /> {/* Add Availability route */}
             <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
+            <Route path="/TimeOffRequest" element={<TimeOffRequest />} /> {/* Add Request Time Off route */}
             <Route path="/login" element={<Login onLogin={handleLogin} />} /> {/* Add Login route */}
           </Routes>
         </main>
