@@ -47,7 +47,7 @@ const UpdateUser = () => {
             <input type="text" placeholder='nric' onChange={handleChange} name="nric" maxLength={10} />
             <input type="text" placeholder='first name' onChange={handleChange} name="fname" />
             <input type="text" placeholder='last name' onChange={handleChange} name='lname' />
-            <input type="text" placeholder='contact' onChange={handleChange} name='contact'/>
+            <input type="text" placeholder='contact' onChange={handleChange} name='contact' maxLength={8}/>
             <input type="email" placeholder='email' onChange={handleChange} name='email' />
             <input type="password" placeholder='password' onChange={handleChange} name='password'/>
 

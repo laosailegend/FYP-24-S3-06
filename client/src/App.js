@@ -10,6 +10,7 @@ import { AuthContext } from './auth/AuthContext';
 
 import Admin from './pages/Admin';
 import Schedule from './pages/Schedule'; // Import the Schedule component
+import UpdateUser from './pages/UpdateUser';
 
 function Home() {
   return (
@@ -89,6 +90,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin/>}/>
             <Route path="/schedule" element={<Schedule />} /> 
+            {/* account for merging */}
+            <Route path='/update/:id' element={<UpdateUser/>}/>
           </Routes>
         </main>
       </div>
