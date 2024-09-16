@@ -5,7 +5,6 @@ import axios from 'axios';
 
 const Admin = () => {
     const [selectedMenu, setSelectedMenu] = useState('permissions'); // Default to 'permissions'
-    // console.log('Selected Menu:', selectedMenu);
 
     // Function to toggle menus
     const handleMenuChange = (menu) => {
@@ -79,10 +78,7 @@ const Admin = () => {
     }
 
     useEffect(() => {
-        if (tokenObj === null) {
-            return;
-        }
-
+        
         if (!tokenObj || tokenObj.role !== 1) {
             window.alert("You are not authorized to view this page");
             navigate("/", { replace: true });
