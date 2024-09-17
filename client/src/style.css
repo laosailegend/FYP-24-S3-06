@@ -19,6 +19,7 @@ body {
   padding: 20px;
 }
 
+/* Header */
 header {
   background-color: #fff;
   padding: 20px;
@@ -26,16 +27,23 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
 
 header .logo h1 {
   color: #006eff93;
   font-size: 2rem;
+  text-align: center;
 }
 
 nav {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   margin-top: 10px;
 }
 
@@ -60,6 +68,26 @@ nav .login {
   border-radius: 5px;
 }
 
+/* Responsive Header */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+  }
+
+  header .logo h1 {
+    font-size: 1.5rem;
+  }
+
+  nav {
+    flex-direction: column;
+  }
+
+  nav a {
+    margin: 10px 0;
+  }
+}
+
+/* Main */
 main {
   text-align: center;
   padding: 50px 20px;
