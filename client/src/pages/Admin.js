@@ -11,7 +11,6 @@ const Admin = () => {
         setSelectedMenu(menu);
     };
 
-    const { tokenObj } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [roles, setRoles] = useState([]);
@@ -77,8 +76,9 @@ const Admin = () => {
         }
     }
 
-    useEffect(() => {
+    const { tokenObj } = useContext(AuthContext);
 
+    useEffect(() => {
         const fetchRoles = async () => {
             try {
                 const res = await axios.get("http://localhost:8800/roles");
@@ -108,7 +108,8 @@ const Admin = () => {
         fetchAllUsers();
         fetchRoles();
         fetchPerms();
-    }, [tokenObj, navigate]);
+        
+    }, []);
 
     // Handle checkbox change
     const handleCheckboxChange = (permId, permissionType) => {
@@ -189,10 +190,10 @@ const Admin = () => {
         }
     };
 
-    // if (!tokenObj || tokenObj.role !== 1) {
-    //     window.alert("You are not authorized to view this page");
-    //     navigate("/", { replace: true });
-    // }
+    if (!tokenObj || tokenObj.role !== 1) {
+        window.alert("You are not authorized to view this page");
+        navigate("/", { replace: true });
+    }
 
     // If tokenObj is still null, don't render the content yet
     if (tokenObj === null) {
