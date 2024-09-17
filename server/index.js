@@ -95,6 +95,45 @@ app.get("/users", (req, res) => {
     })
 })
 
+// retrieve user details without password/NRIC for managers only
+app.get("/managerGetUsers", (req, res) => {
+    // inner join to also get their role type as well
+    const q = "SELECT fname, lname, contact, email FROM users";
+    db.query(q, (err, data) => {
+        if (err) {
+            console.log(err);
+            return res.json(err)
+        }
+        return res.json(data);
+    })
+})
+
+// retrieve user details for employees only, no NRIC no password
+app.get("/employeeGetUser", (req, res) => {
+    // inner join to also get their role type as well
+    const q = "SELECT fname, lname, contact, email FROM users INNER JOIN roles ON users.roleid = roles.roleid WHERE userid = ?"
+    db.query(q, (err, data) => {
+        if (err) {
+            console.log(err);
+            return res.json(err)
+        }
+        return res.json(data);
+    })
+})
+
+// retrieve user details w/o password for HR only + role
+app.get("/HRGetUser", (req, res) => {
+    // inner join to also get their role type as well
+    const q = "SELECT userid, nric, fname, lname, contact, email FROM users INNER JOIN roles ON users.roleid = roles.roleid"
+    db.query(q, (err, data) => {
+        if (err) {
+            console.log(err);
+            return res.json(err)
+        }
+        return res.json(data);
+    })
+})
+
 // retrive role details
 app.get("/roles", (req, res) => {
     const q = "SELECT * FROM roles"

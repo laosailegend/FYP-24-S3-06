@@ -16,7 +16,6 @@ import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
 
 import { AuthContext } from './auth/AuthContext';
 
-
 function Home() {
   return (
     <>
