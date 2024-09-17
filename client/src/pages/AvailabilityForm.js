@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import '../style.css'; // Assuming the styles are in 'styles.css'
 
 const AvailabilityForm = () => {
     const [availabilityList, setAvailabilityList] = useState([]);
@@ -7,7 +8,7 @@ const AvailabilityForm = () => {
         available_date: '',
         start_time: '',
         end_time: '',
-        status: 'available',
+        status: 'pending', // Default to 'pending'
     });
 
     const [editingId, setEditingId] = useState(null);
@@ -18,7 +19,7 @@ const AvailabilityForm = () => {
 
     const fetchAvailability = async () => {
         try {
-            const response = await axios.get('http://localhost:8800/availability');
+            const response = await axios.get('http://localhost:8800/available');
             setAvailabilityList(response.data);
         } catch (error) {
             console.error('Error fetching availability:', error);
@@ -43,7 +44,7 @@ const AvailabilityForm = () => {
             available_date: '',
             start_time: '',
             end_time: '',
-            status: 'available',
+            status: 'pending', 
         });
         setEditingId(null);
         fetchAvailability();
@@ -51,7 +52,7 @@ const AvailabilityForm = () => {
 
     const createAvailability = async () => {
         try {
-            await axios.post('http://localhost:8800/availability', formData);
+            await axios.post('http://localhost:8800/available', formData);
         } catch (error) {
             console.error('Error creating availability:', error);
         }
@@ -59,37 +60,39 @@ const AvailabilityForm = () => {
 
     const updateAvailability = async () => {
         try {
-            await axios.put(`http://localhost:8800/availability/${editingId}`, formData);
+            await axios.put(`http://localhost:8800/available/${editingId}`, formData);
         } catch (error) {
             console.error('Error updating availability:', error);
         }
     };
 
-    const handleEdit = (id) => {
-        const availability = availabilityList.find(item => item.availability_id === id);
-        setFormData({
-            available_date: availability.available_date,
-            start_time: availability.start_time,
-            end_time: availability.end_time,
-            status: availability.status,
-        });
-        setEditingId(id);
-    };
-
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:8800/availability/${id}`);
+            await axios.delete(`http://localhost:8800/available/${id}`);
             fetchAvailability();
         } catch (error) {
             console.error('Error deleting availability:', error);
         }
     };
 
+    // Utility function to format date and time
+    const formatDate = (dateString) => {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+
+    const formatTime = (timeString) => {
+        const [hours, minutes] = timeString.split(':');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const adjustedHours = hours % 12 || 12;  // Convert 24-hour to 12-hour format
+        return `${adjustedHours}:${minutes} ${ampm}`;
+    };
+
     return (
-        <div>
+        <div className="availability-form-container">
             <h2>Availability Preferences</h2>
             <form onSubmit={handleSubmit}>
-                <div>
+                <div className="availability-form-group">
                     <label>Date:</label>
                     <input
                         type="date"
@@ -99,7 +102,7 @@ const AvailabilityForm = () => {
                         required
                     />
                 </div>
-                <div>
+                <div className="availability-form-group">
                     <label>Start Time:</label>
                     <input
                         type="time"
@@ -109,7 +112,7 @@ const AvailabilityForm = () => {
                         required
                     />
                 </div>
-                <div>
+                <div className="availability-form-group">
                     <label>End Time:</label>
                     <input
                         type="time"
@@ -119,7 +122,7 @@ const AvailabilityForm = () => {
                         required
                     />
                 </div>
-                <div>
+                <div className="availability-form-group">
                     <label>Status:</label>
                     <select
                         name="status"
@@ -127,23 +130,41 @@ const AvailabilityForm = () => {
                         onChange={handleInputChange}
                         required
                     >
-                        <option value="available">Available</option>
-                        <option value="unavailable">Unavailable</option>
+                        <option value="pending">Pending</option>
                     </select>
                 </div>
-                <button type="submit">{editingId ? 'Update' : 'Create'}</button>
+                <button className="availability-button" type="submit">
+                    {editingId ? 'Update' : 'Create'}
+                </button>
             </form>
 
-            <h3>Existing Availability</h3>
-            <ul>
-                {availabilityList.map(item => (
-                    <li key={item.availability_id}>
-                        {item.available_date} - {item.start_time} to {item.end_time} ({item.status})
-                        <button onClick={() => handleEdit(item.availability_id)}>Edit</button>
-                        <button onClick={() => handleDelete(item.availability_id)}>Delete</button>
-                    </li>
-                ))}
-            </ul>
+            <div className="availability-list">
+                <h3>Existing Availability</h3>
+                <ul>
+                    {availabilityList.map(item => (
+                        <li key={item.availability_id} className="availability-card">
+                            <div>
+                                <strong>User:</strong> {item.fname} {item.lname}
+                            </div>
+                            <div>
+                                <strong>Date:</strong> {formatDate(item.available_date)}
+                            </div>
+                            <div>
+                                <strong>Time:</strong> {formatTime(item.start_time)} - {formatTime(item.end_time)}
+                            </div>
+                            <div>
+                                <strong>Status:</strong> 
+                                <span className={item.status === 'available' ? 'status-available' : item.status === 'unavailable' ? 'status-unavailable' : 'status-pending'}>
+                                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                                </span>
+                            </div>
+                            <div>
+                                <button onClick={() => handleDelete(item.availability_id)}>Delete</button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 };
