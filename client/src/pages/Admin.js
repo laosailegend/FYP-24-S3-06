@@ -78,11 +78,6 @@ const Admin = () => {
     }
 
     useEffect(() => {
-        
-        if (!tokenObj || tokenObj.role !== 1) {
-            window.alert("You are not authorized to view this page");
-            navigate("/", { replace: true });
-        }
 
         const fetchRoles = async () => {
             try {
@@ -194,6 +189,11 @@ const Admin = () => {
         }
     };
 
+    if (!tokenObj || tokenObj.role !== 1) {
+        window.alert("You are not authorized to view this page");
+        navigate("/", { replace: true });
+    }
+    
     // If tokenObj is still null, don't render the content yet
     if (tokenObj === null) {
         return null;  // You can replace this with a loading indicator if you prefer
