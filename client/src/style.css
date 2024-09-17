@@ -19,6 +19,7 @@ body {
   padding: 20px;
 }
 
+/* Header */
 header {
   background-color: #fff;
   padding: 20px;
@@ -26,16 +27,23 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
 
 header .logo h1 {
   color: #006eff93;
   font-size: 2rem;
+  text-align: center;
 }
 
 nav {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   margin-top: 10px;
 }
 
@@ -60,6 +68,26 @@ nav .login {
   border-radius: 5px;
 }
 
+/* Responsive Header */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+  }
+
+  header .logo h1 {
+    font-size: 1.5rem;
+  }
+
+  nav {
+    flex-direction: column;
+  }
+
+  nav a {
+    margin: 10px 0;
+  }
+}
+
+/* Main */
 main {
   text-align: center;
   padding: 50px 20px;
@@ -460,4 +488,66 @@ button[type="submit"]:hover {
 .task-list tr:nth-child(even) {
   background-color: #f9f9f9;
 }
+
+/* Admin Page */
+.perm-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 10px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  float: left;
+}
+
+.perms-list, .user-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.perm-card ul, .add-form ul, .user-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.add-form, .update-form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  margin: 40px auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-form input, .add-form select, .update-form input, .update-form select {
+  width: 90%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.menu-buttons button, .admin-form button, .add-form button, .user-card button, .update-form button {
+  margin: 0px auto;
+  margin-top: 10px;
+  display: block;
+  padding: 10px 20px;
+  font-family: 'Century Gothic';
+  background-color: skyblue;
+  border-style: none;
+  border-radius: 5px;
+}
+
+.user-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 10px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  float: left;
+  width: 40%;
+  text-align: justify;
+}
+
+/* Update user page styles uses similar styling to admin page above*/
 

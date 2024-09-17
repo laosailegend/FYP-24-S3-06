@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useState, useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../auth/AuthContext';
@@ -36,14 +36,13 @@ const UpdateUser = () => {
     };
     console.log(user);
 
+    // if all else fails try useEffect again
     const { tokenObj } = useContext(AuthContext);
 
-    useEffect(() => {
-        if (!tokenObj || tokenObj.role !== 1) {
-            window.alert("You are not authorized to view this page");
-            navigate("/", { replace: true });
-        }
-    }, [tokenObj, navigate]);
+    if (!tokenObj || tokenObj.role !== 1) {
+        window.alert("You are not authorized to view this page");
+        navigate("/", { replace: true });
+    }
 
     // If tokenObj is still null, don't render the content yet
     if (tokenObj === null) {
@@ -51,8 +50,8 @@ const UpdateUser = () => {
     }
 
     return (
-        <div className="form">
-            <h1>update user</h1>
+        <div className="update-form">
+            <h1>Update user</h1>
             <select name="roleid" onChange={handleChange}>
                 <option value="" disabled selected>Select one</option>
                 <option value="1">admin</option>
