@@ -36,7 +36,7 @@ function TimeOffRequest() {
       body: JSON.stringify({ start_date: formattedStartDate, end_date: formattedEndDate, reason: reasonText }),
     })
       .then((res) => res.json())
-      .then((data) => {
+      .then(() => {
         alert('Time off request submitted successfully');
         setRequests([...requests, { start_date: formattedStartDate, end_date: formattedEndDate, reason: reasonText }]);
       })
@@ -52,14 +52,21 @@ function TimeOffRequest() {
   return (
     <div className="time-off-request-container">
       <h2>Request Time Off</h2>
+      <div className="calendar-container">
+        <Calendar
+          onChange={(date) => handleDateChange(date, true)}
+          value={startDate}
+          className="calendar"
+        />
+        <Calendar
+          onChange={(date) => handleDateChange(date, false)}
+          value={endDate}
+          className="calendar"
+        />
+      </div>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Start Date:</label>
-          <Calendar
-            onChange={(date) => handleDateChange(date, true)}
-            value={startDate}
-            className="calendar"
-          />
           <input
             type="text"
             value={formatDate(startDate)}
@@ -69,11 +76,6 @@ function TimeOffRequest() {
         </div>
         <div>
           <label>End Date:</label>
-          <Calendar
-            onChange={(date) => handleDateChange(date, false)}
-            value={endDate}
-            className="calendar"
-          />
           <input
             type="text"
             value={formatDate(endDate)}
