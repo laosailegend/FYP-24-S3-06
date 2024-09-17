@@ -189,11 +189,11 @@ const Admin = () => {
         }
     };
 
-    if (!tokenObj || tokenObj.role !== 1) {
-        window.alert("You are not authorized to view this page");
-        navigate("/", { replace: true });
-    }
-    
+    // if (!tokenObj || tokenObj.role !== 1) {
+    //     window.alert("You are not authorized to view this page");
+    //     navigate("/", { replace: true });
+    // }
+
     // If tokenObj is still null, don't render the content yet
     if (tokenObj === null) {
         return null;  // You can replace this with a loading indicator if you prefer
@@ -212,8 +212,8 @@ const Admin = () => {
 
             {/* Conditionally render Permissions or Users based on selectedMenu */}
             {selectedMenu === 'permissions' && (
-                <div className="form">
-                    <div className="form">
+                <div className="admin-form">
+                    <div className="add-form">
                         <h1>Add New Permission</h1>
                         <select name="roleid" onChange={handleChange} defaultValue="">
                             <option disabled value="">Select one</option>
@@ -222,23 +222,32 @@ const Admin = () => {
                             ))}
                         </select>
                         <input type="text" placeholder='Resource' onChange={handleChange} name='resource' />
-                        <label>
-                            Can Create:
-                            <input type="checkbox" name="can_create" onChange={handleCheckboxChangeForNewPerm} />
-                        </label>
-                        <label>
-                            Can Read:
-                            <input type="checkbox" name="can_read" onChange={handleCheckboxChangeForNewPerm} />
-                        </label>
-                        <label>
-                            Can Update:
-                            <input type="checkbox" name="can_update" onChange={handleCheckboxChangeForNewPerm} />
-                        </label>
-                        <label>
-                            Can Delete:
-                            <input type="checkbox" name="can_delete" onChange={handleCheckboxChangeForNewPerm} />
-                        </label>
-
+                        <ul>
+                            <li>
+                                <label>
+                                    Can Create:
+                                    <input type="checkbox" name="can_create" onChange={handleCheckboxChangeForNewPerm} />
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    Can Read:
+                                    <input type="checkbox" name="can_read" onChange={handleCheckboxChangeForNewPerm} />
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    Can Update:
+                                    <input type="checkbox" name="can_update" onChange={handleCheckboxChangeForNewPerm} />
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    Can Delete:
+                                    <input type="checkbox" name="can_delete" onChange={handleCheckboxChangeForNewPerm} />
+                                </label>
+                            </li>
+                        </ul>
                         <button onClick={handleCreate}>Add</button>
                     </div>
 
@@ -293,8 +302,9 @@ const Admin = () => {
 
             {selectedMenu === 'users' && (
                 <>
-                    <div className="form">
-                        <h1>add new user</h1>
+                    <div className="add-form">
+                        <h1>Add new user</h1>
+                        <br/>
                         <select name="roleid" onChange={handleUserChange} defaultValue="">
                             <option disabled selected>Select one</option>
                             <option value="1">admin</option>
@@ -302,26 +312,43 @@ const Admin = () => {
                             <option value="3">employee</option>
                             <option value="4">HR</option>
                         </select>
-                        <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} />
-                        <input type="text" placeholder='first name' onChange={handleUserChange} name='fname' />
-                        <input type="text" placeholder='last name' onChange={handleUserChange} name='lname' />
-                        <input type="text" placeholder='contact' onChange={handleUserChange} name='contact' maxLength={8} />
-                        <input type="email" placeholder="email" onChange={handleUserChange} name='email' />
-                        <input type="password" placeholder="password" onChange={handleUserChange} name='password' />
 
-                        <button onClick={handleClick}>add</button>
+                        <ul>
+                            <li>
+                                <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} />
+                            </li>
+                            <li>
+                                <input type="text" placeholder='first name' onChange={handleUserChange} name='fname' />
+                            </li>
+                            <li>
+                                <input type="text" placeholder='last name' onChange={handleUserChange} name='lname' />
+                            </li>
+                            <li>
+                                <input type="text" placeholder='contact' onChange={handleUserChange} name='contact' maxLength={8} />
+                            </li>
+                            <li>
+                                <input type="email" placeholder="email" onChange={handleUserChange} name='email' />
+                            </li>
+                            <li>
+                            <input type="password" placeholder="password" onChange={handleUserChange} name='password' />
+                            </li>
+                        </ul>
+                        <button onClick={handleClick}>Add</button>
                     </div>
-                    <div className="user-list">
-                        <h1>user list</h1>
-                        <div className="users">
+                    <div className="">
+                        <h1>User List</h1>
+                        <div className="user-list">
                             {users.map(user => (
-                                <div className="book" key={user.userid}>
-                                    <h2>{user.fname} {user.lname}</h2>
-                                    <p>{user.role}</p>
-                                    <p>{user.nric}</p>
-                                    <p>{user.email}</p>
-                                    <p>{user.contact}</p>
-                                    <p>{user.password}</p>
+                                <div className="user-card" key={user.userid}>
+                                    <ul>
+                                        <li><h2>First Name: {user.fname}</h2></li>
+                                        <li><h2>Last Name: {user.lname}</h2></li>
+                                        <li><p><b>Role: </b>{user.role}</p></li>
+                                        <li><p><b>NRIC:</b> {user.nric}</p></li>
+                                        <li><p><b>Email:</b> {user.email}</p></li>
+                                        <li><p><b>Contact:</b> {user.contact}</p></li>
+                                        <li><p><b>Password:</b> {user.password}</p></li>
+                                    </ul>
                                     <button className="update"><Link to={`/update/${user.userid}`}>update</Link></button>
                                     <button className="delete" onClick={() => handleUserDelete(user.userid)}>delete</button>
                                 </div>
@@ -330,7 +357,6 @@ const Admin = () => {
                     </div>
                 </>
             )}
-
         </>
     );
 };

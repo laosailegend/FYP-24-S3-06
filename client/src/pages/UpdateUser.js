@@ -51,8 +51,8 @@ const UpdateUser = () => {
     }
 
     return (
-        <div className="form">
-            <h1>update user</h1>
+        <div className="update-form">
+            <h1>Update user</h1>
             <select name="roleid" onChange={handleChange}>
                 <option value="" disabled selected>Select one</option>
                 <option value="1">admin</option>
