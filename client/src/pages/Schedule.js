@@ -1,67 +1,85 @@
-import React, { useState, useEffect } from "react";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
-import moment from "moment";
-import "../style.css";
+import React, { useState, useEffect } from 'react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import moment from 'moment';
+import '../style.css';
 
 function Schedule() {
   const [date, setDate] = useState(new Date());
   const [schedules, setSchedules] = useState([]);
+  const [tasks, setTasks] = useState([]); // State for tasks
+  const [employees, setEmployees] = useState([]);
   const [shiftDetails, setShiftDetails] = useState({
-    shift_date: moment(new Date()).format("YYYY-MM-DD"), // Initialize with current date in yyyy-mm-dd format
-    start_time: "",
-    end_time: "",
-    salary: "", // New state for salary
+    shift_date: '',
+    start_time: '',
+    end_time: '',
+    salary_per_hour: '',
+    employee_id: '',
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    const fetchSchedules = async () => {
-      try {
-        const response = await fetch("http://localhost:8800/schedules");
-        const data = await response.json();
-        setSchedules(data);
-      } catch (error) {
-        console.error("Error fetching schedules:", error);
-      }
-    }
+    fetch('/schedules')
+      .then((res) => res.json())
+      .then((data) => setSchedules(data));
 
-    fetchSchedules();
+    fetch('/employees')
+      .then((res) => res.json())
+      .then((data) => setEmployees(data));
 
+    // Load tasks from local storage
+    const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    setTasks(savedTasks);
   }, []);
 
   const onChange = (date) => {
     setDate(date);
-    const formattedDate = moment(date).format("YYYY-MM-DD");
     setShiftDetails({
       ...shiftDetails,
-      shift_date: formattedDate,
+      shift_date: moment(date).format('DD/MM/YYYY'),
     });
   };
 
-  const renderSchedules = (date) => {
-    const daySchedules = schedules.filter((schedule) =>
-      moment(schedule.shift_date).isSame(date, "day")
+  const renderSchedulesAndTasks = (date) => {
+    const daySchedules = schedules.filter(
+      (schedule) => moment(schedule.shift_date).isSame(date, 'day')
     );
 
-    return daySchedules.length > 0 ? (
-      <ul>
-        {daySchedules.map((schedule) => (
-          <li key={schedule.schedule_id}>
-            Shift: {schedule.start_time} - {schedule.end_time}
-            <button onClick={() => handleEditClick(schedule)}>Edit</button>
-            <button onClick={() => handleDeleteClick(schedule.schedule_id)}>
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <p>No schedules for this day.</p>
+    const dayTasks = tasks.filter(
+      (task) => moment(task.task_date).isSame(date, 'day')
     );
 
+    return (
+      <div>
+        <div className="schedules">
+          <h4>Shifts:</h4>
+          {daySchedules.length > 0 ? (
+            <ul>
+              {daySchedules.map((schedule) => (
+                <li key={schedule.schedule_id}>
+                  Shift: {schedule.start_time} - {schedule.end_time} | Salary: {schedule.salary_per_hour} | Employee: {employees.find(emp => emp.id === schedule.employee_id)?.name}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No shifts for this day.</p>
+          )}
+        </div>
+        <div className="tasks">
+          <h4>Tasks:</h4>
+          {dayTasks.length > 0 ? (
+            <ul>
+              {dayTasks.map((task, index) => (
+                <li key={index}>
+                  Task: {task.job_scope} | Description: {task.description} | Manpower Required: {task.manpower_required}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No tasks for this day.</p>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const handleInputChange = (e) => {
@@ -69,160 +87,105 @@ function Schedule() {
     setShiftDetails({ ...shiftDetails, [name]: value });
   };
 
-  const handleAddClick = () => {
-    setShiftDetails({
-      shift_date: moment(new Date()).format("YYYY-MM-DD"), // Reset to current date
-      start_time: "",
-      end_time: "",
-      salary: "",
-    });
-    setIsEditing(false);
-    setIsModalOpen(true);
-  };
-
-  const handleEditClick = (schedule) => {
-    setEditingId(schedule.schedule_id);
-    setShiftDetails({
-      shift_date: schedule.shift_date,
-      start_time: schedule.start_time,
-      end_time: schedule.end_time,
-      salary: schedule.salary || "",
-    });
-    setIsEditing(true);
-    setIsModalOpen(true);
-  };
-
-  const handleDeleteClick = (schedule_id) => {
-    fetch(`http://localhost:8800/deleteSchedules/${schedule_id}`, {
-      method: "DELETE",
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-        setSchedules(
-          schedules.filter((sched) => sched.schedule_id !== schedule_id)
-        );
-      })
-      .catch((err) => console.error("Error deleting schedule:", err));
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { shift_date, start_time, end_time, salary } = shiftDetails;
-    const url = isEditing
-      ? `http://localhost:8800/updateSchedules/${editingId}`
-      : "http://localhost:8800/addSchedules";
-    const method = isEditing ? "PUT" : "POST";
+    const { shift_date, start_time, end_time, salary_per_hour, employee_id } = shiftDetails;
 
-    fetch(url, {
-      method,
+    const formattedShiftDate = moment(shift_date, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+    fetch('/schedule', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ shift_date, start_time, end_time, salary }),
+      body: JSON.stringify({ shift_date: formattedShiftDate, start_time, end_time, salary_per_hour, employee_id }),
     })
       .then((res) => res.json())
       .then((data) => {
-        if (isEditing) {
-          setSchedules(
-            schedules.map((sched) =>
-              sched.schedule_id === editingId
-                ? { ...sched, shift_date, start_time, end_time, salary }
-                : sched
-            )
-          );
-        } else {
-          setSchedules([
-            ...schedules,
-            { schedule_id: data.id, shift_date, start_time, end_time, salary },
-          ]);
-        }
-        setIsModalOpen(false);
-        setIsEditing(false);
-        setEditingId(null);
-        alert("Shift saved successfully");
+        alert('Shift added successfully');
+        setSchedules([...schedules, { schedule_id: data.id, shift_date: formattedShiftDate, start_time, end_time, salary_per_hour, employee_id }]);
       })
       .catch((err) => {
-        console.error("Error:", err);
-        alert("Failed to save shift");
+        console.error('Error:', err);
+        alert('Failed to add shift');
       });
   };
+
+  const formatDate = (date) => moment(date).format('DD/MM/YYYY');
 
   return (
     <div className="schedule-container">
       <h2>Employee Schedule</h2>
       <Calendar onChange={onChange} value={date} />
       <div className="schedule-details">
-        <h3>Schedules for {moment(date).format("DD/MM/YYYY")}</h3>
-        {renderSchedules(date)}
+        <h3>Details for {formatDate(date)}</h3>
+        {renderSchedulesAndTasks(date)}
       </div>
 
-      <button onClick={handleAddClick}>Add Shift</button>
-
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>{isEditing ? "Edit Shift" : "Add Shift"}</h3>
-            <form onSubmit={handleSubmit}>
-              <div>
-                <label>Shift Date:</label>
-                <input
-                  type="date" // Changed to date type for better compatibility with browsers
-                  name="shift_date"
-                  value={shiftDetails.shift_date}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div>
-                <label>Start Time:</label>
-                <input
-                  type="time"
-                  name="start_time"
-                  value={shiftDetails.start_time}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div>
-                <label>End Time:</label>
-                <input
-                  type="time"
-                  name="end_time"
-                  value={shiftDetails.end_time}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div>
-                <label>Salary per Hour:</label>
-                <input
-                  type="number"
-                  name="salary"
-                  value={shiftDetails.salary}
-                  onChange={handleInputChange}
-                  placeholder="Enter salary"
-                  required
-                />
-              </div>
-              <button type="submit">
-                {isEditing ? "Update Shift" : "Add Shift"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setIsEditing(false);
-                  setEditingId(null);
-                }}
-              >
-                Cancel
-              </button>
-            </form>
+      <div className="add-shift-form">
+        <h3>Add a Shift</h3>
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Shift Date:</label>
+            <input
+              type="text"
+              name="shift_date"
+              value={shiftDetails.shift_date}
+              onChange={handleInputChange}
+              placeholder="dd/mm/yyyy"
+              required
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <label>Start Time:</label>
+            <input
+              type="time"
+              name="start_time"
+              value={shiftDetails.start_time}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <label>End Time:</label>
+            <input
+              type="time"
+              name="end_time"
+              value={shiftDetails.end_time}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <label>Salary per Hour:</label>
+            <input
+              type="number"
+              name="salary_per_hour"
+              value={shiftDetails.salary_per_hour}
+              onChange={handleInputChange}
+              placeholder="Enter salary"
+              required
+            />
+          </div>
+          <div>
+            <label>Employee:</label>
+            <select
+              name="employee_id"
+              value={shiftDetails.employee_id}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Employee</option>
+              {employees.map((employee) => (
+                <option key={employee.id} value={employee.id}>
+                  {employee.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button type="submit">Add Shift</button>
+        </form>
+      </div>
     </div>
   );
 }
