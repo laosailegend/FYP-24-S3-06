@@ -533,13 +533,15 @@ app.post('/requestLeave', (req, res) => {
   
     db.query(query, [userid, request_date, start_date, end_date, reason], (err, result) => {
       if (err) {
-        console.error(err);
-        return res.status(500).send('Error creating leave request');
+        console.error('Error inserting into requestLeave table:', err.sqlMessage);
+        return res.status(500).json({ error: 'Error creating leave request' });
       }
   
-      res.status(200).send('Leave request created successfully');
+      // Return 200 OK and JSON message
+      return res.status(200).json({ message: 'Leave request created successfully' });
     });
   });
+  
   
 //11 As a employee, I want to be able to view my annual leave/MC balances so I know how many leaves/MCs I'm left with
 app.get('/leaveBalance/:userid', (req, res) => {
