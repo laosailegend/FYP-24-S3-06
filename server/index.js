@@ -72,7 +72,7 @@ app.post("/createUser", (req, res) => {
     // hash + salt 
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) return;
-
+        // console.log(hash);
         const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash]
 
         db.query(q, [values], (err, data) => {
@@ -88,10 +88,8 @@ app.get("/users", (req, res) => {
     const q = "SELECT * FROM users INNER JOIN roles ON users.roleid = roles.roleid"
     db.query(q, (err, data) => {
         if (err) {
-            console.log(err);
             return res.json(err)
         }
-        return res.json(data);
     })
 })
 
@@ -108,67 +106,32 @@ app.get("/roles", (req, res) => {
 
 // #44 update user details - modified so that those empty fields are removed
 app.put("/user/:id", (req, res) => {
-    const saltRounds = 10;
-
     const userid = req.params.id;
     const updates = [];
     const values = [];
 
-    // Check if password is being updated
-    if (req.body.password) {
-        bcrypt.hash(req.body.password, saltRounds, (err, hashedPassword) => {
-            if (err) return res.status(500).json("Error hashing password");
-
-            // Add password update to the query
-            updates.push('password = ?');
-            values.push(hashedPassword);
-
-            // Process other fields
-            for (const [key, value] of Object.entries(req.body)) {
-                if (value && key !== 'password') { // Skip the password field as it’s handled separately
-                    updates.push(`${key} = ?`);
-                    values.push(value);
-                }
-            }
-
-            // Add the user id as the last value for the WHERE clause
-            values.push(userid);
-
-            // Construct the SQL query
-            const q = `UPDATE users SET ${updates.join(', ')} WHERE userid = ?`;
-
-            // Execute the query
-            db.query(q, values, (err, data) => {
-                if (err) return res.json(err);
-                return res.json("User info has been updated successfully");
-            });
-        });
-    } else {
-        // No password update, handle as usual
-        for (const [key, value] of Object.entries(req.body)) {
-            if (value) { // Only add non-empty fields
-                updates.push(`${key} = ?`);
-                values.push(value);
-            }
+    // Dynamically build the update query and values array
+    for (const [key, value] of Object.entries(req.body)) {
+        if (value) { // Only add non-empty fields
+            updates.push(`${key} = ?`);
+            values.push(value);
         }
-
-        // If there are no updates, return early
-        if (updates.length === 0) {
-            return res.json("No updates provided");
-        }
-
-        // Add the user id as the last value for the WHERE clause
-        values.push(userid);
-
-        // Construct the SQL query
-        const q = `UPDATE users SET ${updates.join(', ')} WHERE userid = ?`;
-
-        // Execute the query
-        db.query(q, values, (err, data) => {
-            if (err) return res.json(err);
-            return res.json("User info has been updated successfully");
-        });
     }
+
+    // If there are no updates, return early
+    if (updates.length === 0) {
+        return res.json("No updates provided");
+    }
+
+    // Add the user id as the last value for the WHERE clause
+    values.push(userid);
+
+    const q = `UPDATE users SET ${updates.join(', ')} WHERE userid = ?`;
+
+    db.query(q, values, (err, data) => {
+        if (err) return res.json(err);
+        return res.json("User info has been updated successfully");
+    });
 })
 
 // #45 delete user account
@@ -382,116 +345,31 @@ app.delete("/task/:id/timeslot", (req, res) => {
     });
 });
 
-//overview of the schedules
+//10 As a employee, I want to be able to view the schedule of the timesheet so that I know who I will be working with on that shift
 app.get('/schedules', (req, res) => {
     const shiftDate = req.query.shift_date;
 
-    let query = `
-        SELECT 
-            schedules.schedule_id, 
-            schedules.shift_date, 
-            schedules.start_time, 
-            schedules.end_time, 
-            schedules.salary, 
-            COALESCE(users.fname, 'NULL') AS fname, 
-            COALESCE(users.lname, '') AS lname 
-        FROM 
-            schedules 
-        LEFT JOIN 
-            users ON schedules.userid = users.userid;
-    `;
-
-    // Add date filter if shift_date is provided
-    if (shiftDate) {
-        query += ' WHERE schedules.shift_date = ?';
-    }
-
-    db.query(query, shiftDate ? [shiftDate] : [], (err, results) => {
-        if (err) {
-            console.error('Error executing query:', err);
-            return res.status(500).json({ error: 'Failed to retrieve schedules' });
-        }
-        res.json(results);
-    });
-});
-
-//add schedule
-app.post('/addSchedules', (req, res) => {
-    const { shift_date, start_time, end_time, salary, userid } = req.body;
-
-    if (!shift_date || !start_time || !end_time || !salary) {
-        return res.status(400).send({ error: 'All fields (shift_date, start_time, end_time, salary) are required' });
+    if (!shiftDate) {
+        return res.status(400).send({ error: 'shift_date is required' });
     }
 
     const query = `
-        INSERT INTO schedules (shift_date, start_time, end_time, salary, userid)
-        VALUES (?, ?, ?, ?, ?)
+        SELECT schedules.schedule_id, schedules.start_time, schedules.end_time, 
+            COALESCE(users.fname, 'NULL') AS fname, 
+            COALESCE(users.lname, '') AS lname
+        FROM schedules
+        LEFT JOIN users ON schedules.userid = users.userid
+        WHERE schedules.shift_date = ?
     `;
 
-    db.query(query, [shift_date, start_time, end_time, salary, userid || null], (err, results) => {
+    db.query(query, [shiftDate], (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).send(err);
         }
-        res.status(201).json({ id: results.insertId });
+        res.json(results);
     });
 });
-
-// Update schedule
-app.put('/updateSchedules/:id', (req, res) => {
-    const { shift_date, start_time, end_time, salary, userid } = req.body;
-    const { id } = req.params; // Get the schedule ID from the URL params
-
-    // Extract the date part (YYYY-MM-DD) from shift_date
-    const formattedShiftDate = shift_date.split('T')[0]; // '2024-08-22'
-
-    const query = `
-        UPDATE schedules
-        SET shift_date = ?, start_time = ?, end_time = ?, salary = ?, userid = ?
-        WHERE schedule_id = ?
-    `;
-
-    // Ensure the values are in the correct order
-    const values = [formattedShiftDate, start_time, end_time, userid, salary, id];
-
-    db.query(query, values, (err, results) => {
-        if (err) {
-            console.error('Error executing query:', err);
-            return res.status(500).send({ error: 'Failed to update schedule' });
-        }
-
-        // If no rows were affected, it means the schedule ID was not found
-        if (results.affectedRows === 0) {
-            return res.status(404).send({ error: 'Schedule not found' });
-        }
-
-        res.send({ success: true, results });
-    });
-});
-
-
-// Delete schedule
-app.delete('/deleteSchedules/:id', (req, res) => {
-    const { id } = req.params;
-
-    const query = `
-        DELETE FROM schedules
-        WHERE schedule_id = ?
-    `;
-
-    db.query(query, [id], (err, results) => {
-        if (err) {
-            console.error('Error executing query:', err);
-            return res.status(500).send({ error: 'Failed to delete shift' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).send({ error: 'Shift not found' });
-        }
-        res.send({ message: 'Shift deleted successfully' });
-    });
-});
-
-
 //13 As a employee, I want to be able to update my availability so that my manager knows my availability
 app.put('/updateAvailability/:id', (req, res) => {
     const availabilityId = req.params.id;

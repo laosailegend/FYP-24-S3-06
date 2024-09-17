@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../auth/AuthContext';
 
 const UpdateUser = () => {
     const [user, setUser] = useState({
@@ -14,7 +13,7 @@ const UpdateUser = () => {
         password: ""
     })
 
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const location = useLocation();
     console.log(location);
     const userid = location.pathname.split('/')[2]
@@ -29,27 +28,12 @@ const UpdateUser = () => {
         try {
             await axios.put(`http://localhost:8800/user/${userid}`, user)
             window.alert("User updated successfully");
-            navigate("/admin", { replace: true });
+            // navigate("/")
         } catch (error) {
             console.log(error);
         }
     };
     console.log(user);
-
-    const { tokenObj } = useContext(AuthContext);
-
-    useEffect(() => {
-        if (!tokenObj || tokenObj.role !== 1) {
-            window.alert("You are not authorized to view this page");
-            navigate("/", { replace: true });
-        }
-    }, [tokenObj, navigate]);
-
-    // If tokenObj is still null, don't render the content yet
-    if (tokenObj === null) {
-        return null;  // You can replace this with a loading indicator if you prefer
-    }
-
     return (
         <div className="form">
             <h1>update user</h1>
@@ -63,9 +47,9 @@ const UpdateUser = () => {
             <input type="text" placeholder='nric' onChange={handleChange} name="nric" maxLength={10} />
             <input type="text" placeholder='first name' onChange={handleChange} name="fname" />
             <input type="text" placeholder='last name' onChange={handleChange} name='lname' />
-            <input type="text" placeholder='contact' onChange={handleChange} name='contact' maxLength={8} />
+            <input type="text" placeholder='contact' onChange={handleChange} name='contact'/>
             <input type="email" placeholder='email' onChange={handleChange} name='email' />
-            <input type="password" placeholder='password' onChange={handleChange} name='password' />
+            <input type="password" placeholder='password' onChange={handleChange} name='password'/>
 
             <button onClick={handleClick}>update</button>
         </div>
