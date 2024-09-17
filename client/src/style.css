@@ -284,53 +284,214 @@ footer {
   background-color: #e64a19;
 }
 
-/* Schedule Page */
+/*Schedule.js design */
 .schedule-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 50px 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%; /* Adjust width as needed */
+  max-width: 500px; /* Maximum width for large screens */
+  height: 100vh; /* Adjust height as needed */
+  margin: 0 auto; /* Center container horizontally */
+  text-align: center;
 }
 
-.schedule-details h3,
-.add-shift-form h3 {
-  color: #006eff93;
-  margin-bottom: 20px;
+.schedule-details {
+  margin-top: 20px;
+}
+
+.schedule-details h3 {
+  color: #333;
 }
 
 .schedule-details ul {
-  list-style: none;
+  list-style-type: none;
   padding: 0;
 }
 
-.schedule-details li,
-.add-shift-form input {
+.schedule-details li {
   background-color: #f9f9f9;
-  border: 1px solid #ddd;
+  margin: 5px 0;
   padding: 10px;
-  margin-bottom: 10px;
   border-radius: 5px;
 }
 
-.add-shift-form button {
-  background-color: #006eff93;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
+/* Schedule.js */
+.schedule-container {
+max-width: 800px;
+margin: 0 auto;
+padding: 20px;
+background-color: #f9f9f9;
+border-radius: 8px;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+font-family: Arial, sans-serif;
 }
 
-.add-shift-form button:hover {
-  background-color: #005bcc;
+/* Title styling */
+.schedule-container h2 {
+text-align: center;
+margin-bottom: 20px;
+color: #333;
 }
 
+/* Calendar styling */
+.react-calendar {
+width: 100%;
+max-width: 400px;
+margin: 0 auto; /* Centers the calendar horizontally */
+border: none;
+background-color: #fff;
+border-radius: 8px;
+box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.react-calendar__tile {
+max-width: 100%;
+padding: 10px 0;
+background: none;
+text-align: center;
+border-radius: 8px;
+cursor: pointer;
+color: #333;
+}
+
+.react-calendar__tile--active {
+background-color: #006eff93;
+color: white;
+}
+
+.react-calendar__tile--now {
+background-color: #006eff93;
+color: white;
+}
+
+/* Schedule details section */
+.schedule-details {
+margin-top: 20px;
+}
+
+.schedule-details h3 {
+margin-bottom: 10px;
+color: #555;
+}
+
+.schedule-details ul {
+list-style: none;
+padding: 0;
+}
+
+.schedule-details ul li {
+background-color: #fff;
+margin-bottom: 10px;
+padding: 10px;
+border-radius: 5px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-details ul li button {
+background-color: #006eff93;
+border: none;
+color: white;
+padding: 5px 10px;
+border-radius: 4px;
+cursor: pointer;
+margin-left: 5px;
+}
+
+.schedule-details ul li button:hover {
+background-color: #006eff93;
+}
+
+/* Button for adding a shift */
+button {
+background-color: #006eff93;
+border: none;
+color: white;
+padding: 10px 20px;
+border-radius: 5px;
+cursor: pointer;
+margin-top: 10px;
+display: block;
+margin-left: auto;
+margin-right: auto;
+}
+
+button:hover {
+background-color: #006eff93;
+}
+
+/* Modal styling */
+.modal-overlay {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background: rgba(0, 0, 0, 0.5);
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.modal-content {
+background-color: #fff;
+padding: 20px;
+border-radius: 8px;
+width: 90%;
+max-width: 500px;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h3 {
+margin-top: 0;
+color: #333;
+}
+
+.modal-content form {
+display: flex;
+flex-direction: column;
+}
+
+.modal-content form div {
+margin-bottom: 15px;
+}
+
+.modal-content form label {
+font-weight: bold;
+margin-bottom: 5px;
+color: #333;
+}
+
+.modal-content form input[type="date"],
+.modal-content form input[type="time"],
+.modal-content form input[type="text"],
+.modal-content form input[type="number"] {
+width: 100%;
+padding: 8px;
+border: 1px solid #ccc;
+border-radius: 5px;
+}
+
+.modal-content form button {
+margin-top: 10px;
+}
+
+.modal-content form button[type="submit"] {
+background-color: #006eff93;
+}
+
+.modal-content form button[type="button"] {
+background-color: #006eff93;
+margin-left: 5px;
+}
+
+.modal-content form button[type="button"]:hover {
+background-color: #006eff93;
+}
 /* Availability */
 .availability-container {
   display: flex;
@@ -487,5 +648,110 @@ button[type="submit"]:hover {
 
 .task-list tr:nth-child(even) {
   background-color: #f9f9f9;
+}
+
+/*timeoff page*/
+.time-off-requests-container {
+  padding: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Availability Form Styles */
+.availability-form-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.availability-form-group {
+  margin-bottom: 15px;
+}
+
+.availability-form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.availability-form-group input, 
+.availability-form-group select {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.availability-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.availability-list {
+  margin-top: 20px;
+}
+
+.availability-card {
+  padding: 15px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.availability-card div {
+  flex-basis: 45%;
+  margin-bottom: 10px;
+}
+
+.status-available {
+  color: green;
+}
+
+.status-pending {
+  color: orange; 
+}
+
+.status-unavailable {
+  color: red;
 }
 

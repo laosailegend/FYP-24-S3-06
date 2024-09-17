@@ -13,6 +13,9 @@ import Schedule from './pages/Schedule'; // Import the Schedule component
 import scheduleImage from './images/Schedule.png'; // Schedule Image
 import Admin from './pages/Admin'; // Import the Admin component
 import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
+import TimeOff from './pages/TimeOff';
+import AvailabilityForm from './pages/AvailabilityForm';
+import EmployeeDetails from './pages/EmployeeDetails';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -81,8 +84,11 @@ function App() {
             <Link to="/Availability">Availability(Employee)</Link> {/* Add Features link */}
             <Link to="/Tasks">Tasks(Manager)</Link> {/* Add Features link */}
             <Link to="/Payroll">Payroll(HR)</Link> {/* Add Payroll link */}
-            <Link to="/schedule">Create Schedule(Manager)</Link> {/* Add Schedule link */}
+            <Link to="/schedule">Create Schedule(HR)</Link> {/* Add Schedule link */}
             <Link to="/TimeOffRequest">Request Time Off(Employee)</Link>
+            <Link to="/timeoff">TimeOff(HR)</Link>
+            <Link to="/available">Availability(HR)</Link>
+            <Link to="/employees">View Employees(HR)</Link>
             {/* <Link to="/login" className="login">Login</Link> Add Login link */}
             {isLoggedIn ? (
               <button className="logout" onClick={logout}>Logout</button>
@@ -102,6 +108,9 @@ function App() {
             <Route path="/Availability" element={<Availability />} /> {/* Add Availability route */}
             <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
             <Route path="/TimeOffRequest" element={<TimeOffRequest />} /> {/* Add Request Time Off route */}
+            <Route path="/timeoff" element={<TimeOff />} />
+            <Route path="/available" element={<AvailabilityForm />} /> 
+            <Route path="/employees" element={<EmployeeDetails />} />
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
