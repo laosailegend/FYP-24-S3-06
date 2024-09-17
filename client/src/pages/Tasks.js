@@ -3,13 +3,14 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
+import axios from 'axios';
 
 export const tasks = []; // Ensure tasks is a named export
 
 function Tasks() {
   const [date, setDate] = useState(new Date());
   const [taskDetails, setTaskDetails] = useState({
-    job_scope: '',
+    taskname: '',
     description: '',
     manpower_required: '',
   });
@@ -23,16 +24,32 @@ function Tasks() {
     setTaskDetails({ ...taskDetails, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
     const formattedDate = moment(date).format('YYYY-MM-DD');
-    const newTask = { task_date: formattedDate, ...taskDetails };
+    const newTask = { 
+      taskname: taskDetails.taskname, 
+      description: taskDetails.description, 
+      manpower_required: taskDetails.manpower_required, 
+      timeslot: formattedDate,
+    };
 
-    tasks.push(newTask); // Update the global tasks array
-    localStorage.setItem('tasks', JSON.stringify(tasks)); // Ensure to sync with local storage
-
-    setTaskDetails({ job_scope: '', description: '', manpower_required: '' });
-    alert('Task added successfully');
+    console.log("Submitting task:", newTask);
+    
+    try {
+      const response = await axios.post('http://localhost:8800/createTask', newTask);
+      if (response.status === 201) {
+        alert('Task added successfully');
+        setTaskDetails({ taskname: '', description: '', manpower_required: '' });
+      } else {
+        alert('Failed to add task');
+        console.error("Response Status:", response.status);
+      }
+    } catch (error) {
+      console.error('Error adding task:', error.response ? error.response.data : error.message);
+      alert('Error adding task');
+    }
   };
 
   return (
@@ -41,13 +58,13 @@ function Tasks() {
       <Calendar onChange={onChange} value={date} />
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Job Scope:</label>
+          <label>Task Name:</label> {/* Updated to match backend */}
           <input
             type="text"
-            name="job_scope"
-            value={taskDetails.job_scope}
+            name="taskname"
+            value={taskDetails.taskname}
             onChange={handleInputChange}
-            placeholder="Enter job scope"
+            placeholder="Enter task name"
             required
           />
         </div>

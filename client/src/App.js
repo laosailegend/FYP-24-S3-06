@@ -19,7 +19,6 @@ import EmployeeDetails from './pages/EmployeeDetails';
 
 import { AuthContext } from './auth/AuthContext';
 
-
 function Home() {
   return (
     <>
