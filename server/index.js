@@ -300,16 +300,41 @@ app.delete("/deletePerms/:id", (req, res) => {
     });
 });
 
-// #81 Manager create a task
+// #81 Manager create task
 app.post("/createTask", (req, res) => {
-    const q = "INSERT INTO tasks (`taskname`, `description`, `manpower_required`, `timeslot`) VALUES (?, ?, ?, ?)";
-    const values = [req.body.taskname, req.body.description, req.body.manpower_required, req.body.timeslot];
+    const { taskname, description, manpower_required, timeslot } = req.body;
 
+    const q = "INSERT INTO tasks (taskname, description, manpower_required, timeslot) VALUES (?, ?, ?, ?)";
+    const values = [taskname, description, manpower_required, timeslot];
     db.query(q, values, (err, data) => {
-        if (err) return res.status(500).json(err);
+        if (err) {
+            console.error("Database error:", err);  // Log detailed error
+            return res.status(500).json({
+                message: "Failed to create task",
+                error: err.message || "An unknown error occurred" // Provide clear message
+            });
+        }
         return res.status(201).json("Task created successfully");
     });
 });
+
+// #82 Get all tasks
+app.get("/tasks", (req, res) => {
+    const q = "SELECT * FROM tasks";
+    db.query(q, (err, data) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({
+                message: "Failed to fetch tasks",
+                error: err.message || "An unknown error occurred"
+            });
+        }
+        console.log('Tasks fetched:', data); // Log tasks data
+        return res.status(200).json(data);
+    });
+});
+
+
 
 // #3 Manager retrieve employee particulars
 app.get("/employees", (req, res) => {
@@ -317,7 +342,7 @@ app.get("/employees", (req, res) => {
     const { userid, fname, lname, email, contact, roleid } = req.query;
 
     // Base query
-    let q = "SELECT userid, fname, lname, email, contact FROM users";
+    let q = "SELECT fname, lname, email, contact FROM users";
     const values = [];
 
     // Add conditions based on provided parameters
@@ -328,10 +353,7 @@ app.get("/employees", (req, res) => {
         q += " WHERE 1=1"; // Ensures that WHERE clause is valid if no roleid is provided
     }
 
-    if (userid) {
-        q += " AND userid = ?";
-        values.push(userid);
-    }
+
     if (fname) {
         q += " AND fname LIKE ?";
         values.push(`%${fname}%`);
@@ -379,9 +401,13 @@ app.put("/task/:id", (req, res) => {
 
     // Dynamically build the update query and values array
     for (const [key, value] of Object.entries(req.body)) {
-        if (value) { // Only add non-empty fields
+        if (key === 'requirements' && Array.isArray(value)) {
+            // Convert array to comma-separated string for 'requirements'
+            values.push(value.join(', '));
             updates.push(`${key} = ?`);
+        } else if (value) { // Only add non-empty fields
             values.push(value);
+            updates.push(`${key} = ?`);
         }
     }
 
