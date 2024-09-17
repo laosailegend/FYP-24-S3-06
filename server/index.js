@@ -226,13 +226,20 @@ app.delete("/deletePerms/:id", (req, res) => {
 
 // #81 Manager create a task
 app.post("/createTask", (req, res) => {
-    const q = "INSERT INTO tasks (`taskname`, `description`, `manpower_required`, `timeslot`) VALUES (?, ?, ?, ?)";
-    const values = [req.body.taskname, req.body.description, req.body.manpower_required, req.body.timeslot];
+  const { taskname, description, manpower_required, timeslot, requirements } = req.body;
 
-    db.query(q, values, (err, data) => {
-        if (err) return res.status(500).json(err);
-        return res.status(201).json("Task created successfully");
-    });
+  const reqStr = Array.isArray(requirements) ? requirements.join(', ') : '';
+
+  const q = "INSERT INTO tasks (taskname, description, manpower_required, timeslot, requirements) VALUES (?, ?, ?, ?, ?)";
+  const values = [taskname, description, manpower_required, timeslot, reqStr];
+
+  db.query(q, values, (err, data) => {
+    if (err) {
+      console.error(err); // Add this to log errors to the server console
+      return res.status(500).json(err);
+    }
+    return res.status(201).json("Task created successfully with requirements");
+  });
 });
 
 // #3 Manager retrieve employee particulars
@@ -303,9 +310,13 @@ app.put("/task/:id", (req, res) => {
 
     // Dynamically build the update query and values array
     for (const [key, value] of Object.entries(req.body)) {
-        if (value) { // Only add non-empty fields
+        if (key === 'requirements' && Array.isArray(value)) {
+            // Convert array to comma-separated string for 'requirements'
+            values.push(value.join(', '));
             updates.push(`${key} = ?`);
+        } else if (value) { // Only add non-empty fields
             values.push(value);
+            updates.push(`${key} = ?`);
         }
     }
 
