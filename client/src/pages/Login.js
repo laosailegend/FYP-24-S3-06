@@ -52,6 +52,7 @@ function Login() {
       await axios.post("http://localhost:8800/createUser", user)
       // navigate("/")
       window.alert("user added!");
+      console.log(user);
     } catch (error) {
       window.alert("error, please try again");
       console.log(error);

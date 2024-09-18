@@ -16,6 +16,7 @@ import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
 import TimeOff from './pages/TimeOff';
 import AvailabilityForm from './pages/AvailabilityForm';
 import EmployeeDetails from './pages/EmployeeDetails';
+import ProfileHR from './pages/ProfileHR';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -88,6 +89,7 @@ function App() {
             <Link to="/timeoff">TimeOff(HR)</Link>
             <Link to="/available">Availability(HR)</Link>
             <Link to="/employees">View Employees(HR)</Link>
+            <Link to="/profile/:id">Profile(HR)</Link>
             {/* <Link to="/login" className="login">Login</Link> Add Login link */}
             {isLoggedIn ? (
               <button className="logout" onClick={logout}>Logout</button>
@@ -110,6 +112,7 @@ function App() {
             <Route path="/timeoff" element={<TimeOff />} />
             <Route path="/available" element={<AvailabilityForm />} /> 
             <Route path="/employees" element={<EmployeeDetails />} />
+            <Route path="/profile/:id" element={<ProfileHR />} />
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
