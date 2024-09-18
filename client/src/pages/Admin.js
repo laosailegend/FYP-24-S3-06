@@ -190,6 +190,7 @@ const Admin = () => {
         }
     };
 
+    // prevents non-admin users from viewing the page
     if (!tokenObj || tokenObj.role !== 1) {
         window.alert("You are not authorized to view this page");
         navigate("/", { replace: true });
