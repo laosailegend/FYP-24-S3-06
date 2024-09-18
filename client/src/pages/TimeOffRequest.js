@@ -10,6 +10,9 @@ function TimeOffRequest() {
   const [reason, setReason] = useState('');
   const [requests, setRequests] = useState([]);
 
+  // Dummy user ID
+  const userid = 1; // Replace with actual userid if needed
+
   const handleDateChange = (date, isStartDate) => {
     if (isStartDate) {
       setStartDate(date);
@@ -24,26 +27,38 @@ function TimeOffRequest() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     const formattedStartDate = moment(startDate).format('YYYY-MM-DD');
     const formattedEndDate = moment(endDate).format('YYYY-MM-DD');
     const reasonText = reason.trim();
+    const requestDate = moment().format('YYYY-MM-DD'); // Current date for request_date
 
-    fetch('/time-off-request', {
+    fetch('http://localhost:8800/requestLeave', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ start_date: formattedStartDate, end_date: formattedEndDate, reason: reasonText }),
+      body: JSON.stringify({ 
+        userid, // Dummy userid
+        request_date: requestDate, // Current date
+        start_date: formattedStartDate, 
+        end_date: formattedEndDate, 
+        reason: reasonText 
+      }),
     })
-      .then((res) => res.json())
-      .then(() => {
-        alert('Time off request submitted successfully');
-        setRequests([...requests, { start_date: formattedStartDate, end_date: formattedEndDate, reason: reasonText }]);
-      })
-      .catch((err) => {
-        console.error('Error:', err);
-        alert('Failed to submit time off request');
-      });
+    .then((res) => res.json())
+    .then(() => {
+      alert('Time off request submitted successfully');
+      setRequests([...requests, { 
+        start_date: formattedStartDate, 
+        end_date: formattedEndDate, 
+        reason: reasonText 
+      }]);
+    })
+    .catch((err) => {
+      console.error('Error:', err);
+      alert('Failed to submit time off request');
+    });
   };
 
   // Convert date to dd/mm/yyyy format for display
