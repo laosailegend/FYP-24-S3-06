@@ -450,28 +450,22 @@ app.delete("/task/:id/timeslot", (req, res) => {
 //13 As a employee, I want to be able to update my availability so that my manager knows my availability
 app.put('/updateAvailability/:id', (req, res) => {
     const availabilityId = req.params.id;
-    const values = [
-        req.body.available_date,
-        req.body.start_time,
-        req.body.end_time,
-        req.body.status
-    ];
+    const { status } = req.body; // Extract only the status from the request body
 
     const sql = `
         UPDATE availability 
-        SET available_date = ?, 
-            start_time = ?, 
-            end_time = ?, 
-            status = ? 
+        SET status = ? 
         WHERE availability_id = ?`;
 
-    db.query(sql, [...values, availabilityId], (err, result) => {
+    db.query(sql, [status, availabilityId], (err, result) => {
         if (err) {
-            return res.status(500).json(err);
+            console.error('Error updating availability status:', err);
+            return res.status(500).json({ error: 'Database error' });
         }
-        res.status(200).json("Availability updated successfully");
+        res.status(200).json("Availability status updated successfully");
     });
 });
+
 
 //overview of schedules
 app.get('/schedules', (req, res) => {
@@ -689,57 +683,70 @@ app.get('/available', (req, res) => {
     });
   });
 
-// Fetch the user's own profile details
-app.get('/profile/:id', (req, res) => {
-    const userId = req.params.id;
-    console.log("id: " + userId);
 
-    // Join the users and roles tables to get the role name
+app.get('/getAvailable', (req, res) => {
     const query = `
-        SELECT users.userid, users.fname, users.lname, users.email, users.contact, roles.role
-        FROM users
-        LEFT JOIN roles ON users.roleid = roles.roleid
-        WHERE users.userid = ?`;
-
-    db.query(query, [userId], (err, results) => {
-        if (err) {
-            console.error('Error fetching user details:', err);
-            return res.status(500).send({ error: 'Failed to retrieve profile details' });
-        }
-        if (results.length === 0) {
-            return res.status(404).send({ error: 'User not found' });
-        }
-        console.log(results[0]);
-        res.send(results[0]); // Return user profile with role name
-    });
-});
-
-//update user profile 
-app.put('/profile/:id', (req, res) => {
-    const userId = req.params.id;
-    const { fname, lname, email, contact } = req.body; // Make sure the request body contains these fields
-
-    const query = `
-        UPDATE users
-        SET fname = ?, lname = ?, email = ?, contact = ?
-        WHERE userid = ?
+        SELECT availability_id, available_date, start_time, end_time, status
+        FROM availability 
+        WHERE status = 'pending'
     `;
-
-    db.query(query, [fname, lname, email, contact, userId], (err, results) => {
+    db.query(query, (err, results) => {
         if (err) {
-            console.error('Error updating profile:', err);
-            return res.status(500).send({ error: 'Failed to update profile' });
+            console.error('Error fetching availability:', err);
+            return res.status(500).json({ error: 'Database error' });
         }
-
-        if (results.affectedRows === 0) {
-            return res.status(404).send({ error: 'User not found' });
-        }
-
-        res.send({ success: true, message: 'Profile updated successfully' });
+  
+        res.status(200).json(results);
     });
-});
+  });
 
-
+  //9 As a employee, I want to be able to create time off request so that I can get approval for my leave of absence from work
+app.post('/requestLeave', (req, res) => {
+    const { userid, request_date, start_date, end_date, reason } = req.body;
+  
+    if (!userid || !request_date || !start_date || !end_date || !reason) {
+      return res.status(400).send({ error: 'All fields are required' });
+    }
+  
+    const query = `
+      INSERT INTO requestLeave (userid, request_date, start_date, end_date, reason) 
+      VALUES (?, ?, ?, ?, ?)
+    `;
+  
+    db.query(query, [userid, request_date, start_date, end_date, reason], (err, result) => {
+      if (err) {
+        console.error('Error inserting into requestLeave table:', err.sqlMessage);
+        return res.status(500).json({ error: 'Error creating leave request' });
+      }
+  
+      // Return 200 OK and JSON message
+      return res.status(200).json({ message: 'Leave request created successfully' });
+    });
+  });
+  
+  
+//11 As a employee, I want to be able to view my annual leave/MC balances so I know how many leaves/MCs I'm left with
+app.get('/leaveBalance/:userid', (req, res) => {
+    const { userid } = req.params;
+  
+    if (!userid) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+  
+    const query = 'SELECT annual_leave_balance FROM leaveBalances WHERE userid = ?';
+    db.query(query, [userid], (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Database error');
+      }
+  
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Leave balance not found for this user' });
+      }
+  
+      res.json({ userid, annual_leave_balance: results[0].annual_leave_balance });
+    });
+  });
 
   app.listen(8800, console.log("server started on port 8800"));
   
