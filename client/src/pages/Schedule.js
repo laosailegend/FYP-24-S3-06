@@ -7,6 +7,7 @@ import '../style.css';
 function Schedule() {
   const [date, setDate] = useState(new Date());
   const [schedules, setSchedules] = useState([]);
+  const [tasks, setTasks] = useState([]); // State to store tasks
   const [shiftDetails, setShiftDetails] = useState({
     userid: '',
     shift_date: moment(new Date()).format('YYYY-MM-DD'),
@@ -20,22 +21,33 @@ function Schedule() {
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    const fetchSchedules = async () => {
-      try {
-        const response = await fetch("http://localhost:8800/schedules");
-        const data = await response.json();
-        setSchedules(data);
-      } catch (error) {
-        console.error("Error fetching schedules:", error);
-      }
-    }
-
     fetchSchedules();
-
+    fetchTasks(); // Fetch tasks on component mount
   }, []);
+
   useEffect(() => {
     fetchSchedulesByDate(date);
   }, [date]);
+
+  const fetchSchedules = async () => {
+    try {
+      const response = await fetch("http://localhost:8800/schedules");
+      const data = await response.json();
+      setSchedules(data);
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+    }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch('http://localhost:8800/tasks');
+      const data = await response.json();
+      setTasks(data);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
+  };
 
   const fetchSchedulesByDate = async (selectedDate) => {
     const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
@@ -72,6 +84,12 @@ function Schedule() {
     ) : (
       <p>No schedules for this day.</p>
     );
+  };
+
+  const getTasksForDate = (date) => {
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    const filteredTasks = tasks.filter((task) => moment(task.timeslot).isSame(formattedDate, 'day'));
+    return filteredTasks;
   };
 
   const handleInputChange = (e) => {
@@ -158,6 +176,18 @@ function Schedule() {
       <div className="schedule-details">
         <h3>Schedules for {moment(date).format('DD/MM/YYYY')}</h3>
         {renderSchedules()}
+
+        <h3>Tasks for {moment(date).format('DD/MM/YYYY')}</h3>
+        <ul>
+          {getTasksForDate(date).map((task, index) => (
+            <li key={index}>
+              <strong>Job Scope:</strong> {task.taskname} <br />
+              <strong>Description:</strong> {task.description} <br />
+              <strong>Manpower Required:</strong> {task.manpower_required}
+            </li>
+          ))}
+          {getTasksForDate(date).length === 0 && <p>No tasks for this day.</p>}
+        </ul>
       </div>
 
       <button onClick={handleAddClick}>Add Shift</button>
@@ -172,7 +202,7 @@ function Schedule() {
                 <input
                   type="number"
                   name="userid"
-                  value={shiftDetails.userid || ''}  
+                  value={shiftDetails.userid || ''}
                   onChange={handleInputChange}
                   placeholder="Enter Employee ID"
                   required
@@ -183,7 +213,7 @@ function Schedule() {
                 <input
                   type="date"
                   name="shift_date"
-                  value={shiftDetails.shift_date || ''}  
+                  value={shiftDetails.shift_date || ''}
                   onChange={handleInputChange}
                   required
                 />
@@ -193,7 +223,7 @@ function Schedule() {
                 <input
                   type="time"
                   name="start_time"
-                  value={shiftDetails.start_time || ''}  
+                  value={shiftDetails.start_time || ''}
                   onChange={handleInputChange}
                   required
                 />
@@ -203,7 +233,7 @@ function Schedule() {
                 <input
                   type="time"
                   name="end_time"
-                  value={shiftDetails.end_time || ''}  
+                  value={shiftDetails.end_time || ''}
                   onChange={handleInputChange}
                   required
                 />
@@ -213,7 +243,7 @@ function Schedule() {
                 <input
                   type="number"
                   name="salary"
-                  value={shiftDetails.salary || ''}  
+                  value={shiftDetails.salary || ''}
                   onChange={handleInputChange}
                   placeholder="Enter salary"
                   required
