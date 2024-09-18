@@ -53,16 +53,33 @@ const Admin = () => {
         createUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
+    const validateForm = () => {
+        // Check each required field
+        const fields = ['roleid', 'nric', 'fname', 'lname', 'contact', 'email', 'password']; // List all the keys that must be checked
+        for (const field of fields) {
+            if (!user[field]) { // Checks if the field is null, undefined, or an empty string
+                return false;
+            }
+        }
+        return true;
+    }
+
     const handleClick = async (e) => {
-        e.preventDefault()
-        try {
-            await axios.post("http://localhost:8800/createUser", user)
-            // navigate("/")
-            window.alert("user added!");
-        } catch (error) {
-            console.log(error);
+        e.preventDefault();
+        if (validateForm()) {
+            try {
+                await axios.post("http://localhost:8800/createUser", user);
+                window.alert("User added!");
+                // navigate("/");
+            } catch (error) {
+                console.log(error);
+                window.alert("Failed to add user!");
+            }
+        } else {
+            window.alert("Please fill all the fields.");
         }
     };
+
 
     // get user data from db
     const [users, getUsers] = useState([]);
@@ -79,6 +96,7 @@ const Admin = () => {
     const { tokenObj } = useContext(AuthContext);
 
     useEffect(() => {
+
         const fetchRoles = async () => {
             try {
                 const res = await axios.get("http://localhost:8800/roles");
@@ -108,7 +126,7 @@ const Admin = () => {
         fetchAllUsers();
         fetchRoles();
         fetchPerms();
-        
+
     }, []);
 
     // Handle checkbox change
@@ -194,8 +212,9 @@ const Admin = () => {
     if (!tokenObj || tokenObj.role !== 1) {
         window.alert("You are not authorized to view this page");
         navigate("/", { replace: true });
+        return () => { };
     }
-
+    
     // If tokenObj is still null, don't render the content yet
     if (tokenObj === null) {
         return null;  // You can replace this with a loading indicator if you prefer
@@ -306,7 +325,7 @@ const Admin = () => {
                 <>
                     <div className="add-form">
                         <h1>Add new user</h1>
-                        <br/>
+                        <br />
                         <select name="roleid" onChange={handleUserChange} defaultValue="">
                             <option disabled selected>Select one</option>
                             <option value="1">admin</option>
@@ -332,7 +351,7 @@ const Admin = () => {
                                 <input type="email" placeholder="email" onChange={handleUserChange} name='email' />
                             </li>
                             <li>
-                            <input type="password" placeholder="password" onChange={handleUserChange} name='password' />
+                                <input type="password" placeholder="password" onChange={handleUserChange} name='password' />
                             </li>
                         </ul>
                         <button onClick={handleClick}>Add</button>
