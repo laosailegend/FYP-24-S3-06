@@ -5,7 +5,6 @@ import axios from 'axios';
 import { AuthContext } from '../auth/AuthContext';
 
 function Login() {
-
   // demo purposes
   const [user, createUser] = useState({
     roleid: null,
@@ -38,6 +37,7 @@ function Login() {
       }
     } catch (error) {
       setError("Invalid email or password");
+      window.alert("Invalid email or password");
     }
   };
 
@@ -54,7 +54,7 @@ function Login() {
       window.alert("user added!");
       console.log(user);
     } catch (error) {
-      window.alert("error, please try again");
+      window.alert("Error, please try again");
       console.log(error);
     }
   };
