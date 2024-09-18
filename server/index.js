@@ -450,28 +450,22 @@ app.delete("/task/:id/timeslot", (req, res) => {
 //13 As a employee, I want to be able to update my availability so that my manager knows my availability
 app.put('/updateAvailability/:id', (req, res) => {
     const availabilityId = req.params.id;
-    const values = [
-        req.body.available_date,
-        req.body.start_time,
-        req.body.end_time,
-        req.body.status
-    ];
+    const { status } = req.body; // Extract only the status from the request body
 
     const sql = `
         UPDATE availability 
-        SET available_date = ?, 
-            start_time = ?, 
-            end_time = ?, 
-            status = ? 
+        SET status = ? 
         WHERE availability_id = ?`;
 
-    db.query(sql, [...values, availabilityId], (err, result) => {
+    db.query(sql, [status, availabilityId], (err, result) => {
         if (err) {
-            return res.status(500).json(err);
+            console.error('Error updating availability status:', err);
+            return res.status(500).json({ error: 'Database error' });
         }
-        res.status(200).json("Availability updated successfully");
+        res.status(200).json("Availability status updated successfully");
     });
 });
+
 
 //overview of schedules
 app.get('/schedules', (req, res) => {
@@ -689,6 +683,22 @@ app.get('/available', (req, res) => {
     });
   });
 
+
+app.get('/getAvailable', (req, res) => {
+    const query = `
+        SELECT availability_id, available_date, start_time, end_time, status
+        FROM availability 
+        WHERE status = 'pending'
+    `;
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching availability:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+  
+        res.status(200).json(results);
+    });
+  });
 
   app.listen(8800, console.log("server started on port 8800"));
   
