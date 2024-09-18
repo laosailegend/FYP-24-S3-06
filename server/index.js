@@ -700,5 +700,53 @@ app.get('/getAvailable', (req, res) => {
     });
   });
 
+  //9 As a employee, I want to be able to create time off request so that I can get approval for my leave of absence from work
+app.post('/requestLeave', (req, res) => {
+    const { userid, request_date, start_date, end_date, reason } = req.body;
+  
+    if (!userid || !request_date || !start_date || !end_date || !reason) {
+      return res.status(400).send({ error: 'All fields are required' });
+    }
+  
+    const query = `
+      INSERT INTO requestLeave (userid, request_date, start_date, end_date, reason) 
+      VALUES (?, ?, ?, ?, ?)
+    `;
+  
+    db.query(query, [userid, request_date, start_date, end_date, reason], (err, result) => {
+      if (err) {
+        console.error('Error inserting into requestLeave table:', err.sqlMessage);
+        return res.status(500).json({ error: 'Error creating leave request' });
+      }
+  
+      // Return 200 OK and JSON message
+      return res.status(200).json({ message: 'Leave request created successfully' });
+    });
+  });
+  
+  
+//11 As a employee, I want to be able to view my annual leave/MC balances so I know how many leaves/MCs I'm left with
+app.get('/leaveBalance/:userid', (req, res) => {
+    const { userid } = req.params;
+  
+    if (!userid) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+  
+    const query = 'SELECT annual_leave_balance FROM leaveBalances WHERE userid = ?';
+    db.query(query, [userid], (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Database error');
+      }
+  
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Leave balance not found for this user' });
+      }
+  
+      res.json({ userid, annual_leave_balance: results[0].annual_leave_balance });
+    });
+  });
+
   app.listen(8800, console.log("server started on port 8800"));
   
