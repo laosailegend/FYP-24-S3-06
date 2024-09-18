@@ -211,6 +211,17 @@ app.put("/user/:id", (req, res) => {
 })
 
 // #45 delete user account
+app.delete("/user/:id", (req, res) => {
+    const userid = req.params.id;
+    const q = "DELETE FROM users WHERE userid = ?"
+
+    db.query(q, [userid], (err, data) => {
+        if (err) return res.json(err);
+        return res.json("book has been deleted succ.");
+    })
+})
+
+// delete individual task
 app.delete('/task/:taskId', (req, res) => {
     const taskId = req.params.taskId;
     const query = 'DELETE FROM tasks WHERE taskid = ?';
