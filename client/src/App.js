@@ -83,6 +83,7 @@ function App() {
             <Link to="/contact">Contact</Link> {/* Add Contact link */}
             <Link to="/profile/:id">Profile(HR)</Link>
 
+            {/* only admin can see */}
             {isLoggedIn && tokenObj.role === 1 ? (
               <>
                 <Link to="/admin">Admin Menu</Link>
@@ -99,12 +100,14 @@ function App() {
               <></>
             )}
 
+            {/* only manager can see */}
             {isLoggedIn && tokenObj.role === 2 ? (
               <Link to="/Tasks">Tasks(Manager)</Link>
             ) : (
               <></>
             )}
 
+            {/* only employee can see */}
             {isLoggedIn && tokenObj.role === 3 ? (
               <>
                 <Link to="/Availability">Availability(Employee)</Link>
@@ -114,6 +117,7 @@ function App() {
               <></>
             )}
 
+            {/* only HR can see */}
             {isLoggedIn && tokenObj.role === 4 ? (
               <>
                 <Link to="/Payroll">Payroll(HR)</Link> {/* Add Payroll link */}

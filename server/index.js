@@ -715,8 +715,8 @@ app.post('/available', (req, res) => {
     }
 
     const query = `
-      INSERT INTO availability (userid, available_date, start_time, end_time, status)
-      VALUES (?, ?, ?, ?, ?)
+        INSERT INTO availability (userid, available_date, start_time, end_time, status)
+        VALUES (?, ?, ?, ?, ?)
     `;
 
     db.query(query, [userid || null, available_date, start_time, end_time, status || 'pending'], (err, results) => {
@@ -773,8 +773,8 @@ app.post('/requestLeave', (req, res) => {
     }
 
     const query = `
-      INSERT INTO requestLeave (userid, request_date, start_date, end_date, reason) 
-      VALUES (?, ?, ?, ?, ?)
+        INSERT INTO requestLeave (userid, request_date, start_date, end_date, reason) 
+        VALUES (?, ?, ?, ?, ?)
     `;
 
     db.query(query, [userid, request_date, start_date, end_date, reason], (err, result) => {
