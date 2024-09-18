@@ -60,6 +60,7 @@ const EmployeeDetails = () => {
             <table>
                 <thead>
                     <tr>
+                        <th>Employee ID</th>
                         <th>NRIC</th>
                         <th>First Name</th>
                         <th>Last Name</th>
@@ -71,6 +72,7 @@ const EmployeeDetails = () => {
                 <tbody>
                     {filteredEmployees.map((employee) => (
                         <tr key={employee.userid}>
+                            <td>{employee.userid}</td> {/* Displaying Employee ID */}
                             <td>{employee.nric}</td>
                             <td>{employee.fname}</td>
                             <td>{employee.lname}</td>
