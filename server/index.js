@@ -221,6 +221,19 @@ app.delete("/user/:id", (req, res) => {
     })
 })
 
+// delete individual task
+app.delete('/task/:taskId', (req, res) => {
+    const taskId = req.params.taskId;
+    const query = 'DELETE FROM tasks WHERE taskid = ?';
+    db.query(query, [taskId], (error, results) => {
+        if (error) {
+            console.error('SQL error:', error);
+            return res.status(500).json({ message: 'Error deleting task' });
+        }
+        res.status(200).json({ message: 'Task deleted successfully' });
+    });
+});
+
 // get all permissions to display on the admin page
 app.get("/permissions", (req, res) => {
     const q = "SELECT permissions.*, roles.role FROM roles INNER JOIN permissions ON `roles`.roleid = permissions.roleid;";
@@ -426,15 +439,17 @@ app.put("/task/:id", (req, res) => {
 
 
 // #17 Manager delete task
-app.delete("/task/:id", (req, res) => {
-    const taskid = req.params.id;
-    const q = "DELETE FROM tasks WHERE taskid = ?";
-
-    db.query(q, [taskid], (err, data) => {
-        if (err) return res.status(500).json(err);
-        return res.status(200).json("Task deleted successfully");
+app.delete('/task/:taskId', (req, res) => {
+    const taskId = req.params.taskId;
+    const query = 'DELETE FROM tasks WHERE taskid = ?';
+    connection.query(query, [taskId], (error, results) => {
+      if (error) {
+        console.error('SQL error:', error);
+        return res.status(500).json({ message: 'Error deleting task' });
+      }
+      res.status(200).json({ message: 'Task deleted successfully' });
     });
-});
+  });
 
 // #16 Manager delete timeslot
 app.delete("/task/:id/timeslot", (req, res) => {
