@@ -12,41 +12,36 @@ function Tasks() {
     description: '',
     manpower_required: '',
   });
-  const [tasks, setTasks] = useState([]); // State to store tasks
+  const [tasks, setTasks] = useState([]);
+  const [editTaskId, setEditTaskId] = useState(null); // State to track which task is being edited
 
-  // Fetch tasks when the component mounts
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  // Log the tasks state to check for updates
   useEffect(() => {
     console.log('Tasks state updated:', tasks);
   }, [tasks]);
 
-  // Function to fetch tasks from the API
   const fetchTasks = async () => {
     try {
       const response = await axios.get('http://localhost:8800/tasks');
-      console.log('Fetched tasks:', response.data); // Log response data
+      console.log('Fetched tasks:', response.data);
       setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
   };
 
-  // Function to handle calendar date change
   const onChange = (date) => {
     setDate(date);
   };
 
-  // Function to handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTaskDetails({ ...taskDetails, [name]: value });
   };
 
-  // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -62,8 +57,8 @@ function Tasks() {
       const response = await axios.post('http://localhost:8800/createTask', newTask);
       if (response.status === 201) {
         alert('Task added successfully');
-        setTaskDetails({ taskname: '', description: '', manpower_required: '' }); // Clear form fields
-        fetchTasks(); // Refresh the task list
+        setTaskDetails({ taskname: '', description: '', manpower_required: '' });
+        fetchTasks();
       } else {
         alert('Failed to add task');
         console.error("Response Status:", response.status);
@@ -74,22 +69,58 @@ function Tasks() {
     }
   };
 
-  // Function to handle task deletion
   const deleteTask = async (id) => {
     try {
       await axios.delete(`http://localhost:8800/task/${id}`);
-      fetchTasks(); // Re-fetch the updated list of tasks
+      fetchTasks();
     } catch (error) {
       console.error("Error deleting task:", error);
       alert('Error deleting task');
     }
   };
 
+  const startEditTask = (task) => {
+    setTaskDetails({
+      taskname: task.taskname,
+      description: task.description,
+      manpower_required: task.manpower_required,
+    });
+    setEditTaskId(task.taskid);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    const updatedTask = { 
+      taskname: taskDetails.taskname, 
+      description: taskDetails.description, 
+      manpower_required: taskDetails.manpower_required, 
+      timeslot: formattedDate,
+    };
+
+    try {
+      const response = await axios.put(`http://localhost:8800/task/${editTaskId}`, updatedTask);
+      if (response.status === 200) {
+        alert('Task updated successfully');
+        setTaskDetails({ taskname: '', description: '', manpower_required: '' });
+        setEditTaskId(null); // Reset edit state
+        fetchTasks();
+      } else {
+        alert('Failed to update task');
+        console.error("Response Status:", response.status);
+      }
+    } catch (error) {
+      console.error('Error updating task:', error.response ? error.response.data : error.message);
+      alert('Error updating task');
+    }
+  };
+
   return (
     <div className="tasks-container">
-      <h2>Add Task</h2>
+      <h2>{editTaskId ? 'Update Task' : 'Add Task'}</h2>
       <Calendar onChange={onChange} value={date} />
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={editTaskId ? handleUpdate : handleSubmit}>
         <div>
           <label>Task Name:</label>
           <input
@@ -123,7 +154,7 @@ function Tasks() {
             required
           />
         </div>
-        <button type="submit">Add Task</button>
+        <button type="submit">{editTaskId ? 'Update Task' : 'Add Task'}</button>
       </form>
       <div className="tasks-list">
         <h3>Tasks</h3>
@@ -134,6 +165,7 @@ function Tasks() {
                 <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
                 <strong>Description:</strong> {task.description || 'No Description'} <br />
                 <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'}
+                <button onClick={() => startEditTask(task)}>Edit</button>
                 <button onClick={() => deleteTask(task.taskid)}>Delete</button>
               </li>
             ))
