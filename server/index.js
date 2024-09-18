@@ -300,16 +300,41 @@ app.delete("/deletePerms/:id", (req, res) => {
     });
 });
 
-// #81 Manager create a task
+// #81 Manager create task
 app.post("/createTask", (req, res) => {
-    const q = "INSERT INTO tasks (`taskname`, `description`, `manpower_required`, `timeslot`) VALUES (?, ?, ?, ?)";
-    const values = [req.body.taskname, req.body.description, req.body.manpower_required, req.body.timeslot];
+    const { taskname, description, manpower_required, timeslot } = req.body;
 
+    const q = "INSERT INTO tasks (taskname, description, manpower_required, timeslot) VALUES (?, ?, ?, ?)";
+    const values = [taskname, description, manpower_required, timeslot];
     db.query(q, values, (err, data) => {
-        if (err) return res.status(500).json(err);
+        if (err) {
+            console.error("Database error:", err);  // Log detailed error
+            return res.status(500).json({
+                message: "Failed to create task",
+                error: err.message || "An unknown error occurred" // Provide clear message
+            });
+        }
         return res.status(201).json("Task created successfully");
     });
 });
+
+// #82 Get all tasks
+app.get("/tasks", (req, res) => {
+    const q = "SELECT * FROM tasks";
+    db.query(q, (err, data) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({
+                message: "Failed to fetch tasks",
+                error: err.message || "An unknown error occurred"
+            });
+        }
+        console.log('Tasks fetched:', data); // Log tasks data
+        return res.status(200).json(data);
+    });
+});
+
+
 
 // #3 Manager retrieve employee particulars
 app.get("/employees", (req, res) => {
@@ -317,7 +342,7 @@ app.get("/employees", (req, res) => {
     const { userid, fname, lname, email, contact, roleid } = req.query;
 
     // Base query
-    let q = "SELECT userid, fname, lname, email, contact FROM users";
+    let q = "SELECT fname, lname, email, contact FROM users";
     const values = [];
 
     // Add conditions based on provided parameters
@@ -328,10 +353,7 @@ app.get("/employees", (req, res) => {
         q += " WHERE 1=1"; // Ensures that WHERE clause is valid if no roleid is provided
     }
 
-    if (userid) {
-        q += " AND userid = ?";
-        values.push(userid);
-    }
+
     if (fname) {
         q += " AND fname LIKE ?";
         values.push(`%${fname}%`);
@@ -379,9 +401,13 @@ app.put("/task/:id", (req, res) => {
 
     // Dynamically build the update query and values array
     for (const [key, value] of Object.entries(req.body)) {
-        if (value) { // Only add non-empty fields
+        if (key === 'requirements' && Array.isArray(value)) {
+            // Convert array to comma-separated string for 'requirements'
+            values.push(value.join(', '));
             updates.push(`${key} = ?`);
+        } else if (value) { // Only add non-empty fields
             values.push(value);
+            updates.push(`${key} = ?`);
         }
     }
 
@@ -420,39 +446,69 @@ app.delete("/task/:id/timeslot", (req, res) => {
         return res.status(200).json("Timeslot removed successfully");
     });
 });
-//10 As a employee, I want to be able to view the schedule of the timesheet so that I know who I will be working with on that shift
-//overview of the schedules
-app.get('/schedules', (req, res) => {
-    const shiftDate = req.query.shift_date;
 
-    let query = `
-        SELECT 
-            schedules.schedule_id, 
-            schedules.shift_date, 
-            schedules.start_time, 
-            schedules.end_time, 
-            schedules.salary, 
-            COALESCE(users.fname, 'NULL') AS fname, 
-            COALESCE(users.lname, '') AS lname 
-        FROM 
-            schedules 
-        LEFT JOIN 
-            users ON schedules.userid = users.userid;
-    `;
+//13 As a employee, I want to be able to update my availability so that my manager knows my availability
+app.put('/updateAvailability/:id', (req, res) => {
+    const availabilityId = req.params.id;
+    const values = [
+        req.body.available_date,
+        req.body.start_time,
+        req.body.end_time,
+        req.body.status
+    ];
 
-    // Add date filter if shift_date is provided
-    if (shiftDate) {
-        query += ' WHERE schedules.shift_date = ?';
-    }
+    const sql = `
+        UPDATE availability 
+        SET available_date = ?, 
+            start_time = ?, 
+            end_time = ?, 
+            status = ? 
+        WHERE availability_id = ?`;
 
-    db.query(query, shiftDate ? [shiftDate] : [], (err, results) => {
+    db.query(sql, [...values, availabilityId], (err, result) => {
         if (err) {
-            console.error('Error executing query:', err);
-            return res.status(500).json({ error: 'Failed to retrieve schedules' });
+            return res.status(500).json(err);
         }
-        res.json(results);
+        res.status(200).json("Availability updated successfully");
     });
 });
+
+//overview of schedules
+app.get('/schedules', (req, res) => {
+    const shiftDate = req.query.shift_date;
+  
+    // Base SQL query
+    let query = `
+      SELECT 
+        schedules.schedule_id, 
+        schedules.shift_date, 
+        schedules.start_time, 
+        schedules.end_time, 
+        schedules.salary, 
+        COALESCE(users.fname, 'NULL') AS fname, 
+        COALESCE(users.lname, '') AS lname 
+      FROM 
+        schedules 
+      LEFT JOIN 
+        users ON schedules.userid = users.userid
+    `;
+  
+    // Add condition for shift_date if provided
+    if (shiftDate) {
+      query += ' WHERE schedules.shift_date = ?';
+    }
+  
+    // Execute the query
+    db.query(query, shiftDate ? [shiftDate] : [], (err, results) => {
+      if (err) {
+        console.error('Error executing query:', err.message);
+        return res.status(500).json({ error: 'Failed to retrieve schedules', details: err.message });
+      }
+      console.log('Query Results:', results); // Log the results for debugging
+      res.json(results);
+    });
+  });
+  
 
 //add schedule
 app.post('/addSchedules', (req, res) => {
@@ -476,10 +532,14 @@ app.post('/addSchedules', (req, res) => {
     });
 });
 
-// Update schedule
 app.put('/updateSchedules/:id', (req, res) => {
     const { shift_date, start_time, end_time, salary, userid } = req.body;
     const { id } = req.params; // Get the schedule ID from the URL params
+
+    // Validate input values
+    if (!shift_date || !start_time || !end_time || !salary || !userid || !id) {
+        return res.status(400).send({ error: 'Missing required fields' });
+    }
 
     // Extract the date part (YYYY-MM-DD) from shift_date
     const formattedShiftDate = shift_date.split('T')[0]; // '2024-08-22'
@@ -491,12 +551,12 @@ app.put('/updateSchedules/:id', (req, res) => {
     `;
 
     // Ensure the values are in the correct order
-    const values = [formattedShiftDate, start_time, end_time, userid, salary, id];
+    const values = [formattedShiftDate, start_time, end_time, salary, userid, id];
 
     db.query(query, values, (err, results) => {
         if (err) {
-            console.error('Error executing query:', err);
-            return res.status(500).send({ error: 'Failed to update schedule' });
+            console.error('Error executing query:', err.message);
+            return res.status(500).send({ error: 'Failed to update schedule', details: err.message });
         }
 
         // If no rows were affected, it means the schedule ID was not found
@@ -530,79 +590,105 @@ app.delete('/deleteSchedules/:id', (req, res) => {
     });
 });
 
-
-//13 As a employee, I want to be able to update my availability so that my manager knows my availability
-app.put('/updateAvailability/:id', (req, res) => {
-    const availabilityId = req.params.id;
-    const values = [
-        req.body.available_date,
-        req.body.start_time,
-        req.body.end_time,
-        req.body.status
-    ];
-
-    const sql = `
-        UPDATE availability 
-        SET available_date = ?, 
-            start_time = ?, 
-            end_time = ?, 
-            status = ? 
-        WHERE availability_id = ?`;
-
-    db.query(sql, [...values, availabilityId], (err, result) => {
+//all pending time-off requests
+app.get('/timeoff', (req, res) => {
+    // Define the status to filter by (in this case, 'pending')
+    const status = 'pending';
+    const query = `
+        SELECT r.request_id, u.fname, u.lname, r.request_date, r.start_date, r.end_date, r.reason, r.status
+        FROM requestleave r
+        JOIN users u ON r.userid = u.userid
+        WHERE r.status = ?
+    `;
+    db.query(query, [status], (err, results) => {
         if (err) {
-            return res.status(500).json(err);
+            console.error('Error fetching time-off requests:', err);
+            return res.status(500).json({ error: 'Failed to fetch requests' });
         }
-        res.status(200).json("Availability updated successfully");
+        res.json(results);
     });
-});
-
-//9 As a employee, I want to be able to create time off request so that I can get approval for my leave of absence from work
-app.post('/requestLeave', (req, res) => {
-    const { userid, request_date, start_date, end_date, reason } = req.body;
+  });
   
-    if (!userid || !request_date || !start_date || !end_date || !reason) {
-      return res.status(400).send({ error: 'All fields are required' });
+  //update time-off request status
+  app.put('/timeoff/:request_id', (req, res) => {
+    const { request_id } = req.params;
+    const { status } = req.body;
+  
+    const query = 'UPDATE requestleave SET status = ? WHERE request_id = ?';
+    
+    db.query(query, [status, request_id], (err, results) => {
+        if (err) {
+            console.error('Error updating request status:', err);
+            return res.status(500).json({ error: 'Failed to update request status' });
+        }
+        res.status(200).json({ message: 'Request status updated successfully' });
+    });
+  });
+
+  //view all available status
+app.get('/available', (req, res) => {
+    const query = `
+        SELECT a.availability_id, a.available_date, a.start_time, a.end_time, a.status, u.fname, u.lname
+        FROM availability a
+        JOIN users u ON a.userid = u.userid
+        WHERE status = 'available'
+    `;
+  
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching availability:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+  
+        res.status(200).json(results);
+    });
+  });
+  
+  
+  //create availability form
+  app.post('/available', (req, res) => {
+    console.log('Request body:', req.body);
+  
+    const { userid, available_date, start_time, end_time, status } = req.body;
+  
+    // Ensure required fields are present (but allow userid to be null)
+    if (!available_date || !start_time || !end_time) {
+      return res.status(400).send({ error: 'All fields (available_date, start_time, end_time) are required' });
     }
   
     const query = `
-      INSERT INTO requestLeave (userid, request_date, start_date, end_date, reason) 
+      INSERT INTO availability (userid, available_date, start_time, end_time, status)
       VALUES (?, ?, ?, ?, ?)
     `;
   
-    db.query(query, [userid, request_date, start_date, end_date, reason], (err, result) => {
+    db.query(query, [userid || null, available_date, start_time, end_time, status || 'pending'], (err, results) => {
       if (err) {
-        console.error('Error inserting into requestLeave table:', err.sqlMessage);
-        return res.status(500).json({ error: 'Error creating leave request' });
+        console.error('Error executing query:', err);
+        return res.status(500).send({ error: 'Failed to add availability' });
       }
-  
-      // Return 200 OK and JSON message
-      return res.status(200).json({ message: 'Leave request created successfully' });
+      res.send({ message: 'Availability added successfully', id: results.insertId });
     });
   });
   
+  //delete availability form
+  app.delete('/available/:id', (req, res) => {
+    const { id } = req.params;
+    const deleteQuery = 'DELETE FROM availability WHERE availability_id = ?';
   
-//11 As a employee, I want to be able to view my annual leave/MC balances so I know how many leaves/MCs I'm left with
-app.get('/leaveBalance/:userid', (req, res) => {
-    const { userid } = req.params;
+    db.query(deleteQuery, [id], (err, result) => {
+        if (err) {
+            console.error('Error deleting availability:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
   
-    if (!userid) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Availability not found' });
+        }
   
-    const query = 'SELECT annual_leave_balance FROM leaveBalances WHERE userid = ?';
-    db.query(query, [userid], (err, results) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send('Database error');
-      }
-  
-      if (results.length === 0) {
-        return res.status(404).json({ error: 'Leave balance not found for this user' });
-      }
-  
-      res.json({ userid, annual_leave_balance: results[0].annual_leave_balance });
+        return res.status(200).json({ message: 'Availability deleted successfully' });
     });
   });
+
+
+  app.listen(8800, console.log("server started on port 8800"));
   
-app.listen(8800, console.log("server started on port 8800"));

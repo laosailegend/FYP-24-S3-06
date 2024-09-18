@@ -3,18 +3,30 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
-import { tasks } from './Tasks'; // Ensure correct named import
 
 function Availability() {
   const [date, setDate] = useState(new Date());
   const [availability, setAvailability] = useState('Available');
   const [availabilityList, setAvailabilityList] = useState([]);
+  const [tasks, setTasks] = useState([]); // State to store tasks
 
   useEffect(() => {
-    fetch('/availability')
+    // Fetch availability data
+    fetch('http://localhost:8800/availability')  // Update to include correct port
       .then((res) => res.json())
       .then((data) => setAvailabilityList(data));
-  }, []);
+
+    // Fetch tasks data
+    fetch('http://localhost:8800/tasks')  // Update to include correct port
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Fetched tasks:', data);
+        setTasks(data);
+      })
+      .catch((err) => {
+        console.error('Error fetching tasks:', err);
+      });
+}, []);
 
   const onChange = (date) => {
     setDate(date);
@@ -50,8 +62,10 @@ function Availability() {
   const formatDate = (date) => moment(date).format('DD/MM/YYYY');
 
   // Filter tasks for the selected date
-  const getTasksForDate = (date) => {
-    return tasks.filter((task) => moment(task.task_date).isSame(date, 'day'));
+    const getTasksForDate = (date) => {
+    const filteredTasks = tasks.filter((task) => moment(task.timeslot).isSame(date, 'day'));
+    console.log('Tasks for selected date:', filteredTasks); // <-- Add this line
+    return filteredTasks;
   };
 
   return (
@@ -93,7 +107,7 @@ function Availability() {
           <ul>
             {getTasksForDate(date).map((task, index) => (
               <li key={index}>
-                <strong>Job Scope:</strong> {task.job_scope} <br />
+                <strong>Job Scope:</strong> {task.taskname} <br />
                 <strong>Description:</strong> {task.description} <br />
                 <strong>Manpower Required:</strong> {task.manpower_required}
               </li>
