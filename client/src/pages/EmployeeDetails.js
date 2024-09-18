@@ -5,11 +5,12 @@ const EmployeeDetails = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const res = await axios.get('http://localhost:8800/employees');
+                const res = await axios.get('http://localhost:8800/HRGetUser');
                 setEmployees(res.data);
             } catch (err) {
                 setError('Failed to fetch employee details');
@@ -21,12 +22,41 @@ const EmployeeDetails = () => {
         fetchEmployees();
     }, []);
 
+    const handleSearch = (event) => {
+        setSearchTerm(event.target.value);
+    };
+
+    const filteredEmployees = employees.filter((employee) => {
+        const fullName = `${employee.fname} ${employee.lname}`.toLowerCase();
+        return (
+            employee.nric.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            fullName.includes(searchTerm.toLowerCase()) ||
+            employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            employee.role.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    });
+
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
     return (
         <div>
             <h1>All Employees</h1>
+
+            {/* Search input */}
+            <input
+                type="text"
+                placeholder="Search by NRIC, name, email, or role"
+                value={searchTerm}
+                onChange={handleSearch}
+                style={{
+                    padding: '10px',
+                    marginBottom: '20px',
+                    width: '300px',
+                    fontSize: '16px',
+                }}
+            />
+
             <table>
                 <thead>
                     <tr>
@@ -39,7 +69,7 @@ const EmployeeDetails = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {employees.map(employee => (
+                    {filteredEmployees.map((employee) => (
                         <tr key={employee.userid}>
                             <td>{employee.nric}</td>
                             <td>{employee.fname}</td>
@@ -51,6 +81,8 @@ const EmployeeDetails = () => {
                     ))}
                 </tbody>
             </table>
+
+            {filteredEmployees.length === 0 && <p>No employees found</p>}
         </div>
     );
 };

@@ -74,7 +74,7 @@ app.post("/createUser", (req, res) => {
         if (err) return;
 
         const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash]
-
+        console.log(values);
         db.query(q, [values], (err, data) => {
             if (err) return res.json(err);
             return res.json("user created successfully");
@@ -124,7 +124,7 @@ app.get("/employeeGetUser", (req, res) => {
 // retrieve user details w/o password for HR only + role
 app.get("/HRGetUser", (req, res) => {
     // inner join to also get their role type as well
-    const q = "SELECT userid, nric, fname, lname, contact, email FROM users INNER JOIN roles ON users.roleid = roles.roleid"
+    const q = "SELECT userid, nric, fname, lname, contact, email, role FROM users INNER JOIN roles ON users.roleid = roles.roleid"
     db.query(q, (err, data) => {
         if (err) {
             console.log(err);
@@ -688,6 +688,57 @@ app.get('/available', (req, res) => {
         return res.status(200).json({ message: 'Availability deleted successfully' });
     });
   });
+
+// Fetch the user's own profile details
+app.get('/profile/:id', (req, res) => {
+    const userId = req.params.id;
+    console.log("id: " + userId);
+
+    // Join the users and roles tables to get the role name
+    const query = `
+        SELECT users.userid, users.fname, users.lname, users.email, users.contact, roles.role
+        FROM users
+        LEFT JOIN roles ON users.roleid = roles.roleid
+        WHERE users.userid = ?`;
+
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error('Error fetching user details:', err);
+            return res.status(500).send({ error: 'Failed to retrieve profile details' });
+        }
+        if (results.length === 0) {
+            return res.status(404).send({ error: 'User not found' });
+        }
+        console.log(results[0]);
+        res.send(results[0]); // Return user profile with role name
+    });
+});
+
+//update user profile 
+app.put('/profile/:id', (req, res) => {
+    const userId = req.params.id;
+    const { fname, lname, email, contact } = req.body; // Make sure the request body contains these fields
+
+    const query = `
+        UPDATE users
+        SET fname = ?, lname = ?, email = ?, contact = ?
+        WHERE userid = ?
+    `;
+
+    db.query(query, [fname, lname, email, contact, userId], (err, results) => {
+        if (err) {
+            console.error('Error updating profile:', err);
+            return res.status(500).send({ error: 'Failed to update profile' });
+        }
+
+        if (results.affectedRows === 0) {
+            return res.status(404).send({ error: 'User not found' });
+        }
+
+        res.send({ success: true, message: 'Profile updated successfully' });
+    });
+});
+
 
 
   app.listen(8800, console.log("server started on port 8800"));
