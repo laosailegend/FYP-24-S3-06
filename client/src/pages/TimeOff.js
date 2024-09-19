@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const TimeOff = () => {
     const [requests, setRequests] = useState([]);
 
+    const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+    const navigate = useNavigate();
+
     useEffect(() => {
+        // prevents non-admin users from viewing the page
+        if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
+            window.alert("You are not authorized to view this page");
+            navigate("/", { replace: true });
+            return () => { };
+        }
+
         const fetchRequests = async () => {
             try {
                 const response = await axios.get('http://localhost:8800/timeoff');
@@ -21,7 +32,7 @@ const TimeOff = () => {
         try {
             await axios.put(`http://localhost:8800/timeoff/${request_Id}`, { status: newStatus });
             // Remove the updated request from the list if it's no longer pending
-            setRequests(requests.filter(request => 
+            setRequests(requests.filter(request =>
                 request.request_id !== request_Id || newStatus === 'pending'
             ));
         } catch (error) {

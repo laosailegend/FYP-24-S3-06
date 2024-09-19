@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
@@ -6,6 +7,9 @@ import '../style.css';
 import axios from 'axios';
 
 function Tasks() {
+  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const navigate = useNavigate();
+
   const [date, setDate] = useState(new Date());
   const [taskDetails, setTaskDetails] = useState({
     taskname: '',
@@ -16,6 +20,17 @@ function Tasks() {
   const [editTaskId, setEditTaskId] = useState(null); // State to track which task is being edited
 
   useEffect(() => {
+    // prevents non-admin users from viewing the page
+    if (!tokenObj || tokenObj.role !== 1) {
+      window.alert("You are not authorized to view this page");
+      navigate("/", { replace: true });
+      return () => { };
+    }
+
+    // If tokenObj is still null, don't render the content yet
+    if (tokenObj === null) {
+      return null;  // You can replace this with a loading indicator if you prefer
+    }
     fetchTasks();
   }, []);
 
@@ -46,10 +61,10 @@ function Tasks() {
     e.preventDefault();
 
     const formattedDate = moment(date).format('YYYY-MM-DD');
-    const newTask = { 
-      taskname: taskDetails.taskname, 
-      description: taskDetails.description, 
-      manpower_required: taskDetails.manpower_required, 
+    const newTask = {
+      taskname: taskDetails.taskname,
+      description: taskDetails.description,
+      manpower_required: taskDetails.manpower_required,
       timeslot: formattedDate,
     };
 
@@ -92,10 +107,10 @@ function Tasks() {
     e.preventDefault();
 
     const formattedDate = moment(date).format('YYYY-MM-DD');
-    const updatedTask = { 
-      taskname: taskDetails.taskname, 
-      description: taskDetails.description, 
-      manpower_required: taskDetails.manpower_required, 
+    const updatedTask = {
+      taskname: taskDetails.taskname,
+      description: taskDetails.description,
+      manpower_required: taskDetails.manpower_required,
       timeslot: formattedDate,
     };
 

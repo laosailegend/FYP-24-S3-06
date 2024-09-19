@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../auth/AuthContext';
 import '../style.css';
 
-const ProfileHR = () => {
+const Profile = () => {
     const [profile, setProfile] = useState({
         fname: '',
         lname: '',
@@ -13,20 +12,15 @@ const ProfileHR = () => {
         role: ''
     });
     const [error, setError] = useState(null);
-    const { tokenObj } = useContext(AuthContext);
+    const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!tokenObj || tokenObj.role !== 4) {
-            window.alert("You are not authorized to view this page");
+        if (!tokenObj) {
+            window.alert("Invalid");
             navigate("/", { replace: true });
             return() => {
-
             }
-        }
-    
-        if (tokenObj === null) {
-            return null;
         }
         
         const fetchProfile = async (userId) => {
@@ -110,24 +104,34 @@ const ProfileHR = () => {
                         name="contact" 
                         value={profile.contact} 
                         onChange={handleChange} 
+                        maxLength={8}
                     />
                 </label>
                 <br />
                 <label>
                     Role:
-                    <input 
+                    <input disabled
                         type="text" 
                         name="role" 
                         value={profile.role} 
                         onChange={handleChange} 
-                        readOnly // Optional if role cannot be changed by the user
                     />
                 </label>
                 <br />
+                {/* <label>
+                    New Password:
+                    <input 
+                        type="password" 
+                        name="password"
+                        value=""
+                        onChange={handleChange} 
+                    />
+                </label>
+                <br /> */}
                 <button type="submit">Update Profile</button>
             </form>
         </div>
     );
 };
 
-export default ProfileHR;
+export default Profile;
