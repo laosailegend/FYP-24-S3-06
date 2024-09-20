@@ -521,7 +521,7 @@ app.get('/schedules', (req, res) => {
 // Fetch the user's own profile details
 app.get('/profile/:id', (req, res) => {
     const userId = req.params.id;
-    console.log("id: " + userId);
+    // console.log("id: " + userId);
 
     // Join the users and roles tables to get the role name
     const query = `
@@ -538,7 +538,7 @@ app.get('/profile/:id', (req, res) => {
         if (results.length === 0) {
             return res.status(404).send({ error: 'User not found' });
         }
-        console.log(results[0]);
+        // console.log(results[0]);
         res.send(results[0]); // Return user profile with role name
     });
 });
@@ -788,6 +788,22 @@ app.post('/requestLeave', (req, res) => {
     });
 });
 
+app.get('/getRequestLeave/:id', (req, res) => {
+    const { id } = req.params;
+
+    const query = `
+        SELECT request_date, start_date, end_date, reason, status FROM requestleave WHERE userid = ?
+    `;
+
+    db.query(query, [id], (err, results) => {
+        if (err) {
+            console.error('Error fetching leave requests:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        res.status(200).json(results);
+    });
+});
 
 //11 As a employee, I want to be able to view my annual leave/MC balances so I know how many leaves/MCs I'm left with
 app.get('/leaveBalance/:userid', (req, res) => {

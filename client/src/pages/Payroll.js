@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
 
 function Payroll() {
+  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const navigate = useNavigate();
+
   const [date, setDate] = useState(new Date());
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [workDays, setWorkDays] = useState([]);
@@ -62,10 +66,19 @@ function Payroll() {
     return total.toFixed(2);
   };
 
+  useEffect(() => {
+    // prevents non-admin users from viewing the page
+    if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
+      window.alert("You are not authorized to view this page");
+      navigate("/", { replace: true });
+      return () => { };
+    }
+  });
+
   return (
     <div className="calendar-payroll-container">
       <h2>Employee Payroll Calculation</h2>
-      
+
       <div className="select-employee">
         <label>Select Employee:</label>
         <select onChange={handleEmployeeChange} defaultValue="">
@@ -87,7 +100,7 @@ function Payroll() {
 
           <div className="shift-details">
             <h3>Add Shift for {selectedEmployee.name}</h3>
-            
+
             <div>
               <label>Start Time:</label>
               <input
@@ -98,7 +111,7 @@ function Payroll() {
                 required
               />
             </div>
-            
+
             <div>
               <label>End Time:</label>
               <input

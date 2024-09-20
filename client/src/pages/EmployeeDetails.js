@@ -1,13 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const EmployeeDetails = () => {
+    const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+    const navigate = useNavigate();
+
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
+        // prevents non-admin users from viewing the page
+        if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
+            window.alert("You are not authorized to view this page");
+            navigate("/", { replace: true });
+            return () => { };
+        }
+        
         const fetchEmployees = async () => {
             try {
                 const res = await axios.get('http://localhost:8800/HRGetUser');

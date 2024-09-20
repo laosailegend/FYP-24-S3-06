@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../style.css'; // Assuming the styles are in 'styles.css'
 
+// HR
 const AvailabilityForm = () => {
+    const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+    const navigate = useNavigate();
+
     const [availabilityList, setAvailabilityList] = useState([]);
     const [formData, setFormData] = useState({
         available_date: '',
@@ -14,6 +19,13 @@ const AvailabilityForm = () => {
     const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
+        // prevents non-admin users from viewing the page
+        if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
+            window.alert("You are not authorized to view this page");
+            navigate("/", { replace: true });
+            return () => { };
+        }
+        
         fetchAvailability();
     }, []);
 
@@ -21,10 +33,22 @@ const AvailabilityForm = () => {
         try {
             const response = await axios.get('http://localhost:8800/available');
             setAvailabilityList(response.data);
+            console.log(response.data);
         } catch (error) {
             console.error('Error fetching availability:', error);
         }
     };
+
+    if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
+        window.alert("You are not authorized to view this page");
+        navigate("/", { replace: true });
+        return () => {
+        }
+    }
+
+    if (tokenObj === null) {
+        return null;
+    }
 
     const handleInputChange = (e) => {
         setFormData({
@@ -44,7 +68,7 @@ const AvailabilityForm = () => {
             available_date: '',
             start_time: '',
             end_time: '',
-            status: 'pending', 
+            status: 'pending',
         });
         setEditingId(null);
         fetchAvailability();
@@ -153,7 +177,7 @@ const AvailabilityForm = () => {
                                 <strong>Time:</strong> {formatTime(item.start_time)} - {formatTime(item.end_time)}
                             </div>
                             <div>
-                                <strong>Status:</strong> 
+                                <strong>Status:</strong>
                                 <span className={item.status === 'available' ? 'status-available' : item.status === 'unavailable' ? 'status-unavailable' : 'status-pending'}>
                                     {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                 </span>
