@@ -773,7 +773,7 @@ app.post('/requestLeave', (req, res) => {
     }
 
     const query = `
-        INSERT INTO requestLeave (userid, request_date, start_date, end_date, reason) 
+        INSERT INTO requestleave (userid, request_date, start_date, end_date, reason) 
         VALUES (?, ?, ?, ?, ?)
     `;
 
