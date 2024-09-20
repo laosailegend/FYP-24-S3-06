@@ -1,10 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
+import { AuthContext } from '../auth/AuthContext';
 
 function Schedule() {
+  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const navigate = useNavigate();
+
   const [date, setDate] = useState(new Date());
   const [schedules, setSchedules] = useState([]);
   const [tasks, setTasks] = useState([]); // State to store tasks
@@ -21,6 +26,13 @@ function Schedule() {
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
+    if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
+      window.alert("You are not authorized to view this page");
+      navigate("/", { replace: true });
+      return () => {
+      }
+    }
+
     fetchSchedules();
     fetchTasks(); // Fetch tasks on component mount
   }, []);

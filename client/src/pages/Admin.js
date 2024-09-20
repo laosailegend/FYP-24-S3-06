@@ -1,6 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../auth/AuthContext';
 import axios from 'axios';
 
 const Admin = () => {
@@ -11,6 +10,8 @@ const Admin = () => {
         setSelectedMenu(menu);
     };
 
+    const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+    // console.log(tokenObj);
     const navigate = useNavigate();
 
     const [roles, setRoles] = useState([]);
@@ -93,10 +94,19 @@ const Admin = () => {
         }
     }
 
-    const { tokenObj } = useContext(AuthContext);
-
     useEffect(() => {
+        // prevents non-admin users from viewing the page
+        if (!tokenObj || tokenObj.role !== 1) {
+            window.alert("You are not authorized to view this page");
+            navigate("/", { replace: true });
+            return () => { };
+        }
 
+        // If tokenObj is still null, don't render the content yet
+        if (tokenObj === null) {
+            return null;  // You can replace this with a loading indicator if you prefer
+        }
+        
         const fetchRoles = async () => {
             try {
                 const res = await axios.get("http://localhost:8800/roles");
@@ -208,17 +218,7 @@ const Admin = () => {
         }
     };
 
-    // prevents non-admin users from viewing the page
-    if (!tokenObj || tokenObj.role !== 1) {
-        window.alert("You are not authorized to view this page");
-        navigate("/", { replace: true });
-        return () => { };
-    }
-    
-    // If tokenObj is still null, don't render the content yet
-    if (tokenObj === null) {
-        return null;  // You can replace this with a loading indicator if you prefer
-    }
+
 
     // Render the admin content if authorized
     return (

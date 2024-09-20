@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import './style.css';
 import Login from './pages/Login';
@@ -16,7 +16,7 @@ import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
 import TimeOff from './pages/TimeOff';
 import AvailabilityForm from './pages/AvailabilityForm';
 import EmployeeDetails from './pages/EmployeeDetails';
-import ProfileHR from './pages/ProfileHR';
+import Profile from './pages/Profile';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -81,7 +81,6 @@ function App() {
             <Link to="/features">Features</Link> {/* Add Feautres link */}
             <Link to="/pricing">Pricing</Link> {/* Add Pricing link */}
             <Link to="/contact">Contact</Link> {/* Add Contact link */}
-            <Link to="/profile/:id">Profile(HR)</Link>
 
             {/* only admin can see */}
             {isLoggedIn && tokenObj.role === 1 ? (
@@ -131,7 +130,11 @@ function App() {
             )}
 
             {isLoggedIn ? (
-              <button className="logout" onClick={logout}>Logout</button>
+              <>
+                <Link to="/profile">Profile</Link>
+                <button className="logout" onClick={logout}>Logout</button>
+              </>
+              
             ) : (
               <Link to="/login" className="login">Login</Link>
             )}
@@ -145,13 +148,13 @@ function App() {
             <Route path="/contact" element={<Contact />} /> {/* Add Contact route */}
             <Route path="/Tasks" element={<Tasks />} /> {/* Add Contact route */}
             <Route path="/Payroll" element={<Payroll />} /> {/* Add Payroll route */}
-            <Route path="/Availability" element={<Availability />} /> {/* Add Availability route */}
+            <Route path="/Availability" element={<Availability />} /> {/* EMPLOYEE */}
             <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
             <Route path="/TimeOffRequest" element={<TimeOffRequest />} /> {/* Add Request Time Off route */}
             <Route path="/timeoff" element={<TimeOff />} />
-            <Route path="/available" element={<AvailabilityForm />} />
+            <Route path="/available" element={<AvailabilityForm />} /> {/* HR */}
             <Route path="/employees" element={<EmployeeDetails />} />
-            <Route path="/profile/:id" element={<ProfileHR />} />
+            <Route path="/profile" element={<Profile/>} />
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />

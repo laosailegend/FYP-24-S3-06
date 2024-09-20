@@ -1,16 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
+import { AuthContext } from '../auth/AuthContext';
 
+
+// EMPLOYEE
 function Availability() {
+  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const navigate = useNavigate();
+
   const [date, setDate] = useState(new Date());  
   const [availabilityList, setAvailabilityList] = useState([]);
   const [filteredAvailability, setFilteredAvailability] = useState([]); // Filtered availability for selected date
   const [tasks, setTasks] = useState([]); // State to store tasks
 
   useEffect(() => {
+    if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 3)) {
+      window.alert("You are not authorized to view this page");
+      navigate("/", { replace: true });
+      return () => {
+      }
+    }
+
+    if (tokenObj === null) {
+      return null;
+    }
+
     // Fetch availability data from the backend
     fetch('http://localhost:8800/getAvailable')  // Make sure to use the correct port number
       .then((res) => res.json())
