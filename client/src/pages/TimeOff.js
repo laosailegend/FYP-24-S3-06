@@ -26,7 +26,7 @@ const TimeOff = () => {
         };
 
         fetchRequests();
-    }, []);
+    }, [navigate, tokenObj]);
 
     const handleStatusChange = async (request_Id, newStatus) => {
         try {

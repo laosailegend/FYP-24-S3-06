@@ -21,7 +21,7 @@ function Tasks() {
 
   useEffect(() => {
     // prevents non-admin users from viewing the page
-    if (!tokenObj || tokenObj.role !== 1) {
+    if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
       window.alert("You are not authorized to view this page");
       navigate("/", { replace: true });
       return () => { };
