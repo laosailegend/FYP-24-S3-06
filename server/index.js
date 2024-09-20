@@ -465,21 +465,22 @@ app.delete("/task/:id/timeslot", (req, res) => {
 //13 As a employee, I want to be able to update my availability so that my manager knows my availability
 app.put('/updateAvailability/:id', (req, res) => {
     const availabilityId = req.params.id;
-    const { status } = req.body; // Extract only the status from the request body
+    const { status, userid } = req.body; // Extract status and userid from the request body
 
     const sql = `
         UPDATE availability 
-        SET status = ? 
+        SET status = ?, userid = ? 
         WHERE availability_id = ?`;
 
-    db.query(sql, [status, availabilityId], (err, result) => {
+    db.query(sql, [status, userid, availabilityId], (err, result) => {
         if (err) {
-            console.error('Error updating availability status:', err);
+            console.error('Error updating availability status and userid:', err);
             return res.status(500).json({ error: 'Database error' });
         }
-        res.status(200).json("Availability status updated successfully");
+        res.status(200).json({ message: 'Availability status and userid updated successfully' });
     });
 });
+
 
 
 //overview of schedules
