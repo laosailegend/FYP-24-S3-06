@@ -881,6 +881,35 @@ button:hover {
   text-align: justify;
 }
 
+.clock-in-out-container {
+  padding: 20px;
+}
+
+.schedule-item {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clock-in-button,
+.clock-out-button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.clock-in-button:hover,
+.clock-out-button:hover {
+  background-color: #0056b3;
+}
+
 /* Update user page styles uses similar styling to admin page above*/
 
 
