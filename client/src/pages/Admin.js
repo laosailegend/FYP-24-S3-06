@@ -137,7 +137,7 @@ const Admin = () => {
         fetchRoles();
         fetchPerms();
 
-    }, []);
+    }, [navigate, tokenObj]);
 
     // Handle checkbox change
     const handleCheckboxChange = (permId, permissionType) => {
