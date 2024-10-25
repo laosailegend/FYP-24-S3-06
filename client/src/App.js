@@ -18,6 +18,7 @@ import AvailabilityForm from './pages/AvailabilityForm';
 import EmployeeDetails from './pages/EmployeeDetails';
 import Profile from './pages/Profile';
 import ClockInOut from './pages/ClockInOut';
+import Skill from './pages/Skill';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -112,7 +113,8 @@ function App() {
               <>
                 <Link to="/Availability">Availability(Employee)</Link>
                 <Link to="/TimeOffRequest">Request Time Off(Employee)</Link>
-                <Link to="/clockinout">Clock In/Clock Out</Link>
+                <Link to="/ClockInOut">Clock In/Clock Out</Link>
+                <Link to="/Skill">Skill</Link>
               </>
             ) : (
               <></>
@@ -161,7 +163,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
             <Route path='/update/:id' element={<UpdateUser />} />
-            <Route path="/clockinout" element={<ClockInOut />} />
+            <Route path="/ClockInOut" element={<ClockInOut />} />
+            <Route path="/Skill" element={<Skill />} />
           </Routes>
         </main>
       </div>
