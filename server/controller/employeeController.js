@@ -37,7 +37,7 @@ exports.updateAvailability = (req, res) => {
 };
 
 //9 As a employee, I want to be able to create time off request so that I can get approval for my leave of absence from work /requestLeave
-exports.requestLeave = (req, res) => { 
+exports.requestLeave = (req, res) => {
     const { userid, request_date, start_date, end_date, reason } = req.body;
 
     if (!userid || !request_date || !start_date || !end_date || !reason) {
@@ -98,5 +98,105 @@ exports.getLeaveBalance = (req, res) => {
         }
 
         res.json({ userid, annual_leave_balance: results[0].annual_leave_balance });
+    });
+};
+
+// clockin and out /clock-in
+exports.clockIn = (req, res) => {
+    const { user_id, schedule_id } = req.body; // Extract user_id and schedule_id from request body
+    const clock_in_time = new Date(); // Get the current time
+
+    const query = 'INSERT INTO clock_times (user_id, schedule_id, clock_in_time) VALUES (?, ?, ?)';
+    db.query(query, [user_id, schedule_id, clock_in_time], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.status(201).json({ message: 'Clock-in time recorded successfully', id: results.insertId });
+    });
+};
+
+// Clock Out API /clock-out
+exports.clockOut = (req, res) => {
+    const { user_id, schedule_id } = req.body; // Extract user_id and schedule_id from request body
+    const clock_out_time = new Date(); // Get the current time
+
+    const query = 'UPDATE clock_times SET clock_out_time = ? WHERE user_id = ? AND schedule_id = ? AND clock_out_time IS NULL';
+    db.query(query, [clock_out_time, user_id, schedule_id], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ error: 'No clock-in record found for this user and schedule' });
+        }
+        res.status(200).json({ message: 'Clock-out time recorded successfully' });
+    });
+};
+
+// get employee clock in and out time /clock-times/:user_id/:schedule_id
+exports.getClockTimes = (req, res) => {
+    const { user_id, schedule_id } = req.params;
+
+    const sql = 'SELECT clock_in_time, clock_out_time FROM clock_times WHERE user_id = ? AND schedule_id = ?';
+    db.query(sql, [user_id, schedule_id], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Database query failed' });
+        }
+        res.json(results[0] || {}); // Return an empty object if no clock times are found
+    });
+};
+
+// submit skill and academic /submit-skill
+exports.submitSkills = (req, res) => {
+    const { user_id, skill, qualification } = req.body;
+
+    // Validate the input
+    if (!user_id || !skill || !qualification) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    // SQL query to insert data into the skillAcademic table
+    const sql = 'INSERT INTO skillAcademic (user_id, skill, qualification) VALUES (?, ?, ?)';
+
+    // Execute the query
+    db.query(sql, [user_id, skill, qualification], (err, result) => {
+        if (err) {
+            console.error('Error inserting into database:', err);
+            return res.status(500).json({ error: 'Database insertion failed' });
+        }
+
+        // Respond with success
+        res.status(200).json({ message: 'Skill and qualification added successfully' });
+    });
+};
+
+// To fetch existing skill/qualification /get-skill/:userId
+exports.getSkills = async (req, res) => {
+    const { userId } = req.params;
+    const query = `SELECT skill, qualification FROM skillAcademic WHERE user_id = ?`;
+
+    db.query(query, [userId], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Database error' });
+        }
+        if (results.length > 0) {
+            res.json(results[0]); // Return the user's skill/qualification
+        } else {
+            res.status(404).json({ message: 'No data found' });
+        }
+    });
+};
+
+// To update skill/qualification /update-skill
+exports.updateSkill = (req, res) => {
+    const { user_id, skill, qualification } = req.body;
+    const query = `UPDATE skillAcademic SET skill = ?, qualification = ? WHERE user_id = ?`;
+
+    db.query(query, [skill, qualification, user_id], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.json({ message: 'Skill and qualification updated successfully!' });
     });
 };
