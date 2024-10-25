@@ -147,8 +147,25 @@ exports.getClockTimes = (req, res) => {
     });
 };
 
-// submit skill and academic /submit-skill
-exports.submitSkills = (req, res) => {
+// To fetch existing skill/qualification /get-skill/:userId
+exports.getSkills = async (req, res) => {
+    const { userId } = req.params;
+    const query = `SELECT skill, qualification FROM skillAcademic WHERE user_id = ?`;
+
+    db.query(query, [userId], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Database error' });
+        }
+        if (results.length > 0) {
+            res.json(results[0]); // Return the user's skill/qualification
+        } else {
+            res.status(404).json({ message: 'No data found' });
+        }
+    });
+};
+
+// submit skill /submit-skill
+exports.submitSkill = (req, res) => {
     const { user_id, skill, qualification } = req.body;
 
     // Validate the input
@@ -168,23 +185,6 @@ exports.submitSkills = (req, res) => {
 
         // Respond with success
         res.status(200).json({ message: 'Skill and qualification added successfully' });
-    });
-};
-
-// To fetch existing skill/qualification /get-skill/:userId
-exports.getSkills = async (req, res) => {
-    const { userId } = req.params;
-    const query = `SELECT skill, qualification FROM skillAcademic WHERE user_id = ?`;
-
-    db.query(query, [userId], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (results.length > 0) {
-            res.json(results[0]); // Return the user's skill/qualification
-        } else {
-            res.status(404).json({ message: 'No data found' });
-        }
     });
 };
 

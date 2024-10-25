@@ -132,3 +132,88 @@ exports.getAvailable = (req, res) => {
         res.status(200).json(results);
     });
 };
+
+// add payroll information /payroll
+exports.createPayroll = async (req, res) => {
+    const {
+        userid,
+        pay_period_start,
+        pay_period_end,
+        total_hours_worked,
+        regular_hours,
+        weekend_hours,
+        public_holiday_hours,
+        total_earnings,
+    } = req.body;
+
+    // Validate incoming data
+    if (!userid || total_hours_worked < 0 || total_earnings < 0) {
+        return res.status(400).json({ message: 'Invalid input data' });
+    }
+
+    try {
+        const result = await db.query(
+            `INSERT INTO payroll 
+            (userid, pay_period_start, pay_period_end, total_hours_worked, 
+            regular_hours, weekend_hours, public_holiday_hours, total_earnings) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                userid,
+                pay_period_start,
+                pay_period_end,
+                total_hours_worked,
+                regular_hours,
+                weekend_hours,
+                public_holiday_hours,
+                total_earnings,
+            ]
+        );
+
+        res.status(201).json({ message: 'Payroll recorded successfully', payroll_id: result.insertId });
+    } catch (error) {
+        console.error('Error inserting payroll:', error);
+        res.status(500).json({ message: 'Failed to record payroll' });
+    }
+};
+
+// get user schedule /user/schedules/:userId
+exports.getUserSchedule = (req, res) => {
+    const userId = req.params.userId;
+
+    const query = `
+        SELECT 
+            s.schedule_id,
+            s.userid,
+            s.shift_date,
+            s.start_time,
+            s.end_time,
+            ct.clock_in_time,
+            ct.clock_out_time
+        FROM 
+            schedules s
+        LEFT JOIN 
+            clock_times ct ON s.schedule_id = ct.schedule_id
+        WHERE 
+            s.userid = ?
+    `;
+
+    db.query(query, [userId], (error, results) => {
+        if (error) {
+            console.error('Error retrieving schedules:', error);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        // Format the output if needed
+        const formattedResults = results.map(row => ({
+            scheduleId: row.schedule_id,
+            userId: row.userid,
+            shiftDate: row.shift_date,
+            startTime: row.start_time,
+            endTime: row.end_time,
+            clockInTime: row.clock_in_time,
+            clockOutTime: row.clock_out_time
+        }));
+
+        res.json(formattedResults);
+    });
+};

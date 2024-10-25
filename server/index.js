@@ -39,8 +39,8 @@ app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
 app.post("/clock-in", employeeController.clockIn);
 app.post("/clock-out", employeeController.clockOut);
 app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
-app.post("/submit-skill", employeeController.submitSkills);
 app.get("/get-skill/:userId", employeeController.getSkills);
+app.put("/submit-skill", employeeController.submitSkill);
 app.put("/update-skill", employeeController.updateSkills);
 
 // define routes for HRController
@@ -51,6 +51,8 @@ app.get("/available", HRController.getAvailStatus);
 app.post("/available", HRController.createAvailabilityForm);
 app.delete("/available/:id", HRController.deleteAvailabilityForm);
 app.get("/getAvailable", HRController.getAvailable);
+app.post("/payroll", HRController.createPayroll);
+app.get("/user/schedules/:userId", HRController.getUserSchedule);
 
 // define routes for managerController
 app.get("/managerGetUsers", managerController.managerGetUsers);
