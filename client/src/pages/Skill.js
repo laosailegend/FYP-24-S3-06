@@ -56,7 +56,7 @@ function Skill() {
     try {
       const endpoint = isEditing ? 'update-skill' : 'submit-skill'; // Decide whether to create or update
       const response = await fetch(`http://localhost:8800/${endpoint}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -84,18 +84,30 @@ function Skill() {
       <h2>{isEditing ? 'Update Your Skills and Academic Qualifications' : 'Enter Your Skills and Academic Qualifications'}</h2>
 
       <form onSubmit={handleSubmit}>
+        {/* Skill Dropdown */}
         <div className="form-group">
           <label htmlFor="skill">Skill:</label>
-          <input
-            type="text"
+          <select
             id="skill"
             value={skill}
             onChange={(e) => setSkill(e.target.value)}
-            placeholder="Enter your skill"
             required
-          />
+          >
+            <option value="">Select a skill</option>
+            <option value="Programming">Programming</option>
+            <option value="Java">Java</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="C++">C++</option>
+            <option value="SQL">SQL</option>
+            <option value="MySQL">MySQL</option>
+            <option value="PostgreSQL">PostgreSQL</option>
+            <option value="MongoDB">MongoDB</option>
+            <option value="AWS">AWS</option>
+            <option value="Azure">Azure</option>
+          </select>
         </div>
 
+        {/* Qualification Dropdown */}
         <div className="form-group">
           <label htmlFor="qualification">Academic Qualification:</label>
           <select

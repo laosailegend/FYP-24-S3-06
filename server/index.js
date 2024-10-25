@@ -904,7 +904,7 @@ app.get('/clock-times/:user_id/:schedule_id', (req, res) => {
 });
 
 // submit skill and academic
-app.post('/submit-skill', (req, res) => {
+app.put('/submit-skill', (req, res) => {
     const { user_id, skill, qualification } = req.body;
   
     // Validate the input
@@ -945,7 +945,7 @@ app.get('/get-skill/:userId', async (req, res) => {
   });
   
   // To update skill/qualification
-  app.post('/update-skill', (req, res) => {
+  app.put('/update-skill', (req, res) => {
     const { user_id, skill, qualification } = req.body;
     const query = `UPDATE skillAcademic SET skill = ?, qualification = ? WHERE user_id = ?`;
   
