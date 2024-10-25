@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
@@ -7,10 +6,9 @@ import '../style.css';
 import axios from 'axios';
 
 function Tasks() {
-  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
-  const navigate = useNavigate();
-
   const [date, setDate] = useState(new Date());
+  const [startTime, setStartTime] = useState(''); // Added state for start time
+  const [endTime, setEndTime] = useState(''); // Added state for end time
   const [taskDetails, setTaskDetails] = useState({
     taskname: '',
     description: '',
@@ -20,17 +18,6 @@ function Tasks() {
   const [editTaskId, setEditTaskId] = useState(null); // State to track which task is being edited
 
   useEffect(() => {
-    // prevents non-admin users from viewing the page
-    if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
-      window.alert("You are not authorized to view this page");
-      navigate("/", { replace: true });
-      return () => { };
-    }
-
-    // If tokenObj is still null, don't render the content yet
-    if (tokenObj === null) {
-      return null;  // You can replace this with a loading indicator if you prefer
-    }
     fetchTasks();
   }, []);
 
@@ -61,11 +48,13 @@ function Tasks() {
     e.preventDefault();
 
     const formattedDate = moment(date).format('YYYY-MM-DD');
-    const newTask = {
-      taskname: taskDetails.taskname,
-      description: taskDetails.description,
-      manpower_required: taskDetails.manpower_required,
-      timeslot: formattedDate,
+    const newTask = { 
+      taskname: taskDetails.taskname, 
+      description: taskDetails.description, 
+      manpower_required: taskDetails.manpower_required, 
+      task_date: formattedDate, // Use task_date instead of timeslot
+      start_time: startTime, // Added start time
+      end_time: endTime, // Added end time
     };
 
     try {
@@ -73,6 +62,8 @@ function Tasks() {
       if (response.status === 201) {
         alert('Task added successfully');
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
+        setStartTime(''); // Reset start time
+        setEndTime(''); // Reset end time
         fetchTasks();
       } else {
         alert('Failed to add task');
@@ -100,6 +91,8 @@ function Tasks() {
       description: task.description,
       manpower_required: task.manpower_required,
     });
+    setStartTime(task.start_time); // Set start time for editing
+    setEndTime(task.end_time); // Set end time for editing
     setEditTaskId(task.taskid);
   };
 
@@ -107,11 +100,13 @@ function Tasks() {
     e.preventDefault();
 
     const formattedDate = moment(date).format('YYYY-MM-DD');
-    const updatedTask = {
-      taskname: taskDetails.taskname,
-      description: taskDetails.description,
-      manpower_required: taskDetails.manpower_required,
-      timeslot: formattedDate,
+    const updatedTask = { 
+      taskname: taskDetails.taskname, 
+      description: taskDetails.description, 
+      manpower_required: taskDetails.manpower_required, 
+      task_date: formattedDate, // Use task_date instead of timeslot
+      start_time: startTime, // Include start time
+      end_time: endTime, // Include end time
     };
 
     try {
@@ -119,6 +114,8 @@ function Tasks() {
       if (response.status === 200) {
         alert('Task updated successfully');
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
+        setStartTime(''); // Reset start time
+        setEndTime(''); // Reset end time
         setEditTaskId(null); // Reset edit state
         fetchTasks();
       } else {
@@ -169,26 +166,47 @@ function Tasks() {
             required
           />
         </div>
+        <div>
+          <label>Start Time:</label>
+          <input
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label>End Time:</label>
+          <input
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            required
+          />
+        </div>
         <button type="submit">{editTaskId ? 'Update Task' : 'Add Task'}</button>
       </form>
       <div className="tasks-list">
-        <h3>Tasks</h3>
-        <ul>
-          {tasks.length > 0 ? (
-            tasks.map((task) => (
-              <li key={task.taskid}>
-                <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
-                <strong>Description:</strong> {task.description || 'No Description'} <br />
-                <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'}
-                <button onClick={() => startEditTask(task)}>Edit</button>
-                <button onClick={() => deleteTask(task.taskid)}>Delete</button>
-              </li>
-            ))
-          ) : (
-            <p>No tasks available.</p>
-          )}
-        </ul>
-      </div>
+  <h3>Tasks</h3>
+  <ul>
+    {tasks.length > 0 ? (
+      tasks.map((task) => (
+        <li key={task.taskid}>
+          <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
+          <strong>Description:</strong> {task.description || 'No Description'} <br />
+          <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
+          <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
+          <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
+          <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
+          <button onClick={() => startEditTask(task)}>Edit</button>
+          <button onClick={() => deleteTask(task.taskid)}>Delete</button>
+        </li>
+      ))
+    ) : (
+      <p>No tasks available.</p>
+    )}
+  </ul>
+</div>
     </div>
   );
 }
