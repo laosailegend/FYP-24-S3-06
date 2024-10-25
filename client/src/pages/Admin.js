@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+const server = process.env.SERVER;
 
 const Admin = () => {
     const [selectedMenu, setSelectedMenu] = useState('permissions'); // Default to 'permissions'
@@ -69,7 +70,7 @@ const Admin = () => {
         e.preventDefault();
         if (validateForm()) {
             try {
-                await axios.post("http://localhost:8800/createUser", user);
+                await axios.post(`${server}createUser`, user);
                 window.alert("User added!");
                 // navigate("/");
             } catch (error) {
@@ -87,7 +88,7 @@ const Admin = () => {
 
     const handleUserDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:8800/user/${id}`);
+            await axios.delete(`${server}user/${id}`);
             window.location.reload();
         } catch (error) {
             console.log(error);
@@ -109,7 +110,7 @@ const Admin = () => {
         
         const fetchRoles = async () => {
             try {
-                const res = await axios.get("http://localhost:8800/roles");
+                const res = await axios.get(`${server}roles`);
                 setRoles(res.data);
             } catch (e) {
                 console.log(e);
@@ -117,7 +118,7 @@ const Admin = () => {
         };
         const fetchPerms = async () => {
             try {
-                const res = await axios.get("http://localhost:8800/permissions");
+                const res = await axios.get(`${server}permissions`);
                 setPerms(res.data);
             } catch (e) {
                 console.log(e);
@@ -126,7 +127,7 @@ const Admin = () => {
 
         const fetchAllUsers = async () => {
             try {
-                const res = await axios.get("http://localhost:8800/users")
+                const res = await axios.get(`${server}users`)
                 getUsers(res.data);
             } catch (e) {
                 console.log(e);
@@ -151,7 +152,7 @@ const Admin = () => {
     const handleSave = async (permId) => {
         const permToUpdate = perms.find(perm => perm.permission_id === permId);
         try {
-            await axios.put(`http://localhost:8800/updatePerms/${permId}`, permToUpdate);
+            await axios.put(`${server}updatePerms/${permId}`, permToUpdate);
             window.alert('Permission updated successfully');
         } catch (e) {
             console.log(e);
@@ -184,7 +185,7 @@ const Admin = () => {
         });
 
         try {
-            const response = await axios.post(`http://localhost:8800/createPerms`, {
+            const response = await axios.post(`${server}createPerms`, {
                 roleid,
                 resource,
                 can_create: can_create ? 1 : 0,
@@ -209,7 +210,7 @@ const Admin = () => {
     // Function to delete a permission
     const handleDelete = async (permId) => {
         try {
-            await axios.delete(`http://localhost:8800/deletePerms/${permId}`);
+            await axios.delete(`${server}deletePerms/${permId}`);
             window.alert('Permission deleted successfully');
             window.location.reload();
         } catch (e) {

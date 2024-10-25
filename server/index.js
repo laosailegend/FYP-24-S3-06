@@ -39,9 +39,9 @@ app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
 app.post("/clock-in", employeeController.clockIn);
 app.post("/clock-out", employeeController.clockOut);
 app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
-app.get("/get-skill/:userId", employeeController.getSkills);
-app.put("/submit-skill", employeeController.submitSkill);
-app.put("/update-skill", employeeController.updateSkills);
+// app.get("/get-skill/:userId", employeeController.getSkills);
+// app.put("/submit-skill", employeeController.submitSkill);
+// app.put("/update-skill", employeeController.updateSkills);
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);
