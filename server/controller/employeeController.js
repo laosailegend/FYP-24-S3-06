@@ -101,6 +101,35 @@ exports.getLeaveBalance = (req, res) => {
     });
 };
 
+//retrieve own schedule employee
+exports.getScheduleId= (req, res) => {
+    const { userid } = req.params;
+
+    // Check if the user ID is provided
+    if (!userid) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Define the query to fetch schedules for the given user ID
+    const query = 'SELECT * FROM schedules WHERE userid = ?';
+
+    // Execute the query
+    db.query(query, [userid], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).send('Database error');
+        }
+
+        // Check if the query returned any results
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No schedules found for this user' });
+        }
+
+        // Return the results to the client
+        res.json({ schedules: results });
+    });
+};
+
 // clockin and out /clock-in
 exports.clockIn = (req, res) => {
     const { user_id, schedule_id } = req.body; // Extract user_id and schedule_id from request body
@@ -147,56 +176,81 @@ exports.getClockTimes = (req, res) => {
     });
 };
 
-// To fetch existing skill/qualification /get-skill/:userId
-exports.getSkills = async (req, res) => {
-    const { userId } = req.params;
-    const query = `SELECT skill, qualification FROM skillAcademic WHERE user_id = ?`;
+// Endpoint to submit skills and qualifications
+exports.submitSkill= (req, res) => {
+    const { user_id, skills, qualification } = req.body;
 
-    db.query(query, [userId], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (results.length > 0) {
-            res.json(results[0]); // Return the user's skill/qualification
-        } else {
-            res.status(404).json({ message: 'No data found' });
-        }
-    });
-};
-
-// submit skill /submit-skill
-exports.submitSkill = (req, res) => {
-    const { user_id, skill, qualification } = req.body;
-
-    // Validate the input
-    if (!user_id || !skill || !qualification) {
-        return res.status(400).json({ error: 'All fields are required' });
+    if (!user_id || !Array.isArray(skills) || skills.length === 0 || !qualification) {
+        return res.status(400).json({ message: 'Invalid input data' });
     }
 
-    // SQL query to insert data into the skillAcademic table
-    const sql = 'INSERT INTO skillAcademic (user_id, skill, qualification) VALUES (?, ?, ?)';
-
-    // Execute the query
-    db.query(sql, [user_id, skill, qualification], (err, result) => {
-        if (err) {
-            console.error('Error inserting into database:', err);
-            return res.status(500).json({ error: 'Database insertion failed' });
-        }
-
-        // Respond with success
-        res.status(200).json({ message: 'Skill and qualification added successfully' });
+    // Iterate over the skills to insert them into the database
+    const insertPromises = skills.map(skill => {
+        return new Promise((resolve, reject) => {
+            // Check if the skill already exists for the user
+            db.query(
+                `SELECT * FROM skillAcademic WHERE user_id = ? AND skill_id = (SELECT skill_id FROM skills WHERE skill_name = ?)`,
+                [user_id, skill],
+                (err, results) => {
+                    if (err) return reject(err);
+                    if (results.length > 0) {
+                        // Skill already exists for this user
+                        return resolve(null); // Skip this skill
+                    } else {
+                        // Skill does not exist, insert it
+                        db.query(
+                            `INSERT INTO skillAcademic (user_id, skill_id, qualification) VALUES (?, (SELECT skill_id FROM skills WHERE skill_name = ?), ?)`,
+                            [user_id, skill, qualification],
+                            (err, result) => {
+                                if (err) return reject(err);
+                                resolve(result);
+                            }
+                        );
+                    }
+                }
+            );
+        });
     });
+
+    // Wait for all insertions to complete
+    Promise.all(insertPromises)
+        .then(results => {
+            // Filter out null values (skills that were already submitted)
+            const insertedSkills = results.filter(result => result !== null);
+            res.status(201).json({ message: 'Skills submitted successfully', insertedSkills });
+        })
+        .catch(err => {
+            console.error('Error inserting skills:', err);
+            res.status(500).json({ message: 'Internal server error' });
+        });
 };
 
-// To update skill/qualification /update-skill
-exports.updateSkill = (req, res) => {
-    const { user_id, skill, qualification } = req.body;
-    const query = `UPDATE skillAcademic SET skill = ?, qualification = ? WHERE user_id = ?`;
-
-    db.query(query, [skill, qualification, user_id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        res.json({ message: 'Skill and qualification updated successfully!' });
+exports.userSkill=(req,res) => {
+    const userId = req.params.user_id;
+  
+    // Adjust the SQL query to match your database structure
+    const query = `
+      SELECT skills.skill_name 
+      FROM skillAcademic 
+      JOIN skills ON skillAcademic.skill_id = skills.skill_id 
+      WHERE skillAcademic.user_id = ?`;
+  
+    db.query(query, [userId], (error, results) => {
+      if (error) {
+        console.error('Error fetching user skills:', error);
+        return res.status(500).json({ error: 'Database query error' });
+      }
+      
+      // If no skills found, return an empty array
+      if (results.length === 0) {
+        return res.json([]);
+      }
+  
+      // Send the results back as a response
+      res.json(results);
     });
-};
+  };
+  
+
+
+

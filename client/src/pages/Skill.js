@@ -1,139 +1,174 @@
 import React, { useState, useEffect } from 'react';
-import '../style.css';
+import { useNavigate } from 'react-router-dom';
 
-function Skill() {
-  // Get the user's ID from the token in localStorage
-  const tokenObj = localStorage.getItem("token") 
-    ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) 
-    : null; 
-  const userId = tokenObj ? tokenObj.id : null;
+const Skill = () => {
+  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const navigate = useNavigate();
 
-  const [skill, setSkill] = useState('');
-  const [qualification, setQualification] = useState('');
-  const [message, setMessage] = useState('');
-  const [isEditing, setIsEditing] = useState(false); // Track if the user is updating
+  const skillOptions = [
+    "Programming", "Java", "JavaScript", "C++", "SQL", 
+    "MySQL", "PostgreSQL", "MongoDB", "AWS", "Azure"
+  ];
 
-  // Fetch the existing skill and qualification when the component loads
+  const academicOptions = [
+    "Doctoral degree", "Master's degree", "Bachelor's degree", 
+    "Diploma", "A level", "O level"
+  ];
+
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [selectedAcademic, setSelectedAcademic] = useState('');
+  const [skillsList, setSkillsList] = useState([]); // State to store fetched skills
+  const [isLoading, setIsLoading] = useState(true); // Loading state
+
   useEffect(() => {
-    const fetchSkillData = async () => {
-      if (!userId) {
-        setMessage('User ID not found. Please log in.');
-        return;
-      }
+    // Check authorization
+    if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 3)) {
+      window.alert("You are not authorized to view this page");
+      navigate("/", { replace: true });
+      return;
+    }
 
-      try {
-        const response = await fetch(`http://localhost:8800/get-skill/${userId}`);
-        const data = await response.json();
-        
-        if (response.ok && data) {
-          setSkill(data.skill || '');
-          setQualification(data.qualification || '');
-          setIsEditing(true); // If data exists, set to editing mode
-        }
-      } catch (error) {
-        console.error('Error fetching skill data:', error);
-        setMessage('Error fetching data.');
-      }
+    // Fetch user skills
+    fetchUserSkills();
+
+    // Set loading state to false
+    setIsLoading(false);
+  }, []);
+
+  // Fetch user skills from the backend
+  const fetchUserSkills = () => {
+    const user_id = tokenObj ? tokenObj.id : null;
+
+    if (!user_id) {
+      console.error('User ID is not available');
+      return;
+    }
+
+    fetch(`http://localhost:8800/userSkills/${user_id}`) // Adjust URL as needed
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Fetched user skills:', data);
+        setSkillsList(data); // Store fetched skills
+      })
+      .catch((err) => {
+        console.error('Error fetching user skills:', err);
+      });
+  };
+
+  // Handle skill selection
+  const handleSkillChange = (skill) => {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    );
+  };
+
+  // Handle academic qualification selection
+  const handleAcademicChange = (event) => {
+    setSelectedAcademic(event.target.value);
+  };
+
+  // Handle form submission
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    // Extract user ID from the token
+    const user_id = tokenObj ? tokenObj.id : null;
+
+    // Ensure user_id and selected skills are valid
+    if (!user_id || selectedSkills.length === 0 || !selectedAcademic) {
+      alert('Please ensure all fields are filled out correctly.');
+      return;
+    }
+
+    const data = {
+      user_id, // Include user_id in the submission data
+      skills: selectedSkills,
+      qualification: selectedAcademic
     };
 
-    fetchSkillData();
-  }, [userId]);
-
-  // Handle form submission (create or update)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!userId) {
-      setMessage('User ID not found. Please log in.');
-      return;
-    }
-
-    if (!skill || !qualification) {
-      setMessage('Please fill in both fields.');
-      return;
-    }
-
-    try {
-      const endpoint = isEditing ? 'update-skill' : 'submit-skill'; // Decide whether to create or update
-      const response = await fetch(`http://localhost:8800/${endpoint}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          skill: skill,
-          qualification: qualification,
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setMessage(isEditing ? 'Skill and qualification updated successfully!' : 'Skill and qualification submitted successfully!');
-      } else {
-        setMessage(data.error || 'Error submitting data.');
-      }
-    } catch (error) {
-      console.error('Error submitting data:', error);
-      setMessage('Error submitting data.');
-    }
+    console.log('Submitted data:', data);
+    // Submit data to backend
+    fetch('http://localhost:8800/submit-skills', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+      // Handle success response (e.g., show message or redirect)
+      alert('Skills submitted successfully!');
+      // Optionally, reset form or navigate
+      setSelectedSkills([]);
+      setSelectedAcademic('');
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      alert('Error submitting skills.');
+    });
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Show loading state while fetching data
+  }
 
   return (
     <div className="skill-container">
-      <h2>{isEditing ? 'Update Your Skills and Academic Qualifications' : 'Enter Your Skills and Academic Qualifications'}</h2>
-
+      <h2>Select Your Skills and Qualification</h2>
       <form onSubmit={handleSubmit}>
-        {/* Skill Dropdown */}
-        <div className="form-group">
-          <label htmlFor="skill">Skill:</label>
-          <select
-            id="skill"
-            value={skill}
-            onChange={(e) => setSkill(e.target.value)}
-            required
+        <div>
+          <h3>Select Skills:</h3>
+          {skillOptions.map((skill, index) => (
+            <div key={index}>
+              <label>
+                <input
+                  type="checkbox"
+                  value={skill}
+                  checked={selectedSkills.includes(skill)}
+                  onChange={() => handleSkillChange(skill)}
+                />
+                {skill}
+              </label>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <label htmlFor="academic">Select Academic Qualification:</label>
+          <select 
+            id="academic" 
+            value={selectedAcademic} 
+            onChange={handleAcademicChange}
           >
-            <option value="">Select a skill</option>
-            <option value="Programming">Programming</option>
-            <option value="Java">Java</option>
-            <option value="JavaScript">JavaScript</option>
-            <option value="C++">C++</option>
-            <option value="SQL">SQL</option>
-            <option value="MySQL">MySQL</option>
-            <option value="PostgreSQL">PostgreSQL</option>
-            <option value="MongoDB">MongoDB</option>
-            <option value="AWS">AWS</option>
-            <option value="Azure">Azure</option>
+            <option value="" disabled>Select your option</option>
+            {academicOptions.map((academic, index) => (
+              <option key={index} value={academic}>
+                {academic}
+              </option>
+            ))}
           </select>
         </div>
 
-        {/* Qualification Dropdown */}
-        <div className="form-group">
-          <label htmlFor="qualification">Academic Qualification:</label>
-          <select
-            id="qualification"
-            value={qualification}
-            onChange={(e) => setQualification(e.target.value)}
-            required
-          >
-            <option value="">Select a qualification</option>
-            <option value="Doctoral degree">Doctoral degree</option>
-            <option value="Master's degree">Master's degree</option>
-            <option value="Bachelor's degree">Bachelor's degree</option>
-            <option value="Diploma">Diploma</option>
-            <option value="A level">A level</option>
-            <option value="O level">O level</option>
-          </select>
-        </div>
-
-        <button type="submit" className="submit-button">
-          {isEditing ? 'Update' : 'Submit'}
-        </button>
+        <button type="submit">Submit</button>
       </form>
 
-      {message && <p>{message}</p>}
+      {/* Display fetched user skills */}
+      <div className="user-skills">
+        <h3>Your Skills:</h3>
+        {skillsList.length > 0 ? (
+          <ul>
+            {skillsList.map((skill, index) => (
+              <li key={index}>{skill.skill_name}</li> // Display the skill name
+            ))}
+          </ul>
+        ) : (
+          <p>No skills found.</p>
+        )}
+      </div>
     </div>
   );
-}
+};
 
 export default Skill;
