@@ -1,0 +1,6 @@
+{"level":"info","message":"Successful login for : ::1, test@gmail.com","timestamp":"2024-10-29T18:49:12.358Z"}
+{"level":"info","message":"Successful login for : ::1, test@gmail.com","timestamp":"2024-10-29T18:51:22.098Z"}
+{"level":"info","message":"Successful login for : ::1, test@gmail.com","timestamp":"2024-10-29T18:53:18.089Z"}
+{"level":"error","message":"Unsuccessful login attempt for : ::1, test@gmail.com","timestamp":"2024-10-29T19:06:07.835Z"}
+{"level":"info","message":"Successful login for : ::1, test@gmail.com","timestamp":"2024-10-29T19:10:29.456Z"}
+{"level":"info","message":"Successful login for : ::1, test@gmail.com","timestamp":"2024-10-29T19:11:01.782Z"}

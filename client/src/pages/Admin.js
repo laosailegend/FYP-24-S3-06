@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-const server = process.env.SERVER;
+const server = process.env.REACT_APP_SERVER;
 
 const Admin = () => {
+    // console.log(server);
     const [selectedMenu, setSelectedMenu] = useState('permissions'); // Default to 'permissions'
 
     // Function to toggle menus
@@ -81,7 +82,6 @@ const Admin = () => {
             window.alert("Please fill all the fields.");
         }
     };
-
 
     // get user data from db
     const [users, getUsers] = useState([]);

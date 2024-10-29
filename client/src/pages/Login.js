@@ -3,9 +3,11 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../auth/AuthContext';
-const server = process.env.SERVER;
+
+const server = process.env.REACT_APP_SERVER;
 
 function Login() {
+  // console.log(server);
   // demo purposes
   const [user, createUser] = useState({
     roleid: null,

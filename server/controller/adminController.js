@@ -5,13 +5,21 @@ const db = require('../dbConfig');
 const logger = require('./logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
+// log IP addr
+exports.logIP = (req, res, next) => {
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    // console.log(ip);
+    next();
+}
+
 // login
 exports.login = (req, res) => {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const { email, password } = req.body;
 
     // Check if email and password are provided
     if (!email || !password) {
-        logger.customerLogger.log('error', 'failed login')
+        logger.userLogger.log('error', `Failed login from ${ip}`)
         return res.status(400).json({ error: "Email and password are required" });
     }
 
@@ -22,16 +30,16 @@ exports.login = (req, res) => {
 
         // If no user is found with the provided email
         if (data.length === 0) {
-            return res.status(401).json({ error: "Invalid email or password" });
+            return res.status(401).json({ error: "Invalid email or password, no user found" });
         }
 
         const user = data[0];
-
 
         // Compare the provided password with the hashed password in the database
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
         if (!isPasswordCorrect) {
+            logger.userLogger.log('error', `Unsuccessful login attempt for : ${ip}, ${user.email}`);
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
@@ -42,7 +50,7 @@ exports.login = (req, res) => {
             { expiresIn: '1d' } // Token expires in 1 day
         );
         // console.log(JSON.parse(atob(token.split('.')[1])));
-        logger.userLogger.log('info', 'Successful login')
+        logger.userLogger.log('info', `Successful login for : ${ip}, ${user.email}`);
 
         return res.json({ message: "Login successful", token });
     });
@@ -54,6 +62,7 @@ exports.createUser = (req, res) => {
     const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`) VALUES (?)";
     const saltRounds = 10;
     const password = req.body.password;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) return;
@@ -63,6 +72,8 @@ exports.createUser = (req, res) => {
             if (err) return res.json(err);
             return res.json("User created successfully");
         });
+
+        logger.adminLogger.log('info', `User created by admin: ${req.body.email} at ${ip}`);
     });
 };
 

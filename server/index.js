@@ -16,6 +16,9 @@ const employeeController = require('./controller/employeeController');
 const HRController = require('./controller/HRController');
 const managerController = require('./controller/managerController');
 
+// middleware for logging IP address
+app.use(adminController.logIP);
+
 // define routes for adminController
 app.post("/login", adminController.login);
 app.post("/createUser", adminController.createUser);
