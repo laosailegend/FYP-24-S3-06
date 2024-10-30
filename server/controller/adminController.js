@@ -1,9 +1,12 @@
-
+// adminController.js
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
-const logger = require('./logger');
+const logger = require('../utils/logger');
+const morgan = require('morgan');
 const SECRET_KEY = process.env.JWT_SECRET;
+
+const morganFormat = ":method :url :status :response-time ms";
 
 // log IP addr
 exports.logIP = (req, res, next) => {
@@ -12,14 +15,14 @@ exports.logIP = (req, res, next) => {
     next();
 }
 
-// login
+// login POST
 exports.login = (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const { email, password } = req.body;
 
     // Check if email and password are provided
     if (!email || !password) {
-        logger.userLogger.log('error', `Failed login from ${ip}`)
+        // logger.userLogger.log('error', `Failed login from ${ip}`)
         return res.status(400).json({ error: "Email and password are required" });
     }
 
@@ -39,7 +42,7 @@ exports.login = (req, res) => {
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
         if (!isPasswordCorrect) {
-            logger.userLogger.log('error', `Unsuccessful login attempt for : ${ip}, ${user.email}`);
+            logger.error(`Unsuccessful login attempt for : ${ip}, ${user.email}`);
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
@@ -47,19 +50,19 @@ exports.login = (req, res) => {
         const token = jwt.sign(
             { id: user.userid, email: user.email, role: user.roleid, fname: user.fname, lname: user.lname },
             SECRET_KEY,
-            { expiresIn: '1d' } // Token expires in 1 day
+            { expiresIn: '1d' } // Token expires in 1 day or 5s/10s or 5m for 5minutes: https://github.com/vercel/ms
         );
         // console.log(JSON.parse(atob(token.split('.')[1])));
-        logger.userLogger.log('info', `Successful login for : ${ip}, ${user.email}`);
+        logger.info(`Successful login for : ${ip}, ${user.email}`);
 
         return res.json({ message: "Login successful", token });
     });
 };
 
 
-// #21 admin create user accounts
+// #21 admin create user accounts POST
 exports.createUser = (req, res) => {
-    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`) VALUES (?)";
+    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`, `availability`, `skill_id`) VALUES (?)";
     const saltRounds = 10;
     const password = req.body.password;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -67,16 +70,22 @@ exports.createUser = (req, res) => {
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) return;
 
-        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash];
+        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash, null, null];
         db.query(q, [values], (err, data) => {
-            if (err) return res.json(err);
+            // console.log(values);
+            if (err) {
+                console.log(err);
+                logger.error(`Failed to create user in admin: ${req.body.email} at ${ip}`);
+                return res.json(err)
+            };
             return res.json("User created successfully");
         });
 
-        logger.adminLogger.log('info', `User created by admin: ${req.body.email} at ${ip}`);
+        logger.info(`User created in admin: ${req.body.email} at ${ip}`);
     });
 };
 
+// get user info and their role type GET 
 exports.getUsers = (req, res) => {
     // inner join to also get their role type as well
     const q = "SELECT * FROM users INNER JOIN roles ON users.roleid = roles.roleid"
@@ -89,7 +98,7 @@ exports.getUsers = (req, res) => {
     })
 };
 
-// retrive role details
+// retrive role details GET
 exports.getRoles = (req, res) => {
     const q = "SELECT * FROM roles"
     db.query(q, (err, data) => {
@@ -100,7 +109,7 @@ exports.getRoles = (req, res) => {
     })
 };
 
-// #44 update user details - modified so that those empty fields are removed -> /user/:id
+// #44 PUT update user details - modified so that those empty fields are removed -> /user/:id
 exports.updateUser = (req, res) => {
     const saltRounds = 10;
 
@@ -159,24 +168,34 @@ exports.updateUser = (req, res) => {
 
         // Execute the query
         db.query(q, values, (err, data) => {
-            if (err) return res.json(err);
+            if (err) {
+                // console.log(err);
+                logger.error(`Failed to update user at userid: ${userid}`);
+                return res.json(err)
+            };
+            logger.info(`Updated user info at userid: ${userid}`);
             return res.json("User info has been updated successfully");
         });
     }
 };
 
-// #45 delete user account /user/:id
+// #45 DELETE delete user account /user/:id
 exports.deleteUser = (req, res) => {
     const userid = req.params.id;
     const q = "DELETE FROM users WHERE userid = ?"
 
     db.query(q, [userid], (err, data) => {
-        if (err) return res.json(err);
+        if (err) {
+            logger.error(`Failed to delete user at userid: ${userid}`);
+            return res.json(err)
+        };
+        logger.info(`Deleted user at userid: ${userid}`);
         return res.json("book has been deleted succ.");
     })
+    
 };
 
-// create permissions
+// POST create permissions
 exports.createPerms = (req, res) => {
     const { roleid, resource, can_create, can_read, can_update, can_delete } = req.body;
 
@@ -200,7 +219,7 @@ exports.createPerms = (req, res) => {
     });
 };
 
-// get all permissions to display on the admin page
+// POST get all permissions to display on the admin page
 exports.getPerms = (req, res) => {
     const q = "SELECT permissions.*, roles.role FROM roles INNER JOIN permissions ON `roles`.roleid = permissions.roleid;";
     db.query(q, (err, data) => {
@@ -210,7 +229,7 @@ exports.getPerms = (req, res) => {
     })
 };
 
-// update permissions
+// PUT update permissions
 exports.updatePerms = (req, res) => {
     const permission_id = req.params.id; // Extract the permission_id from the URL
     const { can_create, can_read, can_update, can_delete } = req.body; // Extract the permission fields from the request body
@@ -238,7 +257,7 @@ exports.updatePerms = (req, res) => {
     });
 };
 
-// delete permissions
+// DELETE delete permissions
 exports.deletePerms = (req, res) => {
     const permission_id = req.params.id; // Extract the permission_id from the URL
     const query = `DELETE FROM permissions WHERE permission_id = ?`;
@@ -247,14 +266,13 @@ exports.deletePerms = (req, res) => {
     // Execute the query
     db.query(query, values, (err, result) => {
         if (err) {
-            console.error(err);
             return res.status(500).json({ error: "An error occurred while deleting the permission." });
         }
         res.json({ message: "Permission deleted successfully." });
     });
 };
 
-// Fetch the user's own profile details
+// GET Fetch the user's own profile details
 exports.getProfile = (req, res) => {
     const userId = req.params.id;
     // console.log("id: " + userId);
@@ -279,7 +297,7 @@ exports.getProfile = (req, res) => {
     });
 };
 
-//update user profile 
+// PUT update user profile 
 exports.updateProfile = (req, res) => {
     const userId = req.params.id;
     const { fname, lname, email, contact } = req.body; // Make sure the request body contains these fields

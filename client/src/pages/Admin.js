@@ -12,7 +12,11 @@ const Admin = () => {
         setSelectedMenu(menu);
     };
 
-    const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+    // const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+    const [tokenObj, setTokenObj] = useState(() => {
+        const token = localStorage.getItem("token");
+        return token ? JSON.parse(atob(token.split('.')[1])) : null;
+    });
     // console.log(tokenObj);
     const navigate = useNavigate();
 
@@ -61,6 +65,8 @@ const Admin = () => {
         const fields = ['roleid', 'nric', 'fname', 'lname', 'contact', 'email', 'password']; // List all the keys that must be checked
         for (const field of fields) {
             if (!user[field]) { // Checks if the field is null, undefined, or an empty string
+                // debugging
+                // window.alert(`Please fill in the ${field} field.`);
                 return false;
             }
         }
@@ -86,6 +92,32 @@ const Admin = () => {
     // get user data from db
     const [users, getUsers] = useState([]);
 
+    const fetchRoles = async () => {
+        try {
+            const res = await axios.get(`${server}roles`);
+            setRoles(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+    const fetchPerms = async () => {
+        try {
+            const res = await axios.get(`${server}permissions`);
+            setPerms(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    const fetchAllUsers = async () => {
+        try {
+            const res = await axios.get(`${server}users`)
+            getUsers(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     const handleUserDelete = async (id) => {
         try {
             await axios.delete(`${server}user/${id}`);
@@ -107,36 +139,13 @@ const Admin = () => {
         if (tokenObj === null) {
             return null;  // You can replace this with a loading indicator if you prefer
         }
-        
-        const fetchRoles = async () => {
-            try {
-                const res = await axios.get(`${server}roles`);
-                setRoles(res.data);
-            } catch (e) {
-                console.log(e);
-            }
-        };
-        const fetchPerms = async () => {
-            try {
-                const res = await axios.get(`${server}permissions`);
-                setPerms(res.data);
-            } catch (e) {
-                console.log(e);
-            }
-        };
 
-        const fetchAllUsers = async () => {
-            try {
-                const res = await axios.get(`${server}users`)
-                getUsers(res.data);
-            } catch (e) {
-                console.log(e);
-            }
-        }
-
-        fetchAllUsers();
-        fetchRoles();
-        fetchPerms();
+        const fetchData = async () => {
+            await fetchAllUsers();
+            await fetchRoles();
+            await fetchPerms();
+        };
+        fetchData();
 
     }, [navigate, tokenObj]);
 
@@ -218,8 +227,6 @@ const Admin = () => {
             window.alert('Failed to delete permission');
         }
     };
-
-
 
     // Render the admin content if authorized
     return (
@@ -328,13 +335,11 @@ const Admin = () => {
                         <h1>Add new user</h1>
                         <br />
                         <select name="roleid" onChange={handleUserChange} defaultValue="">
-                            <option disabled selected>Select one</option>
-                            <option value="1">admin</option>
-                            <option value="2">manager</option>
-                            <option value="3">employee</option>
-                            <option value="4">HR</option>
+                            <option disabled value="">Select one</option>
+                            {roles.map(role => (
+                                <option key={role.roleid} value={role.roleid}>{role.role}</option>
+                            ))}
                         </select>
-
                         <ul>
                             <li>
                                 <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} />
@@ -360,6 +365,7 @@ const Admin = () => {
                     <div className="">
                         <h1>User List</h1>
                         <div className="user-list">
+                            {/* style this into an actual list form later on */}
                             {users.map(user => (
                                 <div className="user-card" key={user.userid}>
                                     <ul>

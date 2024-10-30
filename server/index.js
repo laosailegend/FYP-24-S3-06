@@ -2,7 +2,14 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
+const logger = require('./utils/logger');
+
 const app = express();
+
+// change morgan format to get more detailed logs
+// const morganFormat = ":method :url :status :response-time ms";
+// const morganFormat = 'combined';
 
 // parse every request as json
 app.use(express.json());
@@ -15,6 +22,35 @@ const adminController = require('./controller/adminController');
 const employeeController = require('./controller/employeeController');
 const HRController = require('./controller/HRController');
 const managerController = require('./controller/managerController');
+
+// morgan to log http requests - combined for most detailed
+// app.use(morgan('combined'));
+app.use(
+    morgan("combined", {
+        stream: {
+            write: (message) => {
+                logger.info(message.trim()); // Log the combined format message as-is
+            },
+        },
+    })
+);
+
+// custom formatting for morgan logs
+// app.use(
+//     morgan(morganFormat, {
+//         stream: {
+//             write: (message) => {
+//                 const logObject = {
+//                     method: message.split(" ")[0],
+//                     url: message.split(" ")[1],
+//                     status: message.split(" ")[2],
+//                     responseTime: message.split(" ")[3],
+//                 };
+//                 logger.info(JSON.stringify(logObject));
+//             },
+//         },
+//     })
+// );
 
 // middleware for logging IP address
 app.use(adminController.logIP);
@@ -77,4 +113,5 @@ app.get("/", (req, res) => {
     res.send("Homepage");
 })
 
-app.listen(8800, console.log("server started on port 8800"));
+const PORT = process.env.PORT || 8800;
+app.listen(PORT, console.log(`server started on port ${PORT}`));
