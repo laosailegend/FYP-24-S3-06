@@ -7,11 +7,12 @@ function ClockInOut() {
   const [scheduleData, setScheduleData] = useState([]);
   const [clockInTimes, setClockInTimes] = useState({}); // Track clock in times for each schedule
   const [clockOutTimes, setClockOutTimes] = useState({}); // Track clock out times for each schedule
+  const server=process.env.REACT_APP_SERVER;
 
   // Fetch schedule data for the logged-in user
   useEffect(() => {
     const fetchScheduleData = () => {
-      fetch(`http://localhost:8800/schedules/${userId}`)
+      fetch(`${server}schedules/${userId}`)
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -36,7 +37,7 @@ function ClockInOut() {
 
   const fetchClockTimes = (schedules) => {
     schedules.forEach(schedule => {
-      fetch(`http://localhost:8800/clock-times/${userId}/${schedule.schedule_id}`)
+      fetch(`${server}clock-times/${userId}/${schedule.schedule_id}`)
         .then(response => response.json())
         .then(data => {
           if (data) {
@@ -61,7 +62,7 @@ function ClockInOut() {
 
   const handleClockIn = async (scheduleId) => {
     try {
-      const response = await fetch('http://localhost:8800/clock-in', {
+      const response = await fetch(`${server}clock-in`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +92,7 @@ function ClockInOut() {
 
   const handleClockOut = async (scheduleId) => {
     try {
-      const response = await fetch('http://localhost:8800/clock-out', {
+      const response = await fetch(`${server}clock-out`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

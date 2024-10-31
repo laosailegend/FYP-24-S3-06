@@ -42,6 +42,12 @@ app.post("/clock-out", employeeController.clockOut);
 app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
 app.post("/submit-skills", employeeController.submitSkill);
 app.get('/userSkills/:user_id', employeeController.userSkill);
+app.get('/trainingSessions', employeeController.getAllTrainingSessions);
+app.post('/expressInterest', employeeController.expressInterest);
+app.get('/trainingSessions/interest/:userId',employeeController.retriveUserInterest);
+app.delete('/deleteRequestLeave/:id',employeeController.deleteRequestLeave);
+app.post('/submitFeedback',employeeController.submitFeedback);
+app.get('/getFeedback/:userId',employeeController.getFeedback);
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);

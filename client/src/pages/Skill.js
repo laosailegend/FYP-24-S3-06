@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const Skill = () => {
   const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
   const navigate = useNavigate();
+  const server=process.env.REACT_APP_SERVER;
 
   const skillOptions = [
     "Programming", "Java", "JavaScript", "C++", "SQL", 
@@ -44,7 +45,7 @@ const Skill = () => {
       return;
     }
 
-    fetch(`http://localhost:8800/userSkills/${user_id}`) // Adjust URL as needed
+    fetch(`${server}userSkills/${user_id}`) // Adjust URL as needed
       .then((res) => res.json())
       .then((data) => {
         console.log('Fetched user skills:', data);
@@ -88,7 +89,7 @@ const Skill = () => {
 
     console.log('Submitted data:', data);
     // Submit data to backend
-    fetch('http://localhost:8800/submit-skills', {
+    fetch(`${server}submit-skills`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

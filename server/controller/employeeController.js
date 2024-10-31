@@ -65,7 +65,7 @@ exports.getRequestLeaveByID = (req, res) => {
     const { id } = req.params;
 
     const query = `
-        SELECT request_date, start_date, end_date, reason, status FROM requestleave WHERE userid = ?
+        SELECT request_id,request_date, start_date, end_date, reason, status FROM requestleave WHERE userid = ?
     `;
 
     db.query(query, [id], (err, results) => {
@@ -77,7 +77,20 @@ exports.getRequestLeaveByID = (req, res) => {
         res.status(200).json(results);
     });
 };
-
+// Endpoint to delete a specific leave request
+exports.deleteRequestLeave= (req, res) => {
+    const requestId = req.params.id;
+  
+    const query = 'DELETE FROM requestleave WHERE request_id = ?';
+    db.query(query, [requestId], (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Failed to delete the request' });
+      }
+      res.json({ message: 'Request deleted successfully' });
+    });
+  };
+  
 //11 As a employee, I want to be able to view my annual leave/MC balances so I know how many leaves/MCs I'm left with /leaveBalance/:userid
 exports.getLeaveBalance = (req, res) => {
     const { userid } = req.params;
@@ -251,6 +264,120 @@ exports.userSkill=(req,res) => {
     });
   };
   
+// Endpoint to retrieve all training sessions
+exports.getAllTrainingSessions = (req, res) => {
+    const query = 'SELECT * FROM training_sessions';
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No training sessions found' });
+        }
+
+        res.json({ training_sessions: results });
+    });
+};
+// Endpoint to express interest in a training session
+exports.expressInterest = (req, res) => {
+    const { user_id, session_id } = req.body;
+
+    if (!user_id || !session_id) {
+        return res.status(400).json({ error: 'User ID and Session ID are required' });
+    }
+
+    const query = 'INSERT INTO user_interest (userid, session_id) VALUES (?, ?)';
+
+    db.query(query, [user_id, session_id], (err, results) => {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(409).json({ error: 'Interest already expressed in this session' });
+            }
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        res.json({ message: 'Interest expressed successfully' });
+    });
+};
 
 
+// Retrieve sessions the user has expressed interest in
+exports.retriveUserInterest = (req, res) => {
+    const { userId } = req.params;
+  
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+  
+    const query = `
+      SELECT session_id 
+      FROM user_interest 
+      WHERE userid = ?
+    `;
+  
+    db.query(query, [userId], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send('Database error');
+      }
+  
+      // Return the session IDs that the user is interested in
+      const interestedSessions = results.map(result => result.session_id);
+      res.json({ interestedSessions });
+    });
+  };
+  
+// Endpoint to submit feedback
+exports.submitFeedback = async (req, res) => {
+    const { user_id, comments, rating } = req.body;
+    const feedbackDate = new Date().toISOString().slice(0, 10);  // Format current date as YYYY-MM-DD
+
+    // Validate input
+    if (!user_id || !comments || rating === undefined) {
+        return res.status(400).json({ error: 'User ID, comments, and rating are required' });
+    }
+
+    const query = `INSERT INTO feedback (user_id, feedback_date, comments, rating) VALUES (?, ?, ?, ?)`;
+
+    db.query(query, [user_id, feedbackDate, comments, rating], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        // Return success response with feedback ID
+        return res.status(201).json({ message: 'Feedback submitted successfully', feedback_id: results.insertId });
+    });
+};
+
+
+// Endpoint to retrieve feedback for a user
+exports.getFeedback = async (req, res) => {
+    const { userId } = req.params;
+
+    // Validate input
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const query = `SELECT * FROM feedback WHERE user_id = ? ORDER BY feedback_date DESC`;
+
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No feedback found' });
+        }
+
+        // Return the feedback results
+        res.json({ feedback: results });
+    });
+};
 

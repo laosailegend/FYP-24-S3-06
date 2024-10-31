@@ -912,4 +912,156 @@ button:hover {
 
 /* Update user page styles uses similar styling to admin page above*/
 
+.training-session-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
 
+.sessions-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.session-card {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.session-card:hover {
+  transform: translateY(-5px);
+}
+
+.session-header h3 {
+  margin: 0 0 10px;
+  color: #333;
+}
+
+.session-details p {
+  margin: 5px 0;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.session-footer {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.interest-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.interest-button:hover {
+  background-color: #0056b3;
+}
+
+.interest-confirmation {
+  color: #28a745;
+  font-weight: bold;
+}
+
+/* Styles for the request history section */
+.request-history ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.request-history li {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.request-history li div {
+  font-size: 0.9em;
+  color: #555;
+  margin-top: 5px;
+}
+
+.request-history li div strong {
+  color: #333;
+}
+
+.request-history .delete-button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #d9534f;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background-color 0.3s ease;
+}
+
+.request-history .delete-button:hover {
+  background-color: #c9302c;
+}
+
+.feedback-container {
+  width: 60%;
+  margin: auto;
+  padding: 20px;
+}
+
+.feedback-container h2, .feedback-container h3 {
+  color: #333;
+}
+
+.feedback-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.feedback-container form div {
+  margin-bottom: 15px;
+}
+
+.feedback-container form label {
+  font-weight: bold;
+}
+
+.feedback-container form textarea, 
+.feedback-container form input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+}
+
+.feedback-container button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.feedback-container button:hover {
+  background-color: #45a049;
+}
+
+.feedback-container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.feedback-container li {
+  padding: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
