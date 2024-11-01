@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import './style.css';
 import Login from './pages/Login';
@@ -66,11 +66,18 @@ function Home() {
 }
 
 function App() {
-  const { isLoggedIn, logout, tokenObj } = useContext(AuthContext);
+  const { isLoggedIn, logout, tokenObj, tokenExp } = useContext(AuthContext);
 
   return (
     <Router>
       <div className="App">
+        {/* probably should paste tokenexp after every click on the page */}
+        {
+          useEffect(() => {
+            tokenExp();
+          }, [tokenExp])
+        }
+
         {isLoggedIn ? (
           <span>Welcome, {tokenObj.fname} {tokenObj.lname}!</span>
         ) : (

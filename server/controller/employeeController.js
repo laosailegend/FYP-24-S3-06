@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
-const logger = require('./logger');
+const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
 // retrieve user details for employees only, no NRIC no password /employeeGetUser
@@ -189,195 +189,56 @@ exports.getClockTimes = (req, res) => {
     });
 };
 
-// Endpoint to submit skills and qualifications
-exports.submitSkill= (req, res) => {
-    const { user_id, skills, qualification } = req.body;
+// To fetch existing skill/qualification /get-skill/:userId
+exports.getSkills = async (req, res) => {
+    const { userId } = req.params;
+    const query = `SELECT skill, qualification FROM skillAcademic WHERE user_id = ?`;
 
-    if (!user_id || !Array.isArray(skills) || skills.length === 0 || !qualification) {
-        return res.status(400).json({ message: 'Invalid input data' });
-    }
-
-    // Iterate over the skills to insert them into the database
-    const insertPromises = skills.map(skill => {
-        return new Promise((resolve, reject) => {
-            // Check if the skill already exists for the user
-            db.query(
-                `SELECT * FROM skillAcademic WHERE user_id = ? AND skill_id = (SELECT skill_id FROM skills WHERE skill_name = ?)`,
-                [user_id, skill],
-                (err, results) => {
-                    if (err) return reject(err);
-                    if (results.length > 0) {
-                        // Skill already exists for this user
-                        return resolve(null); // Skip this skill
-                    } else {
-                        // Skill does not exist, insert it
-                        db.query(
-                            `INSERT INTO skillAcademic (user_id, skill_id, qualification) VALUES (?, (SELECT skill_id FROM skills WHERE skill_name = ?), ?)`,
-                            [user_id, skill, qualification],
-                            (err, result) => {
-                                if (err) return reject(err);
-                                resolve(result);
-                            }
-                        );
-                    }
-                }
-            );
-        });
-    });
-
-    // Wait for all insertions to complete
-    Promise.all(insertPromises)
-        .then(results => {
-            // Filter out null values (skills that were already submitted)
-            const insertedSkills = results.filter(result => result !== null);
-            res.status(201).json({ message: 'Skills submitted successfully', insertedSkills });
-        })
-        .catch(err => {
-            console.error('Error inserting skills:', err);
-            res.status(500).json({ message: 'Internal server error' });
-        });
-};
-
-exports.userSkill=(req,res) => {
-    const userId = req.params.user_id;
-  
-    // Adjust the SQL query to match your database structure
-    const query = `
-      SELECT skills.skill_name 
-      FROM skillAcademic 
-      JOIN skills ON skillAcademic.skill_id = skills.skill_id 
-      WHERE skillAcademic.user_id = ?`;
-  
     db.query(query, [userId], (error, results) => {
-      if (error) {
-        console.error('Error fetching user skills:', error);
-        return res.status(500).json({ error: 'Database query error' });
-      }
-      
-      // If no skills found, return an empty array
-      if (results.length === 0) {
-        return res.json([]);
-      }
-  
-      // Send the results back as a response
-      res.json(results);
-    });
-  };
-  
-// Endpoint to retrieve all training sessions
-exports.getAllTrainingSessions = (req, res) => {
-    const query = 'SELECT * FROM training_sessions';
-
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Database error:', err);
+        if (error) {
             return res.status(500).json({ error: 'Database error' });
         }
-
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'No training sessions found' });
+        if (results.length > 0) {
+            res.json(results[0]); // Return the user's skill/qualification
+        } else {
+            res.status(404).json({ message: 'No data found' });
         }
-
-        res.json({ training_sessions: results });
-    });
-};
-// Endpoint to express interest in a training session
-exports.expressInterest = (req, res) => {
-    const { user_id, session_id } = req.body;
-
-    if (!user_id || !session_id) {
-        return res.status(400).json({ error: 'User ID and Session ID are required' });
-    }
-
-    const query = 'INSERT INTO user_interest (userid, session_id) VALUES (?, ?)';
-
-    db.query(query, [user_id, session_id], (err, results) => {
-        if (err) {
-            if (err.code === 'ER_DUP_ENTRY') {
-                return res.status(409).json({ error: 'Interest already expressed in this session' });
-            }
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
-        }
-
-        res.json({ message: 'Interest expressed successfully' });
     });
 };
 
+// submit skill /submit-skill
+exports.submitSkill = (req, res) => {
+    const { user_id, skill, qualification } = req.body;
 
-// Retrieve sessions the user has expressed interest in
-exports.retriveUserInterest = (req, res) => {
-    const { userId } = req.params;
-  
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
-  
-    const query = `
-      SELECT session_id 
-      FROM user_interest 
-      WHERE userid = ?
-    `;
-  
-    db.query(query, [userId], (err, results) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).send('Database error');
-      }
-  
-      // Return the session IDs that the user is interested in
-      const interestedSessions = results.map(result => result.session_id);
-      res.json({ interestedSessions });
-    });
-  };
-  
-// Endpoint to submit feedback
-exports.submitFeedback = async (req, res) => {
-    const { user_id, comments, rating } = req.body;
-    const feedbackDate = new Date().toISOString().slice(0, 10);  // Format current date as YYYY-MM-DD
-
-    // Validate input
-    if (!user_id || !comments || rating === undefined) {
-        return res.status(400).json({ error: 'User ID, comments, and rating are required' });
+    // Validate the input
+    if (!user_id || !skill || !qualification) {
+        return res.status(400).json({ error: 'All fields are required' });
     }
 
-    const query = `INSERT INTO feedback (user_id, feedback_date, comments, rating) VALUES (?, ?, ?, ?)`;
+    // SQL query to insert data into the skillAcademic table
+    const sql = 'INSERT INTO skillAcademic (user_id, skill, qualification) VALUES (?, ?, ?)';
 
-    db.query(query, [user_id, feedbackDate, comments, rating], (err, results) => {
+    // Execute the query
+    db.query(sql, [user_id, skill, qualification], (err, result) => {
         if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
+            console.error('Error inserting into database:', err);
+            return res.status(500).json({ error: 'Database insertion failed' });
         }
 
-        // Return success response with feedback ID
-        return res.status(201).json({ message: 'Feedback submitted successfully', feedback_id: results.insertId });
+        // Respond with success
+        res.status(200).json({ message: 'Skill and qualification added successfully' });
     });
 };
 
+// To update skill/qualification /update-skill
+exports.updateSkill = (req, res) => {
+    const { user_id, skill, qualification } = req.body;
+    const query = `UPDATE skillAcademic SET skill = ?, qualification = ? WHERE user_id = ?`;
 
-// Endpoint to retrieve feedback for a user
-exports.getFeedback = async (req, res) => {
-    const { userId } = req.params;
-
-    // Validate input
-    if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
-    }
-
-    const query = `SELECT * FROM feedback WHERE user_id = ? ORDER BY feedback_date DESC`;
-
-    db.query(query, [userId], (err, results) => {
-        if (err) {
-            console.error('Database error:', err);
+    db.query(query, [skill, qualification, user_id], (error, results) => {
+        if (error) {
             return res.status(500).json({ error: 'Database error' });
         }
-
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'No feedback found' });
-        }
-
-        // Return the feedback results
-        res.json({ feedback: results });
+        res.json({ message: 'Skill and qualification updated successfully!' });
     });
 };
-
