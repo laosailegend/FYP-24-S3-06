@@ -70,7 +70,6 @@ exports.createUser = (req, res) => {
 
         const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash, null, null];
         db.query(q, [values], (err, data) => {
-            // console.log(values);
             if (err) {
                 console.log(err);
                 logger.error(`Failed to create user in admin: ${req.body.email} at ${ip}`);
