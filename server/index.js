@@ -58,16 +58,22 @@ app.put("/profile/:id", adminController.updateProfile);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);
-app.put("/updateAvailability/:id", employeeController.updateAvailability);
+//app.put("/updateAvailability/:id", employeeController.updateAvailability);
 app.post("/requestLeave", employeeController.requestLeave);
 app.get("/getRequestLeave/:id", employeeController.getRequestLeaveByID);
 app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
-app.post("/clock-in", employeeController.clockIn);
-app.post("/clock-out", employeeController.clockOut);
-app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
-// app.get("/get-skill/:userId", employeeController.getSkills);
-// app.put("/submit-skill", employeeController.submitSkill);
-// app.put("/update-skill", employeeController.updateSkills);
+//app.get("/schedules/:userid",employeeController.getScheduleId);
+//app.post("/clock-in", employeeController.clockIn);
+//app.post("/clock-out", employeeController.clockOut);
+//app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
+//app.post("/submit-skills", employeeController.submitSkill);
+//app.get('/userSkills/:user_id', employeeController.userSkill);
+app.get('/trainingSessions', employeeController.getAllTrainingSessions);
+app.post('/expressInterest', employeeController.expressInterest);
+app.get('/trainingSessions/interest/:userId',employeeController.retriveUserInterest);
+app.delete('/deleteRequestLeave/:id',employeeController.deleteRequestLeave);
+app.post('/submitFeedback',employeeController.submitFeedback);
+app.get('/getFeedback/:userId',employeeController.getFeedback);
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);
@@ -78,7 +84,15 @@ app.post("/available", HRController.createAvailabilityForm);
 app.delete("/available/:id", HRController.deleteAvailabilityForm);
 app.get("/getAvailable", HRController.getAvailable);
 app.post("/payroll", HRController.createPayroll);
-app.get("/user/schedules/:userId", HRController.getUserSchedule);
+//app.get("/user/schedules/:userId", HRController.getUserSchedule);
+app.post("/training", HRController.createTrainingSession);
+app.get("/getTraining", HRController.getTrainingSessions);
+app.put("/updateTraining/:session_id", HRController.updateTrainingSession);
+app.delete("/deleteTraining/:id", HRController.deleteTraining);
+app.get("/getSkills", HRController.getSkills);
+app.post("/postTraining/:userid/:session_id", HRController.postTraining);
+app.get("/getAllSessions", HRController.getAllSessions);
+app.get("/feedback", HRController.getFeedback);
 
 // define routes for managerController
 app.get("/managerGetUsers", managerController.managerGetUsers);
@@ -94,6 +108,7 @@ app.get("/schedules", managerController.getSchedules);
 app.put("/updateSchedules/:id", managerController.updateSchedule);
 app.delete("/deleteSchedules/:id", managerController.deleteSchedule);
 app.post("/autoSchedule", managerController.autoScheduling);
+app.get("/assignments", managerController.Assignments);
 
 
 app.get("/", (req, res) => {
