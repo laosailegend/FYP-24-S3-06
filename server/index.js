@@ -25,8 +25,12 @@ const managerController = require('./controller/managerController');
 
 // morgan to log http requests - combined for most detailed
 // app.use(morgan('combined'));
+// combined format goes like this:
+// :remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"
+const morganFormat = `'ADDR':':remote-addr' 'USER':'- :remote-user' 'REQ':':method :url HTTP/:http-version' 'STATUS':':status' 'SIZE':':res[content-length]' 'REF':':referrer' 'UA':':user-agent'`;
+
 app.use(
-    morgan("combined", {
+    morgan(morganFormat, {
         stream: {
             write: (message) => {
                 logger.info(message.trim()); // Log the combined format message as-is
@@ -34,23 +38,6 @@ app.use(
         },
     })
 );
-
-// custom formatting for morgan logs
-// app.use(
-//     morgan(morganFormat, {
-//         stream: {
-//             write: (message) => {
-//                 const logObject = {
-//                     method: message.split(" ")[0],
-//                     url: message.split(" ")[1],
-//                     status: message.split(" ")[2],
-//                     responseTime: message.split(" ")[3],
-//                 };
-//                 logger.info(JSON.stringify(logObject));
-//             },
-//         },
-//     })
-// );
 
 // middleware for logging IP address
 app.use(adminController.logIP);

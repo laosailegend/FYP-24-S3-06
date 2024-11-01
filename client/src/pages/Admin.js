@@ -237,6 +237,7 @@ const Admin = () => {
             <div className="menu-buttons">
                 <button onClick={() => handleMenuChange('permissions')}>Manage Permissions</button>
                 <button onClick={() => handleMenuChange('users')}>Manage Users</button>
+                <button onClick={() => handleMenuChange('logs')}>Logs</button>
             </div>
 
             {/* Conditionally render Permissions or Users based on selectedMenu */}
@@ -384,6 +385,13 @@ const Admin = () => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {selectedMenu === 'logs' && (
+                <div>
+                    <h1>Logs</h1>
+                    <p>Logs will be displayed here</p>
+                </div>
             )}
         </>
     );

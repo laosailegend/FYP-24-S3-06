@@ -3,10 +3,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
 const logger = require('../utils/logger');
-const morgan = require('morgan');
 const SECRET_KEY = process.env.JWT_SECRET;
 
-const morganFormat = ":method :url :status :response-time ms";
 
 // log IP addr
 exports.logIP = (req, res, next) => {
@@ -180,20 +178,58 @@ exports.updateUser = (req, res) => {
 };
 
 // #45 DELETE delete user account /user/:id
+// exports.deleteUser = (req, res) => {
+//     const userid = req.params.id;
+//     const q = "DELETE FROM users WHERE userid = ?"
+
+//     db.query(q, [userid], (err, data) => {
+//         if (err) {
+//             logger.error(`Failed to delete user at userid: ${userid}`);
+//             return res.json(err)
+//         };
+//         logger.info(`Deleted user at userid: ${userid}`);
+//         return res.json("book has been deleted succ.");
+//     })
+    
+// };
+
+// #45 DELETE delete user account /user/:id
 exports.deleteUser = (req, res) => {
     const userid = req.params.id;
-    const q = "DELETE FROM users WHERE userid = ?"
 
-    db.query(q, [userid], (err, data) => {
-        if (err) {
-            logger.error(`Failed to delete user at userid: ${userid}`);
-            return res.json(err)
-        };
-        logger.info(`Deleted user at userid: ${userid}`);
-        return res.json("book has been deleted succ.");
-    })
+    // First, fetch the user to get their email
+    const fetchUserQuery = "SELECT email FROM users WHERE userid = ?";
     
+    db.query(fetchUserQuery, [userid], (err, results) => {
+        if (err) {
+            logger.error(`Failed to retrieve user at userid: ${userid}`);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        // Check if a user was found
+        if (results.length === 0) {
+            logger.error(`No user found with userid: ${userid}`);
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Get the user's email from the results
+        const userEmail = results[0].email;
+
+        // Now, proceed to delete the user
+        const deleteUserQuery = "DELETE FROM users WHERE userid = ?";
+        
+        db.query(deleteUserQuery, [userid], (err, data) => {
+            if (err) {
+                logger.error(`Failed to delete user at userid: ${userid}, email: ${userEmail}`);
+                return res.status(500).json({ error: 'Failed to delete user' });
+            }
+
+            logger.info(`Deleted user at userid: ${userid}, email: ${userEmail}`);
+            return res.json({ message: "User has been deleted successfully." });
+        });
+    });
 };
+
 
 // POST create permissions
 exports.createPerms = (req, res) => {
