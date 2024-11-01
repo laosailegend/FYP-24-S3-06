@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../auth/AuthContext';
 
+const server = process.env.REACT_APP_SERVER;
+
 function Login() {
+  // console.log(server);
   // demo purposes
   const [user, createUser] = useState({
     roleid: null,
@@ -27,7 +30,7 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8800/login", { email, password });
+      const response = await axios.post(`${server}login`, { email, password });
 
       // If login is successful, store the token and navigate to another page
       if (response.data.token) {
@@ -49,7 +52,7 @@ function Login() {
   const handleSignup = async (e) => {
     e.preventDefault()
     try {
-      await axios.post("http://localhost:8800/createUser", user)
+      await axios.post(`${server}createUser`, user)
       // navigate("/")
       window.alert("user added!");
       console.log(user);

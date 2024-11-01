@@ -32,7 +32,6 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-
     const login = (token) => {
         localStorage.setItem("token", token);
         setIsLoggedIn(true);
@@ -54,9 +53,22 @@ export const AuthProvider = ({ children }) => {
         window.location.reload();
     };
 
+    // check if token exists, then check if token is expired, if expired, logout
+    const tokenExp = () => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            const decodedToken = JSON.parse(atob(token.split('.')[1]));
+            const now = new Date();
+            const exp = new Date(decodedToken.exp * 1000);
+            if (now > exp) {
+                window.alert("Token has expired. Logging out...")
+                logout();
+            }
+        }
+    }
     // console.log(tokenObj);
     return (
-        <AuthContext.Provider value={{ isLoggedIn, tokenObj, login, logout }}>
+        <AuthContext.Provider value={{ isLoggedIn, tokenObj, login, logout, tokenExp }}>
             {children}
         </AuthContext.Provider>
     );

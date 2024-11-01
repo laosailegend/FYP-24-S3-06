@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
-const logger = require('./logger');
+const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
 // retrieve user details without password/NRIC for managers only
