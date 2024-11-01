@@ -62,12 +62,18 @@ app.get("/employeeGetUser", employeeController.employeeGetUser);
 app.post("/requestLeave", employeeController.requestLeave);
 app.get("/getRequestLeave/:id", employeeController.getRequestLeaveByID);
 app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
-app.post("/clock-in", employeeController.clockIn);
-app.post("/clock-out", employeeController.clockOut);
-app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
-app.get("/get-skill/:userId", employeeController.getSkills);
-app.put("/submit-skill", employeeController.submitSkill);
-app.put("/update-skill", employeeController.updateSkills);
+//app.get("/schedules/:userid",employeeController.getScheduleId);
+//app.post("/clock-in", employeeController.clockIn);
+//app.post("/clock-out", employeeController.clockOut);
+//app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
+//app.post("/submit-skills", employeeController.submitSkill);
+//app.get('/userSkills/:user_id', employeeController.userSkill);
+app.get('/trainingSessions', employeeController.getAllTrainingSessions);
+app.post('/expressInterest', employeeController.expressInterest);
+app.get('/trainingSessions/interest/:userId',employeeController.retriveUserInterest);
+app.delete('/deleteRequestLeave/:id',employeeController.deleteRequestLeave);
+app.post('/submitFeedback',employeeController.submitFeedback);
+app.get('/getFeedback/:userId',employeeController.getFeedback);
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);
@@ -109,4 +115,5 @@ app.get("/", (req, res) => {
     res.send("Homepage");
 })
 
-app.listen(8800, console.log("server started on port 8800"));
+const PORT = process.env.PORT || 8800;
+app.listen(PORT, console.log(`server started on port ${PORT}`));
