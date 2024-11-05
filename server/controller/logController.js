@@ -3,7 +3,91 @@ const db = require('../dbConfig');
 
 // get logs
 exports.getLogs = (req, res) => {
-    const q = "SELECT * FROM logs";
+    const { level, request, ip, user, status, size, minSize, maxSize, referrer, user_agent, start, end, search } = req.query;
+    let q = "SELECT * FROM logs WHERE 1=1";  // Start with a base query that always returns true
+    const filters = [];
+
+    // Add filters based on query parameters
+    if (level) {
+        q += " AND level = ?";
+        filters.push(level);
+    }
+    if (request) {
+        q += " AND request LIKE ?";
+        console.log("REQUEST: ", request);
+        filters.push(`${request}%`);
+    }
+    if (ip) {
+        q += " AND address = ?";
+        filters.push(ip);
+    }
+    if (user) {
+        q += " AND user = ?";
+        filters.push(user);
+    }
+    if (status) {
+        q += " AND status = ?";
+        filters.push(status);
+    }
+    if (referrer) {
+        q += " AND referrer = ?";
+        filters.push(referrer);
+    }
+    
+    // Add range-based filtering for `size`
+    if (minSize && maxSize) {
+        q += " AND size BETWEEN ? AND ?";
+        filters.push(minSize, maxSize);
+    } else if (minSize) {
+        q += " AND size >= ?";
+        filters.push(minSize);
+    } else if (maxSize) {
+        q += " AND size <= ?";
+        filters.push(maxSize);
+    } else if (size) {
+        // Single value for `size` if exact match is needed
+        q += " AND size = ?";
+        filters.push(size);
+    }
+
+    if (user_agent) {
+        q += " AND user_agent = ?";
+        filters.push(user_agent);
+    }
+    if (start && end) {
+        q += " AND timestamp BETWEEN ? AND ?";
+        filters.push(start, end);
+    }
+
+    // Add search term (if present) to check across multiple columns
+    if (search) {
+        q += " AND (logid LIKE ? OR level LIKE ? OR message LIKE ? OR address LIKE ? OR user LIKE ? OR request LIKE ? OR status LIKE ? OR size LIKE ? OR referrer LIKE ? OR user_agent LIKE ? OR timestamp LIKE ?)";
+        filters.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    db.query(q, filters, (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.json(data);
+    });
+};
+
+// ALL BELOW ARE LOG FILTERING OPTIONS PURPOSES
+
+// get logs by level
+exports.getLogsLevel = (req, res) => {
+    const q = "SELECT DISTINCT level FROM logs WHERE level IS NOT NULL";
+
+    db.query(q, (err, data) => {
+        if (err) return res.json(err);
+        return res.json(data);
+    })
+};
+
+// get logs by request - if logs.request contains GET/PUT/POST/DELETE
+exports.getLogsRequest = (req, res) => {
+    const request = `%${req.params.request}%`;
+    const q = "SELECT * FROM logs WHERE request LIKE ? and request IS NOT NULL";
+
     db.query(q, (err, data) => {
         if (err) return res.json(err);
 
@@ -11,29 +95,9 @@ exports.getLogs = (req, res) => {
     })
 };
 
-// get logs by level
-exports.getLogsByLevel = (req, res) => {
-    const q = "SELECT * FROM logs WHERE level = ?";
-    db.query(q, req.params.level, (err, data) => {
-        if (err) return res.json(err);
-
-        return res.json(data);
-    })
-};
-
-// get logs by request - if logs.request contains GET/PUT/POST/DELETE
-exports.getLogsByRequest = (req, res) => {
-    const q = "SELECT * FROM logs WHERE request LIKE ?";
-    db.query(q, `%${req.params.request}%`, (err, data) => {
-        if (err) return res.json(err);
-
-        return res.json(data);
-    })
-};
-
 // get IP addresses and eliminate duplicates for the logs
-exports.getDistIPs = (req, res) => {
-    const q = "SELECT DISTINCT address FROM logs";
+exports.getLogsIPs = (req, res) => {
+    const q = "SELECT DISTINCT address FROM logs WHERE address IS NOT NULL";
     db.query(q, (err, data
     ) => {
         if (err) return res.json(err);
@@ -42,19 +106,9 @@ exports.getDistIPs = (req, res) => {
     })
 }
 
-// get logs by IP address
-exports.getLogsByIP = (req, res) => {
-    const q = "SELECT * FROM logs WHERE address = ?";
-    db.query(q, req.params.ip, (err, data) => {
-        if (err) return res.json(err);
-
-        return res.json(data);
-    })
-};
-
 // select distinct user from the logs
-exports.getDistUsers = (req, res) => {
-    const q = "SELECT DISTINCT user FROM logs";
+exports.getLogsUsers = (req, res) => {
+    const q = "SELECT DISTINCT user FROM logs WHERE user IS NOT NULL";
     db.query(q, (err, data ) => {
         if (err) return res.json(err);
 
@@ -62,20 +116,11 @@ exports.getDistUsers = (req, res) => {
     })
 }
 
-// get logs by user
-exports.getLogsByUser = (req, res) => {
-    const q = "SELECT * FROM logs WHERE user = ?";
-    db.query(q, req.params.user, (err, data) => {
-        if (err) return res.json(err);
-
-        return res.json(data);
-    })
-};
-
 // get logs by status
-exports.getLogsByStatus = (req, res) => {
-    const q = "SELECT * FROM logs WHERE status = ?";
-    db.query(q, req.params.status, (err, data) => {
+exports.getLogsStatus = (req, res) => {
+    const q = "SELECT DISTINCT status FROM logs WHERE status IS NOT NULL";
+
+    db.query(q, (err, data) => {
         if (err) return res.json(err);
 
         return res.json(data);
@@ -83,49 +128,32 @@ exports.getLogsByStatus = (req, res) => {
 };
 
 // select distinct referrer from the logs
-exports.getDistReferrers = (req, res) => {
-    const q = "SELECT DISTINCT referrer FROM logs";
+exports.getLogsReferrers = (req, res) => {
+    const q = "SELECT DISTINCT referrer FROM logs WHERE referrer IS NOT NULL";
     db.query(q, (err, data ) => {
         if (err) return res.json(err);
 
         return res.json(data);
     })
 }
-
-// get logs by referrer
-exports.getLogsByReferrer = (req, res) => {
-    const q = "SELECT * FROM logs WHERE referrer = ?";
-    db.query(q, req.params.referrer, (err, data) => {
-        if (err) return res.json(err);
-
-        return res.json(data);
-    })
-};
 
 // select distinct user_agent from the logs
-exports.getDistUserAgents = (req, res) => {
-    const q = "SELECT DISTINCT user_agent FROM logs";
-    db.query(q, (err, data ) => {
-        if (err) return res.json(err);
+// exports.getLogsUA = (req, res) => {
+//     const q = "SELECT DISTINCT user_agent FROM logs WHERE user_agent IS NOT NULL";
+//     db.query(q, (err, data ) => {
+//         if (err) return res.json(err);
 
-        return res.json(data);
-    })
-}
-
-// get logs by user_agent
-exports.getLogsByUserAgent = (req, res) => {
-    const q = "SELECT * FROM logs WHERE user_agent = ?";
-    db.query(q, req.params.user_agent, (err, data) => {
-        if (err) return res.json(err);
-
-        return res.json(data);
-    })
-};
+//         return res.json(data);
+//     })
+// }
 
 // get logs by timestamp but use a date range
-exports.getLogsByTimestamp = (req, res) => {
+exports.getLogsTimestamp = (req, res) => {
+    const start = req.query.start;
+    const end = req.query.end;
+
     const q = "SELECT * FROM logs WHERE timestamp BETWEEN ? AND ?";
-    db.query(q, [req.params.start, req.params.end], (err, data) => {
+    db.query(q, [start, end], (err, data) => {
         if (err) return res.json(err);
 
         return res.json(data);

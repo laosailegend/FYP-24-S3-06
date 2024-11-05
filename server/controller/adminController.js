@@ -5,7 +5,6 @@ const db = require('../dbConfig');
 const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
-
 // log IP addr
 exports.logIP = (req, res, next) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -20,18 +19,22 @@ exports.login = (req, res) => {
 
     // Check if email and password are provided
     if (!email || !password) {
-        // logger.userLogger.log('error', `Failed login from ${ip}`)
+        logger.error(`Failed login attempt with missing credentials from ${ip}`);
         return res.status(400).json({ error: "Email and password are required" });
     }
 
     const q = "SELECT * FROM users WHERE email = ?";
 
     db.query(q, [email], async (err, data) => {
-        if (err) return res.status(500).json({ error: "Database error" });
+        if (err) {
+            logger.error(`Database error during login from ${ip}: ${err.message}`);
+            return res.status(500).json({ error: "Database error" });
+        }
 
         // If no user is found with the provided email
         if (data.length === 0) {
-            return res.status(401).json({ error: "Invalid email or password, no user found" });
+            logger.error(`Unsuccessful login attempt for non-existent user: ${ip}, ${email}`);
+            return res.status(401).json({ error: "Invalid email or password" });
         }
 
         const user = data[0];
@@ -40,23 +43,21 @@ exports.login = (req, res) => {
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
         if (!isPasswordCorrect) {
-            logger.error(`Unsuccessful login attempt for : ${ip}, ${user.email}`);
+            logger.error(`Unsuccessful login attempt for: ${ip}, ${user.email}`);
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
-        //gen jwt token
+        // Generate JWT token
         const token = jwt.sign(
             { id: user.userid, email: user.email, role: user.roleid, fname: user.fname, lname: user.lname },
             SECRET_KEY,
-            { expiresIn: '1d' } // Token expires in 1 day or 5s/10s or 5m for 5minutes: https://github.com/vercel/ms
+            { expiresIn: '1d' } // Token expires in 1 day
         );
-        // console.log(JSON.parse(atob(token.split('.')[1])));
-        logger.info(`Successful login for : ${ip}, ${user.email}`);
 
+        logger.info(`Successful login for: ${ip}, ${user.email}`);
         return res.json({ message: "Login successful", token });
     });
 };
-
 
 // #21 admin create user accounts POST
 exports.createUser = (req, res) => {
@@ -139,8 +140,12 @@ exports.updateUser = (req, res) => {
 
             // Execute the query
             db.query(q, values, (err, data) => {
-                if (err) return res.json(err);
-                return res.json("User info has been updated successfully");
+                if (err) {
+                    logger.error(`Failed to update user password at userid: ${userid}`);
+                    return res.json(err)
+                };
+                logger.info(`Updated user password at userid: ${userid}`);
+                return res.json("User password has been updated successfully");
             });
         });
     } else {
@@ -167,7 +172,7 @@ exports.updateUser = (req, res) => {
         db.query(q, values, (err, data) => {
             if (err) {
                 // console.log(err);
-                logger.error(`Failed to update user at userid: ${userid}`);
+                logger.error(`Failed to update user info at userid: ${userid}`);
                 return res.json(err)
             };
             logger.info(`Updated user info at userid: ${userid}`);
@@ -176,21 +181,6 @@ exports.updateUser = (req, res) => {
     }
 };
 
-// #45 DELETE delete user account /user/:id
-// exports.deleteUser = (req, res) => {
-//     const userid = req.params.id;
-//     const q = "DELETE FROM users WHERE userid = ?"
-
-//     db.query(q, [userid], (err, data) => {
-//         if (err) {
-//             logger.error(`Failed to delete user at userid: ${userid}`);
-//             return res.json(err)
-//         };
-//         logger.info(`Deleted user at userid: ${userid}`);
-//         return res.json("book has been deleted succ.");
-//     })
-    
-// };
 
 // #45 DELETE delete user account /user/:id
 exports.deleteUser = (req, res) => {

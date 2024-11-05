@@ -12,7 +12,6 @@ const Admin = () => {
         setSelectedMenu(menu);
     };
 
-    // const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
     const [tokenObj, setTokenObj] = useState(() => {
         const token = localStorage.getItem("token");
         return token ? JSON.parse(atob(token.split('.')[1])) : null;
@@ -32,6 +31,27 @@ const Admin = () => {
 
     const [perms, setPerms] = useState([]); // Initialize perms as an empty array
 
+    const [user, createUser] = useState({
+        roleid: null,
+        nric: "",
+        fname: "",
+        lname: "",
+        contact: "",
+        email: ""
+    })
+
+    // get user data from db
+    const [users, getUsers] = useState([]);
+
+    // get logs from db, and other log related functions for filtering
+    const [logs, getLogs] = useState([]);
+    const [logLevel, getLogLevel] = useState([]);
+    const [logIP, getLogIP] = useState([]);
+    const [logUser, getLogUser] = useState([]);
+    const [logStatus, getLogStatus] = useState([]);
+    const [logReferrer, getLogReferrer] = useState([]);
+    const [logTime, getLogTime] = useState([]);
+
     const handleChange = (e) => {
         setNewPerm((prev) => {
             const updatedPerm = { ...prev, [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value };
@@ -47,18 +67,18 @@ const Admin = () => {
         }));
     };
 
-    const [user, createUser] = useState({
-        roleid: null,
-        nric: "",
-        fname: "",
-        lname: "",
-        contact: "",
-        email: ""
-    })
-
     const handleUserChange = (e) => {
         createUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
+
+    const handleUserDelete = async (id) => {
+        try {
+            await axios.delete(`${server}user/${id}`);
+            window.location.reload();
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     const validateForm = () => {
         // Check each required field
@@ -89,9 +109,7 @@ const Admin = () => {
         }
     };
 
-    // get user data from db
-    const [users, getUsers] = useState([]);
-
+    // fetching data functions
     const fetchRoles = async () => {
         try {
             const res = await axios.get(`${server}roles`);
@@ -118,14 +136,73 @@ const Admin = () => {
         }
     }
 
-    const handleUserDelete = async (id) => {
+    const fetchLogs = async (filters = {}) => {
         try {
-            await axios.delete(`${server}user/${id}`);
-            window.location.reload();
-        } catch (error) {
-            console.log(error);
+            // Create a query string from the filters
+            const queryString = new URLSearchParams(filters).toString();
+            const res = await axios.get(`${server}logs?${queryString}`);
+            getLogs(res.data);
+        } catch (e) {
+            console.log(e);
         }
-    }
+    };
+
+    // fetch level, IP, user, request, status, referer, user agent, timestamp
+    const fetchLogsLevel = async () => {
+        try {
+            const res = await axios.get(`${server}logsLevel`);
+            getLogLevel(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+    
+    const fetchLogsIPs = async () => {
+        try {
+            const res = await axios.get(`${server}logsIP`);
+            getLogIP(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    const fetchLogsUsers = async () => {
+        try {
+            const res = await axios.get(`${server}logsUser`);
+            getLogUser(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    const fetchLogsStatus = async () => {
+        try {
+            const res = await axios.get(`${server}logsStatus`);
+            getLogStatus(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    const fetchLogsReferrer = async () => {
+        try {
+            const res = await axios.get(`${server}logsReferrer`);
+            getLogReferrer(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    // this will be coded differently - come back later
+    const fetchLogsTimestamp = async () => {
+        try {
+            const res = await axios.get(`${server}logsTimestamp`);
+            getLogTime(res.data);
+
+        } catch (e) {
+            console.log(e);
+        }
+    };
 
     useEffect(() => {
         // prevents non-admin users from viewing the page
@@ -144,6 +221,13 @@ const Admin = () => {
             await fetchAllUsers();
             await fetchRoles();
             await fetchPerms();
+            await fetchLogs();
+            await fetchLogsLevel();
+            await fetchLogsIPs();
+            await fetchLogsUsers();
+            await fetchLogsStatus();
+            await fetchLogsReferrer();
+            await fetchLogsTimestamp();
         };
         fetchData();
 
@@ -215,7 +299,6 @@ const Admin = () => {
         }
     };
 
-
     // Function to delete a permission
     const handleDelete = async (permId) => {
         try {
@@ -227,6 +310,40 @@ const Admin = () => {
             window.alert('Failed to delete permission');
         }
     };
+
+    // log filtering functions
+    const applyFilters = async () => {
+        const searchTerm = document.getElementById('search').value.trim().toLowerCase();
+        const levelFilter = document.getElementById('filterLevel').value;
+        const ipFilter = document.getElementById('filterIP').value;
+        const userFilter = document.getElementById('filterUser').value;
+        const requestFilter = document.getElementById('filterRequest').value;
+        const statusFilter = document.getElementById('filterStatus').value;
+        const referrerFilter = document.getElementById('filterReferrer').value;
+        
+        console.log('Search Term:', searchTerm);
+        console.log('Level Filter:', levelFilter);
+        console.log('IP Filter:', ipFilter);
+        console.log('User Filter:', userFilter);
+        console.log('Request Filter:', requestFilter);
+        console.log('Status Filter:', statusFilter);
+        console.log('Referrer Filter:', referrerFilter);
+
+        // Build the query parameters object
+        const params = {
+            ...(searchTerm && { search: searchTerm }),
+            ...(levelFilter && { level: levelFilter }),
+            ...(ipFilter && { ip: ipFilter }),
+            ...(userFilter && { user: userFilter }),
+            ...(requestFilter && { request: requestFilter }),
+            ...(statusFilter && { status: statusFilter }),
+            ...(referrerFilter && { referrer: referrerFilter }),
+        };
+
+        // Fetch logs with applied filters
+        await fetchLogs(params);
+    };
+
 
     // Render the admin content if authorized
     return (
@@ -240,7 +357,7 @@ const Admin = () => {
                 <button onClick={() => handleMenuChange('logs')}>Logs</button>
             </div>
 
-            {/* Conditionally render Permissions or Users based on selectedMenu */}
+            {/* Conditionally render Permissions or Users or logs based on selectedMenu */}
             {selectedMenu === 'permissions' && (
                 <div className="admin-form">
                     <div className="add-form">
@@ -388,11 +505,147 @@ const Admin = () => {
             )}
 
             {selectedMenu === 'logs' && (
-                <div>
-                    <h1>Logs</h1>
-                    <p>Logs will be displayed here</p>
-                </div>
+                <>
+                    <div>
+                        <h1>Logs</h1>
+                        {/* <!-- Search and Filter Section --> */}
+                        <div className="filter-container">
+                            {/* <!-- Search Bar --> */}
+                            <div className="filter-item">
+                                <label for="search">Search Logs:</label>
+                                <input type="text" id="search" placeholder="Search logs..." />
+                            </div>
+
+                            {/* <!-- Filter by Level --> */}
+                            <div className="filter-item">
+                                <label for="filterLevel">Filter by Level:</label>
+                                <select id="filterLevel">
+                                    <option value="">All Levels</option>
+                                    {logLevel.map((level) => (
+                                        <option key={level.level} value={level.level}>
+                                            {level.level}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* <!-- Filter by IP --> */}
+                            <div className="filter-item">
+                                <label for="filterIP">Filter by IP:</label>
+                                <select id="filterIP">
+                                    <option value="">All IPs</option>
+                                    {logIP.map((ip) => (
+                                        <option key={ip.address} value={ip.address}>
+                                            {ip.address}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* <!-- Filter by User --> */}
+                            <div className="filter-item">
+                                <label for="filterUser">Filter by User:</label>
+                                <select id="filterUser">
+                                    <option value="">All Users</option>
+                                    {logUser.map((user) => (
+                                        <option key={user.user} value={user.user}>
+                                            {user.user}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* <!-- Filter by Request --> */}
+                            <div className="filter-item">
+                                <label for="filterRequest">Filter by Request:</label>
+                                <select id="filterRequest">
+                                    <option value="">All Requests</option>
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="PATCH">PATCH</option>
+                                    <option value="DELETE">DELETE</option>
+                                </select>
+                            </div>
+
+                            {/* <!-- Filter by Status --> */}
+                            <div className="filter-item">
+                                <label for="filterStatus">Filter by Status:</label>
+                                <select id="filterStatus">
+                                    <option value="">All Statuses</option>
+                                    {logStatus.map((status) => (
+                                        <option key={status.status} value={status.status}>
+                                            {status.status}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Filter by referrer */}
+                            <div className="filter-item">
+                                <label for="filterReferrer">Filter by Referrer:</label>
+                                <select id="filterReferrer">
+                                    <option value="">All Referrers</option>
+                                    {logReferrer.map((referrer) => (
+                                        <option key={referrer.referrer} value={referrer.referrer}>
+                                            {referrer.referrer}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+
+                            {/* <!-- Apply Filters Button --> */}
+                            <button onClick={() => applyFilters()} className="filter-button">Apply Filters</button>
+                        </div>
+
+                        {/* <!-- Logs Table --> */}
+                        <table className="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>Log ID</th>
+                                    <th>Level</th>
+                                    <th>Message</th>
+                                    <th>Address</th>
+                                    <th>User</th>
+                                    <th>Request</th>
+                                    <th>Status</th>
+                                    <th>Size</th>
+                                    <th>Referrer</th>
+                                    <th>User Agent</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                {logs && logs.length > 0 ? (
+                                    logs.map((log) => (
+                                        <tr key={log.logid}>
+                                            <td>{log.logid}</td>
+                                            <td>{log.level}</td>
+                                            <td>{log.message}</td>
+                                            <td>{log.address}</td>
+                                            <td>{log.user}</td>
+                                            <td>{log.request}</td>
+                                            <td>{log.status}</td>
+                                            <td>{log.size}</td>
+                                            <td>{log.referrer}</td>
+                                            <td>{log.user_agent}</td>
+                                            <td>{log.timestamp}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="11" style={{ textAlign: "center", padding: "8px" }}>
+                                            No logs available
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
             )}
+
         </>
     );
 };

@@ -25,21 +25,15 @@ export const AuthProvider = ({ children }) => {
                     id: decodedToken.id || "",
                 });
                 setIsLoggedIn(true);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             } catch (error) {
                 console.error("Error decoding token:", error);
                 setIsLoggedIn(false);
                 setTokenObj(null);
             }
         }
-
-        // Set up interval to check token expiration
-        const interval = setInterval(tokenExp, 60000); // Check every minute
-        return () => clearInterval(interval); // Clean up interval on unmount
     }, []);
 
     const login = (token) => {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         localStorage.setItem("token", token);
         setIsLoggedIn(true);
         // Re-decode token and set tokenObj upon login
@@ -51,14 +45,12 @@ export const AuthProvider = ({ children }) => {
             role: decodedToken.role || "",
             id: decodedToken.id || "",
         });
-        console.log("auth header set");
     };
 
     const logout = () => {
         localStorage.removeItem("token");
         setIsLoggedIn(false);
         setTokenObj(null);  // Clear tokenObj on logout
-        delete axios.defaults.headers.common['Authorization'];
         window.location.reload();
     };
 
@@ -70,12 +62,12 @@ export const AuthProvider = ({ children }) => {
             const now = new Date();
             const exp = new Date(decodedToken.exp * 1000);
             if (now > exp) {
-                window.alert("Token has expired. Logging out...");
+                window.alert("Token has expired. Logging out...")
                 logout();
             }
         }
-    };
-
+    }
+    // console.log(tokenObj);
     return (
         <AuthContext.Provider value={{ isLoggedIn, tokenObj, login, logout, tokenExp }}>
             {children}
