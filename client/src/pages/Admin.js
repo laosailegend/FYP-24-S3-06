@@ -313,12 +313,14 @@ const Admin = () => {
 
     // log filtering functions
     const applyFilters = async () => {
+        // add size range and timestamp range
         const searchTerm = document.getElementById('search').value.trim().toLowerCase();
         const levelFilter = document.getElementById('filterLevel').value;
         const ipFilter = document.getElementById('filterIP').value;
         const userFilter = document.getElementById('filterUser').value;
         const requestFilter = document.getElementById('filterRequest').value;
         const statusFilter = document.getElementById('filterStatus').value;
+        const sizeFilter = document.getElementById('filterSize').value;
         const referrerFilter = document.getElementById('filterReferrer').value;
         
         console.log('Search Term:', searchTerm);
@@ -327,6 +329,7 @@ const Admin = () => {
         console.log('User Filter:', userFilter);
         console.log('Request Filter:', requestFilter);
         console.log('Status Filter:', statusFilter);
+        console.log('Size Filter:', sizeFilter);
         console.log('Referrer Filter:', referrerFilter);
 
         // Build the query parameters object
@@ -337,6 +340,7 @@ const Admin = () => {
             ...(userFilter && { user: userFilter }),
             ...(requestFilter && { request: requestFilter }),
             ...(statusFilter && { status: statusFilter }),
+            ...(sizeFilter && { size: sizeFilter }),
             ...(referrerFilter && { referrer: referrerFilter }),
         };
 
@@ -580,7 +584,20 @@ const Admin = () => {
                                     ))}
                                 </select>
                             </div>
-
+                            
+                            {/* Filter by size range */}
+                            <div className="filter-item">
+                                <label for="filterSize">Filter by Size:</label>
+                                <select id="filterSize">
+                                    <option value="">All Sizes</option>
+                                    <option value="0-100">0-100</option>
+                                    <option value="101-500">101-500</option>
+                                    <option value="501-1000">501-1000</option>
+                                    <option value="1001-5000">1001-5000</option>
+                                    <option value="5001-10000">5001-10000</option>
+                                </select>
+                            </div>
+                            
                             {/* Filter by referrer */}
                             <div className="filter-item">
                                 <label for="filterReferrer">Filter by Referrer:</label>

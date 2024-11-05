@@ -3,10 +3,11 @@ const db = require('../dbConfig');
 
 // get logs
 exports.getLogs = (req, res) => {
-    const { level, request, ip, user, status, size, minSize, maxSize, referrer, user_agent, start, end, search } = req.query;
+    let minSize, maxSize;
+    const { level, request, ip, user, status, size, referrer, user_agent, start, end, search } = req.query;
     let q = "SELECT * FROM logs WHERE 1=1";  // Start with a base query that always returns true
     const filters = [];
-
+    
     // Add filters based on query parameters
     if (level) {
         q += " AND level = ?";
@@ -14,7 +15,6 @@ exports.getLogs = (req, res) => {
     }
     if (request) {
         q += " AND request LIKE ?";
-        console.log("REQUEST: ", request);
         filters.push(`${request}%`);
     }
     if (ip) {
@@ -33,21 +33,13 @@ exports.getLogs = (req, res) => {
         q += " AND referrer = ?";
         filters.push(referrer);
     }
-    
-    // Add range-based filtering for `size`
-    if (minSize && maxSize) {
+
+    if (size) {
+        minSize = parseInt(size.split('-')[0]);
+        maxSize = parseInt(size.split('-')[1]);
+
         q += " AND size BETWEEN ? AND ?";
         filters.push(minSize, maxSize);
-    } else if (minSize) {
-        q += " AND size >= ?";
-        filters.push(minSize);
-    } else if (maxSize) {
-        q += " AND size <= ?";
-        filters.push(maxSize);
-    } else if (size) {
-        // Single value for `size` if exact match is needed
-        q += " AND size = ?";
-        filters.push(size);
     }
 
     if (user_agent) {
