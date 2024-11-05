@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
-const logger = require('./logger');
+const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
 // retrieve user details for employees only, no NRIC no password /employeeGetUser
@@ -114,8 +114,8 @@ exports.getLeaveBalance = (req, res) => {
     });
 };
 
-//retrieve own schedule employee
-exports.getScheduleId= (req, res) => {
+// Get Assignments by User ID
+exports.getAssignmentId = (req, res) => {
     const { userid } = req.params;
 
     // Check if the user ID is provided
@@ -123,11 +123,17 @@ exports.getScheduleId= (req, res) => {
         return res.status(400).json({ error: 'User ID is required' });
     }
 
-    // Define the query to fetch schedules for the given user ID
-    const query = 'SELECT * FROM schedules WHERE userid = ?';
+    // Define the query to fetch assignments for the given user ID, including status and task name
+    const query = `
+        SELECT a.*, ct.status, t.taskname 
+        FROM assignments a 
+        LEFT JOIN clock_times ct ON a.assignment_id = ct.assignment_id AND ct.user_id = ? 
+        LEFT JOIN tasks t ON a.taskid = t.taskid 
+        WHERE a.userid = ?
+    `;
 
     // Execute the query
-    db.query(query, [userid], (err, results) => {
+    db.query(query, [userid, userid], (err, results) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).send('Database error');
@@ -135,21 +141,23 @@ exports.getScheduleId= (req, res) => {
 
         // Check if the query returned any results
         if (results.length === 0) {
-            return res.status(404).json({ error: 'No schedules found for this user' });
+            return res.status(404).json({ error: 'No assignments found for this user' });
         }
 
         // Return the results to the client
-        res.json({ schedules: results });
+        res.json({ assignments: results });
     });
 };
 
-// clockin and out /clock-in
+
+
+// Clock In API /clock-in
 exports.clockIn = (req, res) => {
-    const { user_id, schedule_id } = req.body; // Extract user_id and schedule_id from request body
+    const { user_id, assignment_id } = req.body; // Extract user_id and assignment_id from request body
     const clock_in_time = new Date(); // Get the current time
 
-    const query = 'INSERT INTO clock_times (user_id, schedule_id, clock_in_time) VALUES (?, ?, ?)';
-    db.query(query, [user_id, schedule_id, clock_in_time], (err, results) => {
+    const query = 'INSERT INTO clock_times (user_id, assignment_id, clock_in_time) VALUES (?, ?, ?)';
+    db.query(query, [user_id, assignment_id, clock_in_time], (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).json({ error: 'Database error' });
@@ -160,28 +168,28 @@ exports.clockIn = (req, res) => {
 
 // Clock Out API /clock-out
 exports.clockOut = (req, res) => {
-    const { user_id, schedule_id } = req.body; // Extract user_id and schedule_id from request body
+    const { user_id, assignment_id } = req.body; // Extract user_id and assignment_id from request body
     const clock_out_time = new Date(); // Get the current time
 
-    const query = 'UPDATE clock_times SET clock_out_time = ? WHERE user_id = ? AND schedule_id = ? AND clock_out_time IS NULL';
-    db.query(query, [clock_out_time, user_id, schedule_id], (err, results) => {
+    const query = 'UPDATE clock_times SET clock_out_time = ? WHERE user_id = ? AND assignment_id = ? AND clock_out_time IS NULL';
+    db.query(query, [clock_out_time, user_id, assignment_id], (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).json({ error: 'Database error' });
         }
         if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'No clock-in record found for this user and schedule' });
+            return res.status(404).json({ error: 'No clock-in record found for this user and assignment' });
         }
         res.status(200).json({ message: 'Clock-out time recorded successfully' });
     });
 };
 
-// get employee clock in and out time /clock-times/:user_id/:schedule_id
+// Get Employee Clock In and Out Times /clock-times/:user_id/:assignment_id
 exports.getClockTimes = (req, res) => {
-    const { user_id, schedule_id } = req.params;
+    const { user_id, assignment_id } = req.params;
 
-    const sql = 'SELECT clock_in_time, clock_out_time FROM clock_times WHERE user_id = ? AND schedule_id = ?';
-    db.query(sql, [user_id, schedule_id], (error, results) => {
+    const sql = 'SELECT clock_in_time, clock_out_time, status FROM clock_times WHERE user_id = ? AND assignment_id = ?';
+    db.query(sql, [user_id, assignment_id], (error, results) => {
         if (error) {
             return res.status(500).json({ error: 'Database query failed' });
         }
@@ -189,80 +197,101 @@ exports.getClockTimes = (req, res) => {
     });
 };
 
-// Endpoint to submit skills and qualifications
-exports.submitSkill= (req, res) => {
-    const { user_id, skills, qualification } = req.body;
+exports.updatedClocktime= async (req, res) => {
+    const { user_id, assignment_id, status } = req.body;
+  
+    try {
+      const result = await db.query(
+        'UPDATE clock_times SET status = ? WHERE user_id = ? AND assignment_id = ?',
+        [status, user_id, assignment_id]
+      );
+      res.status(200).json({ message: 'Status updated successfully' });
+    } catch (error) {
+      console.error('Error updating clock time status:', error);
+      res.status(500).json({ error: 'Failed to update status' });
+    }
+  };
+  
 
-    if (!user_id || !Array.isArray(skills) || skills.length === 0 || !qualification) {
-        return res.status(400).json({ message: 'Invalid input data' });
+// Endpoint to submit skills and qualifications
+exports.submitSkill = (req, res) => {
+    const { skill_id } = req.body; // Extract skill_id from the request body
+    const userId = req.params.userid; // Get the user ID from the URL parameter
+
+    // Ensure skill_id is a valid JSON string and parse it
+    let skillIdsArray;
+    try {
+        skillIdsArray = JSON.parse(skill_id); // Convert string to array
+    } catch (error) {
+        return res.status(400).json({ message: "Invalid skill_id format" });
     }
 
-    // Iterate over the skills to insert them into the database
-    const insertPromises = skills.map(skill => {
-        return new Promise((resolve, reject) => {
-            // Check if the skill already exists for the user
-            db.query(
-                `SELECT * FROM skillAcademic WHERE user_id = ? AND skill_id = (SELECT skill_id FROM skills WHERE skill_name = ?)`,
-                [user_id, skill],
-                (err, results) => {
-                    if (err) return reject(err);
-                    if (results.length > 0) {
-                        // Skill already exists for this user
-                        return resolve(null); // Skip this skill
-                    } else {
-                        // Skill does not exist, insert it
-                        db.query(
-                            `INSERT INTO skillAcademic (user_id, skill_id, qualification) VALUES (?, (SELECT skill_id FROM skills WHERE skill_name = ?), ?)`,
-                            [user_id, skill, qualification],
-                            (err, result) => {
-                                if (err) return reject(err);
-                                resolve(result);
-                            }
-                        );
-                    }
-                }
-            );
-        });
-    });
+    // Optionally: Check if skillIdsArray is an array
+    if (!Array.isArray(skillIdsArray)) {
+        return res.status(400).json({ message: "skill_id must be an array" });
+    }
 
-    // Wait for all insertions to complete
-    Promise.all(insertPromises)
-        .then(results => {
-            // Filter out null values (skills that were already submitted)
-            const insertedSkills = results.filter(result => result !== null);
-            res.status(201).json({ message: 'Skills submitted successfully', insertedSkills });
-        })
-        .catch(err => {
-            console.error('Error inserting skills:', err);
-            res.status(500).json({ message: 'Internal server error' });
-        });
+    const query = `
+      UPDATE users 
+      SET skill_id = ? 
+      WHERE userid = ?
+    `;
+
+    // Convert the array back to a JSON string if you're storing it as such
+    const values = [JSON.stringify(skillIdsArray), userId]; // Store as a JSON string
+    console.log("Inserting skill_ids:", values);
+
+    db.query(query, values, (error, results) => {
+        if (error) {
+            console.error("Error updating skills: ", error);
+            return res.status(500).json({ message: "Failed to update user skills" });
+        }
+
+        res.status(200).json({ message: "User skills updated successfully" });
+    });
 };
 
-exports.userSkill=(req,res) => {
-    const userId = req.params.user_id;
+
+exports.userSkill = (req, res) => {
+    const userId = req.params.userid;
   
-    // Adjust the SQL query to match your database structure
-    const query = `
-      SELECT skills.skill_name 
-      FROM skillAcademic 
-      JOIN skills ON skillAcademic.skill_id = skills.skill_id 
-      WHERE skillAcademic.user_id = ?`;
+    // SQL query to get skill_ids from the user
+    const getSkillsQuery = `
+      SELECT skill_id 
+      FROM users 
+      WHERE userid = ?
+    `;
   
-    db.query(query, [userId], (error, results) => {
+    db.query(getSkillsQuery, [userId], (error, userResults) => {
       if (error) {
-        console.error('Error fetching user skills:', error);
-        return res.status(500).json({ error: 'Database query error' });
-      }
-      
-      // If no skills found, return an empty array
-      if (results.length === 0) {
-        return res.json([]);
+        console.error("Error fetching user skills: ", error);
+        return res.status(500).json({ message: "Failed to fetch user skills" });
       }
   
-      // Send the results back as a response
-      res.json(results);
+      if (userResults.length === 0) {
+        return res.status(404).json({ message: "User not found or no skills assigned" });
+      }
+  
+      // Extract skill_ids from the user result
+      const skillIdString = userResults[0].skill_id; // This should be '[5, 6]' in string format
+  
+      // Log the raw skill_id to verify its format
+      console.log("Raw skill_id:", skillIdString);
+  
+      let skillIds;
+      try {
+        skillIds = JSON.parse(skillIdString); // Parse the JSON string to an array
+      } catch (parseError) {
+        console.error("Error parsing skill_ids: ", parseError);
+        return res.status(500).json({ message: "Error processing skill IDs", error: parseError.message });
+      }
+  
+      // Respond with the skill IDs array
+      res.status(200).json({ skill_ids: skillIds }); // Respond with the skill IDs as an array
     });
   };
+  
+  
   
 // Endpoint to retrieve all training sessions
 exports.getAllTrainingSessions = (req, res) => {
@@ -378,6 +407,30 @@ exports.getFeedback = async (req, res) => {
 
         // Return the feedback results
         res.json({ feedback: results });
+    });
+};
+
+// Endpoint to fetch all tasks
+// Endpoint to retrieve all tasks
+exports.getTask = async (req, res) => {
+    // Step 1: Define SQL query
+    const query = `SELECT * FROM tasks`;
+
+    // Step 2: Execute the query
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            // Step 3: Handle query errors
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        // Step 4: Check if tasks are found
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No tasks found' });
+        }
+
+        // Step 5: Return all tasks in JSON format
+        res.json({ tasks: results });
     });
 };
 

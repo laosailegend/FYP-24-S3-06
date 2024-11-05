@@ -21,6 +21,7 @@ import ClockInOut from './pages/ClockInOut';
 import Skill from './pages/Skill';
 import TrainingSession from './pages/TrainingSession';
 import Feedback from './pages/Feedback';
+import Project from './pages/Project';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -120,11 +121,12 @@ function App() {
             {/* only employee can see */}
             {isLoggedIn && tokenObj.role === 3 ? (
               <>
-                <Link to="/Availability">Availability(Employee)</Link>
-                <Link to="/TimeOffRequest">Request Time Off(Employee)</Link>
+                <Link to="/Project">Project</Link>
+                {/*<Link to="/Availability">Availability(Employee)</Link>*/}
                 <Link to="/ClockInOut">Clock In/Clock Out</Link>
                 <Link to="/Skill">Skill</Link>
                 <Link to="/TrainingSession">Training session</Link>
+                <Link to="/TimeOffRequest">Request Time Off</Link>
                 <Link to="/Feedback">Feedback</Link>
               </>
             ) : (
@@ -178,6 +180,7 @@ function App() {
             <Route path="/Skill" element={<Skill />} />
             <Route path="/TrainingSession" element={<TrainingSession />} />
             <Route path="/Feedback" element={<Feedback />} />
+            <Route path="/Project" element={<Project />} />
           </Routes>
         </main>
       </div>

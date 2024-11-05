@@ -883,31 +883,96 @@ button:hover {
 
 .clock-in-out-container {
   padding: 20px;
+  max-width: 700px;
+  margin: 40px auto;
+  font-family: Arial, sans-serif;
+  color: #333;
+  background-color: #f0f4f8;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.schedule-item {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.clock-in-out-container h2 {
+  text-align: center;
+  color: #4a90e2;
+  margin-bottom: 25px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.assignment-item {
+  background-color: #ffffff;
+  border: 1px solid #e0e6ed;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.assignment-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.assignment-item p {
+  margin: 6px 0;
+  color: #555;
+}
+
+.assignment-item strong {
+  color: #333;
 }
 
 .clock-in-button,
 .clock-out-button {
-  padding: 5px 10px;
-  background-color: #007bff;
+  padding: 10px 15px;
+  background-color: #4a90e2;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .clock-in-button:hover,
 .clock-out-button:hover {
-  background-color: #0056b3;
+  background-color: #357abd;
+  transform: translateY(-2px);
+}
+
+.clock-in-button:disabled,
+.clock-out-button:disabled {
+  background-color: #b3cde0;
+  cursor: not-allowed;
+}
+
+.button-container {
+  text-align: right;
+  margin-top: 15px;
+}
+
+.clock-time-display {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.no-assignments {
+  text-align: center;
+  font-size: 16px;
+  color: #888;
+  margin-top: 20px;
+}
+
+.clock-in-out-container h3 {
+  font-size: 20px;
+  color: #4a90e2;
+  font-weight: 500;
+  margin-bottom: 15px;
+  text-align: center;
 }
 
 /* Update user page styles uses similar styling to admin page above*/
@@ -1064,4 +1129,59 @@ button:hover {
   padding: 10px;
   border: 1px solid #ddd;
   margin-bottom: 10px;
+}
+
+/* Project.js page */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 20px;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  font-weight: bold;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+li {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 10px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+h2 {
+  color: #2980b9;
+  margin: 0 0 10px;
+}
+
+p {
+  margin: 5px 0;
+}
+
+p:nth-of-type(1) {
+  font-weight: bold;
 }

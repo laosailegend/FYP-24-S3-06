@@ -3,8 +3,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const logger = require('./utils/logger');
 
+const logger = require('./utils/logger')
 const app = express();
 
 // change morgan format to get more detailed logs
@@ -62,18 +62,21 @@ app.get("/employeeGetUser", employeeController.employeeGetUser);
 app.post("/requestLeave", employeeController.requestLeave);
 app.get("/getRequestLeave/:id", employeeController.getRequestLeaveByID);
 app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
-//app.get("/schedules/:userid",employeeController.getScheduleId);
-//app.post("/clock-in", employeeController.clockIn);
-//app.post("/clock-out", employeeController.clockOut);
-//app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
-//app.post("/submit-skills", employeeController.submitSkill);
-//app.get('/userSkills/:user_id', employeeController.userSkill);
+app.get("/assignments/:userid",employeeController.getAssignmentId);
+app.post("/clock-in", employeeController.clockIn);
+app.post("/clock-out", employeeController.clockOut);
+app.get("/clock-times/:user_id/:assignment_id", employeeController.getClockTimes);
+app.put('/update-clock-time',employeeController.updatedClocktime);
+app.post("/submitSkill/:userid", employeeController.submitSkill);
+//app.get('/getUserSkills/:userid', employeeController.userSkill);
 app.get('/trainingSessions', employeeController.getAllTrainingSessions);
 app.post('/expressInterest', employeeController.expressInterest);
 app.get('/trainingSessions/interest/:userId',employeeController.retriveUserInterest);
 app.delete('/deleteRequestLeave/:id',employeeController.deleteRequestLeave);
 app.post('/submitFeedback',employeeController.submitFeedback);
 app.get('/getFeedback/:userId',employeeController.getFeedback);
+app.get('/tasks',employeeController.getTask);
+
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);
@@ -85,30 +88,30 @@ app.delete("/available/:id", HRController.deleteAvailabilityForm);
 app.get("/getAvailable", HRController.getAvailable);
 app.post("/payroll", HRController.createPayroll);
 //app.get("/user/schedules/:userId", HRController.getUserSchedule);
-app.post("/training", HRController.createTrainingSession);
-app.get("/getTraining", HRController.getTrainingSessions);
-app.put("/updateTraining/:session_id", HRController.updateTrainingSession);
-app.delete("/deleteTraining/:id", HRController.deleteTraining);
-app.get("/getSkills", HRController.getSkills);
-app.post("/postTraining/:userid/:session_id", HRController.postTraining);
-app.get("/getAllSessions", HRController.getAllSessions);
-app.get("/feedback", HRController.getFeedback);
+//app.post("/training", HRController.createTrainingSession);
+//app.get("/getTraining", HRController.getTrainingSessions);
+//app.put("/updateTraining/:session_id", HRController.updateTrainingSession);
+//app.delete("/deleteTraining/:id", HRController.deleteTraining);
+//app.get("/getSkills", HRController.getSkills);
+//app.post("/postTraining/:userid/:session_id", HRController.postTraining);
+//app.get("/getAllSessions", HRController.getAllSessions);
+//app.get("/feedback", HRController.getFeedback);
 
 // define routes for managerController
-app.get("/managerGetUsers", managerController.managerGetUsers);
-app.post("/createTask", managerController.createTask);
-app.put("/task/:id", managerController.updateTask);
-app.get("/tasks", managerController.getTasks);
-app.delete("/task/:taskId", managerController.deleteTask);
-app.get("/employees", managerController.getEmployees);
-app.put("/task/:id/timeslot", managerController.updateTimeslot);
-app.delete("/task/:id/timeslot", managerController.deleteTimeslot);
-app.post("/addSchedules", managerController.addSchedules);
-app.get("/schedules", managerController.getSchedules);
-app.put("/updateSchedules/:id", managerController.updateSchedule);
-app.delete("/deleteSchedules/:id", managerController.deleteSchedule);
-app.post("/autoSchedule", managerController.autoScheduling);
-app.get("/assignments", managerController.Assignments);
+// app.get("/managerGetUsers", managerController.managerGetUsers);
+// app.post("/createTask", managerController.createTask);
+// app.put("/task/:id", managerController.updateTask);
+// app.get("/tasks", managerController.getTasks);
+// app.delete("/task/:taskId", managerController.deleteTask);
+// app.get("/employees", managerController.getEmployees);
+// app.put("/task/:id/timeslot", managerController.updateTimeslot);
+// app.delete("/task/:id/timeslot", managerController.deleteTimeslot);
+// app.post("/addSchedules", managerController.addSchedules);
+// app.get("/schedules", managerController.getSchedules);
+// app.put("/updateSchedules/:id", managerController.updateSchedule);
+// app.delete("/deleteSchedules/:id", managerController.deleteSchedule);
+// app.post("/autoSchedule", managerController.autoScheduling);
+// app.get("/assignments", managerController.Assignments);
 
 
 app.get("/", (req, res) => {

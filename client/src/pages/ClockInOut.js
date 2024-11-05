@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import '../style.css';
 
 function ClockInOut() {
-  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null; // Get the user's ID from the AuthContext
-  const userId = tokenObj ? tokenObj.id : null; // Use the logged-in user's ID
-  const [scheduleData, setScheduleData] = useState([]);
-  const [clockInTimes, setClockInTimes] = useState({}); // Track clock in times for each schedule
-  const [clockOutTimes, setClockOutTimes] = useState({}); // Track clock out times for each schedule
-  const server=process.env.REACT_APP_SERVER;
+  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const userId = tokenObj ? tokenObj.id : null;
+  const [assignmentData, setAssignmentData] = useState([]);
+  const [clockInTimes, setClockInTimes] = useState({});
+  const [clockOutTimes, setClockOutTimes] = useState({});
+  const server = process.env.REACT_APP_SERVER;
 
-  // Fetch schedule data for the logged-in user
   useEffect(() => {
-    const fetchScheduleData = () => {
-      fetch(`${server}schedules/${userId}`)
+    const fetchAssignmentData = () => {
+      fetch(`${server}assignments/${userId}`)
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -20,38 +19,36 @@ function ClockInOut() {
           return response.json();
         })
         .then((data) => {
-          console.log('Fetched schedule data:', data); // Debugging: log the fetched data
-          setScheduleData(data.schedules); // Update this line to extract the schedules array
-          // Fetch clock-in/out times after fetching schedules
-          fetchClockTimes(data.schedules);
+          console.log('Fetched assignment data:', data);
+          setAssignmentData(data.assignments);
+          fetchClockTimes(data.assignments);
         })
         .catch((error) => {
-          console.error('Error fetching schedule data:', error);
+          console.error('Error fetching assignment data:', error);
         });
     };
 
-    if (userId) { // Ensure userId is available before fetching
-      fetchScheduleData();
+    if (userId) {
+      fetchAssignmentData();
     }
   }, [userId]);
 
-  const fetchClockTimes = (schedules) => {
-    schedules.forEach(schedule => {
-      fetch(`${server}clock-times/${userId}/${schedule.schedule_id}`)
+  const fetchClockTimes = (assignments) => {
+    assignments.forEach(assignment => {
+      fetch(`${server}clock-times/${userId}/${assignment.assignment_id}`)
         .then(response => response.json())
         .then(data => {
           if (data) {
-            // Assuming data returns { clock_in_time: ..., clock_out_time: ... }
             if (data.clock_in_time) {
               setClockInTimes(prev => ({
                 ...prev,
-                [schedule.schedule_id]: new Date(data.clock_in_time).toLocaleTimeString()
+                [assignment.assignment_id]: data.clock_in_time
               }));
             }
             if (data.clock_out_time) {
               setClockOutTimes(prev => ({
                 ...prev,
-                [schedule.schedule_id]: new Date(data.clock_out_time).toLocaleTimeString()
+                [assignment.assignment_id]: data.clock_out_time
               }));
             }
           }
@@ -60,7 +57,7 @@ function ClockInOut() {
     });
   };
 
-  const handleClockIn = async (scheduleId) => {
+  const handleClockIn = async (assignmentId) => {
     try {
       const response = await fetch(`${server}clock-in`, {
         method: 'POST',
@@ -68,29 +65,26 @@ function ClockInOut() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: userId, // logged-in user's ID
-          schedule_id: scheduleId, // ID of the schedule being clocked in
+          user_id: userId,
+          assignment_id: assignmentId,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Error clocking in: ${response.status}`);
       }
-      
-      const data = await response.json();
-      console.log(data); // Log the response for debugging
-      
+
       const currentTime = new Date().toLocaleTimeString();
       setClockInTimes(prev => ({
         ...prev,
-        [scheduleId]: currentTime // Record the clock in time for the specific schedule ID
+        [assignmentId]: currentTime
       }));
     } catch (error) {
       console.error('Error clocking in:', error);
     }
   };
 
-  const handleClockOut = async (scheduleId) => {
+  const handleClockOut = async (assignmentId) => {
     try {
       const response = await fetch(`${server}clock-out`, {
         method: 'POST',
@@ -98,8 +92,8 @@ function ClockInOut() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: userId, // logged-in user's ID
-          schedule_id: scheduleId, // ID of the schedule being clocked out
+          user_id: userId,
+          assignment_id: assignmentId,
         }),
       });
 
@@ -107,24 +101,49 @@ function ClockInOut() {
         throw new Error(`Error clocking out: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log(data); // Log the response for debugging
-      
       const currentTime = new Date().toLocaleTimeString();
       setClockOutTimes(prev => ({
         ...prev,
-        [scheduleId]: currentTime // Store the clock out time
+        [assignmentId]: currentTime
       }));
 
-      // Optionally reset the clock in time or handle it as per your requirements
+      // Reset clock-in time upon clocking out
       setClockInTimes(prev => ({
         ...prev,
-        [scheduleId]: null // Reset the clock in time for this schedule if needed
+        [assignmentId]: null
       }));
-      // Fetch the updated clock times after clocking out
-    fetchClockTimes(scheduleData);
+
+      // Optionally refresh clock times for the assignment
+      fetchClockTimes(assignmentData);
     } catch (error) {
       console.error('Error clocking out:', error);
+    }
+  };
+
+  const handleDeleteAssignment = async (assignmentId) => {
+    try {
+      const response = await fetch(`${server}update-clock-time`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          assignment_id: assignmentId,
+          status: 'done'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error updating status: ${response.status}`);
+      }
+
+      // Update local state to remove the assignment immediately from the UI
+      setAssignmentData(prevAssignments => 
+        prevAssignments.filter(assignment => assignment.assignment_id !== assignmentId) // Filter out the deleted assignment
+      );
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
     }
   };
 
@@ -132,34 +151,41 @@ function ClockInOut() {
     <div className="clock-in-out-container">
       <h2>Clock In/Clock Out</h2>
 
-      {scheduleData.length > 0 ? (
+      {assignmentData.length > 0 ? (
         <div>
-          <h3>Your Schedule:</h3>
-          {scheduleData.map((schedule) => (
-            <div key={schedule.schedule_id} className="schedule-item">
-              <p><strong>Shift Date:</strong> {new Date(schedule.shift_date).toLocaleDateString()}</p>
-              <p><strong>Start Time:</strong> {schedule.start_time}</p>
-              <p><strong>End Time:</strong> {schedule.end_time}</p>
-              <p><strong>Salary:</strong> ${schedule.salary}</p>
+          <h3>Your Assignments:</h3>
+          {assignmentData.map((assignment) => (
+            assignment.status !== 'done' && ( // Only display active assignments
+              <div key={assignment.assignment_id} className="assignment-item">
+                <button
+                  onClick={() => handleDeleteAssignment(assignment.assignment_id)}
+                  className="delete-button"
+                >
+                  X
+                </button>
+                <p><strong>Assigned Date:</strong> {new Date(assignment.assigned_date).toLocaleDateString()}</p>
+                <p><strong>Start Time:</strong> {assignment.start_time}</p>
+                <p><strong>End Time:</strong> {assignment.end_time}</p>
+                <p><strong>Task Name:</strong> {assignment.taskname}</p>
 
-              {/* Change button based on clocked in/out status */}
-              {clockInTimes[schedule.schedule_id] ? (
-                <div>
-                  <p>You clocked in at: {clockInTimes[schedule.schedule_id]}</p>
-                  {clockOutTimes[schedule.schedule_id] ? ( // Check if the user has clocked out
-                    <p>You clocked out at: {clockOutTimes[schedule.schedule_id]}</p> // Display clock-out time
-                  ) : (
-                    <button onClick={() => handleClockOut(schedule.schedule_id)} className="clock-out-button">Clock Out</button>
-                  )}
-                </div>
-              ) : (
-                <button onClick={() => handleClockIn(schedule.schedule_id)} className="clock-in-button">Clock In</button>
-              )}
-            </div>
+                {clockInTimes[assignment.assignment_id] ? (
+                  <div>
+                    <p>You clocked in at: {clockInTimes[assignment.assignment_id]}</p>
+                    {clockOutTimes[assignment.assignment_id] ? (
+                      <p>You clocked out at: {clockOutTimes[assignment.assignment_id]}</p>
+                    ) : (
+                      <button onClick={() => handleClockOut(assignment.assignment_id)} className="clock-out-button">Clock Out</button>
+                    )}
+                  </div>
+                ) : (
+                  <button onClick={() => handleClockIn(assignment.assignment_id)} className="clock-in-button">Clock In</button>
+                )}
+              </div>
+            )
           ))}
         </div>
       ) : (
-        <p>No scheduled shifts found.</p>
+        <p>No assignments found.</p>
       )}
     </div>
   );
