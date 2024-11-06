@@ -326,25 +326,25 @@ const Admin = () => {
                             <br />
                             <ul>
                                 <li>
-                                    <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} />
+                                    <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} required/>
                                 </li>
                                 <li>
-                                    <input type="text" placeholder='first name' onChange={handleUserChange} name='fname' />
+                                    <input type="text" placeholder='first name' onChange={handleUserChange} name='fname' required />
                                 </li>
                                 <li>
-                                    <input type="text" placeholder='last name' onChange={handleUserChange} name='lname' />
+                                    <input type="text" placeholder='last name' onChange={handleUserChange} name='lname' required/>
                                 </li>
                                 <li>
-                                    <input type="text" placeholder='contact' onChange={handleUserChange} name='contact' maxLength={8} />
+                                    <input type="text" placeholder='contact' onChange={handleUserChange} name='contact' maxLength={8} required/>
                                 </li>
                                 <li>
-                                    <input type="email" placeholder="email" onChange={handleUserChange} name='email' />
+                                    <input type="email" placeholder="email" onChange={handleUserChange} name='email' required/>
                                 </li>
                                 <li>
-                                    <input type="password" placeholder="password" onChange={handleUserChange} name='password' />
+                                    <input type="password" placeholder="password" onChange={handleUserChange} name='password' required/>
                                 </li>
                             </ul>
-                            <select name="compid" onChange={handleUserChange} defaultValue="">
+                            <select name="compid" onChange={handleUserChange} defaultValue="" required>
                                 <option disabled value="">Select company</option>
                                 {company.map(comp => (
                                     <option key={comp.compid} value={comp.compid}>{comp.company}</option>

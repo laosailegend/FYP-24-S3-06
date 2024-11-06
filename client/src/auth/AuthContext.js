@@ -5,13 +5,12 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [tokenObj, setTokenObj] = useState(null);  // Initialize tokenObj state
+    const [tokenObj, setTokenObj] = useState(null);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
 
         if (!token) {
-            // No token found, user is not logged in
             setIsLoggedIn(false);
             setTokenObj(null);
         } else {
@@ -23,6 +22,7 @@ export const AuthProvider = ({ children }) => {
                     email: decodedToken.email || "",
                     role: decodedToken.role || "",
                     id: decodedToken.id || "",
+                    company: decodedToken.company || "", // Include company ID
                 });
                 setIsLoggedIn(true);
                 axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -33,16 +33,14 @@ export const AuthProvider = ({ children }) => {
             }
         }
 
-        // Set up interval to check token expiration
-        const interval = setInterval(tokenExp, 60000); // Check every minute
-        return () => clearInterval(interval); // Clean up interval on unmount
+        const interval = setInterval(tokenExp, 60000);
+        return () => clearInterval(interval);
     }, []);
 
     const login = (token) => {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         localStorage.setItem("token", token);
         setIsLoggedIn(true);
-        // Re-decode token and set tokenObj upon login
         const decodedToken = JSON.parse(atob(token.split('.')[1]));
         setTokenObj({
             fname: decodedToken.fname || "",
@@ -50,6 +48,7 @@ export const AuthProvider = ({ children }) => {
             email: decodedToken.email || "",
             role: decodedToken.role || "",
             id: decodedToken.id || "",
+            company: decodedToken.company || "", // Include company ID
         });
         console.log("auth header set");
     };
@@ -57,12 +56,11 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem("token");
         setIsLoggedIn(false);
-        setTokenObj(null);  // Clear tokenObj on logout
+        setTokenObj(null);
         delete axios.defaults.headers.common['Authorization'];
         window.location.reload();
     };
 
-    // check if token exists, then check if token is expired, if expired, logout
     const tokenExp = () => {
         const token = localStorage.getItem("token");
         if (token) {
