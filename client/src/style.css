@@ -822,6 +822,23 @@ button:hover {
 }
 
 /* Admin Page */
+.admin-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px; /* Optional: Adds space between the forms */
+}
+
+.add-form {
+  width: 100%;
+  max-width: 400px; /* Adjust the max-width as needed */
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .perm-card {
   background-color: #fff;
   padding: 20px;

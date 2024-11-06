@@ -49,7 +49,7 @@ exports.login = (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-            { id: user.userid, email: user.email, role: user.roleid, fname: user.fname, lname: user.lname },
+            { id: user.userid, email: user.email, role: user.roleid, fname: user.fname, lname: user.lname, company: user.compid },
             SECRET_KEY,
             { expiresIn: '1d' } // Token expires in 1 day
         );
@@ -61,7 +61,7 @@ exports.login = (req, res) => {
 
 // #21 admin create user accounts POST
 exports.createUser = (req, res) => {
-    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`, `availability`, `skill_id`) VALUES (?)";
+    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`, `availability`, `compid`) VALUES (?)";
     const saltRounds = 10;
     const password = req.body.password;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -69,7 +69,7 @@ exports.createUser = (req, res) => {
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) return;
 
-        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash, null, null];
+        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash, null, req.body.compid];
         db.query(q, [values], (err, data) => {
             if (err) {
                 console.log(err);
@@ -86,7 +86,7 @@ exports.createUser = (req, res) => {
 // get user info and their role type GET 
 exports.getUsers = (req, res) => {
     // inner join to also get their role type as well
-    const q = "SELECT * FROM users INNER JOIN roles ON users.roleid = roles.roleid"
+    const q = "SELECT users.*, roles.role, company.company FROM users INNER JOIN roles ON users.roleid = roles.roleid INNER JOIN company ON users.compid = company.compid;"
     db.query(q, (err, data) => {
         if (err) {
             console.log(err);

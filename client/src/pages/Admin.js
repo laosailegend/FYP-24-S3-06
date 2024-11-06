@@ -5,7 +5,7 @@ const server = process.env.REACT_APP_SERVER;
 
 const Admin = () => {
     // console.log(server);
-    const [selectedMenu, setSelectedMenu] = useState('permissions'); // Default to 'permissions'
+    const [selectedMenu, setSelectedMenu] = useState('users'); // Default to 'permissions'
 
     // Function to toggle menus
     const handleMenuChange = (menu) => {
@@ -19,17 +19,25 @@ const Admin = () => {
     // console.log(tokenObj);
     const navigate = useNavigate();
 
+    // get roles, company info
     const [roles, setRoles] = useState([]);
-    const [newPerm, setNewPerm] = useState({
-        roleid: '',
-        resource: '',
-        can_create: 0,
-        can_read: 0,
-        can_update: 0,
-        can_delete: 0
+    const [company, setCompany] = useState([]);
+    const [industry, setIndustry] = useState([]);
+
+    const [newCompany, addCompany] = useState({
+        company: "",
+        address: "",
+        contact: "",
+        email: "",
+        website: "",
+        industryid: null,
+        size: "",
+        statusid: null,
+        est_date: ""
     });
 
-    const [perms, setPerms] = useState([]); // Initialize perms as an empty array
+    // get user data from db
+    const [users, getUsers] = useState([]);
 
     const [user, createUser] = useState({
         roleid: null,
@@ -37,11 +45,9 @@ const Admin = () => {
         fname: "",
         lname: "",
         contact: "",
-        email: ""
+        email: "",
+        compid: null
     })
-
-    // get user data from db
-    const [users, getUsers] = useState([]);
 
     // get logs from db, and other log related functions for filtering
     const [logs, getLogs] = useState([]);
@@ -51,23 +57,12 @@ const Admin = () => {
     const [logStatus, getLogStatus] = useState([]);
     const [logReferrer, getLogReferrer] = useState([]);
 
-    const handleChange = (e) => {
-        setNewPerm((prev) => {
-            const updatedPerm = { ...prev, [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value };
-
-            return updatedPerm;
-        });
-    };
-
-    const handleCheckboxChangeForNewPerm = (e) => {
-        setNewPerm((prev) => ({
-            ...prev,
-            [e.target.name]: e.target.checked ? 1 : 0, // Ensure value is 0 if unchecked
-        }));
-    };
-
     const handleUserChange = (e) => {
         createUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleCompanyChange = (e) => {
+        addCompany((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     const handleUserDelete = async (id) => {
@@ -81,7 +76,7 @@ const Admin = () => {
 
     const validateForm = () => {
         // Check each required field
-        const fields = ['roleid', 'nric', 'fname', 'lname', 'contact', 'email', 'password']; // List all the keys that must be checked
+        const fields = ['roleid', 'nric', 'fname', 'lname', 'contact', 'email', 'password', 'compid']; // List all the keys that must be checked
         for (const field of fields) {
             if (!user[field]) { // Checks if the field is null, undefined, or an empty string
                 // debugging
@@ -108,19 +103,43 @@ const Admin = () => {
         }
     };
 
+    const validateCompanyForm = () => {
+        // Check each required field
+        const fields = ['company', 'address', 'contact', 'email', 'website', 'industryid', 'size', 'statusid', 'est_date']; // List all the keys that must be checked
+        for (const field of fields) {
+            if (!newCompany[field]) { // Checks if the field is null, undefined, or an empty string
+                // debugging
+                window.alert(`Please fill in the ${field} field.`);
+                return false;
+            } else if (newCompany.size <= 0) {
+                window.alert(`Please fill in the ${field} field.`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    const handleCompanyClick = async (e) => {
+        e.preventDefault();
+        if (validateCompanyForm()) {
+            try {
+                await axios.post(`${server}addCompany`, newCompany);
+                window.alert("Company added!");
+                // navigate("/");
+            } catch (error) {
+                console.log(error);
+                window.alert("Failed to add company!");
+            }
+        } else {
+            window.alert("Please fill all the fields.");
+        }
+    };
+
     // fetching data functions
     const fetchRoles = async () => {
         try {
             const res = await axios.get(`${server}roles`);
             setRoles(res.data);
-        } catch (e) {
-            console.log(e);
-        }
-    };
-    const fetchPerms = async () => {
-        try {
-            const res = await axios.get(`${server}permissions`);
-            setPerms(res.data);
         } catch (e) {
             console.log(e);
         }
@@ -192,6 +211,24 @@ const Admin = () => {
         }
     };
 
+    const fetchCompany = async () => {
+        try {
+            const res = await axios.get(`${server}company`);
+            setCompany(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    const fetchIndustry = async () => {
+        try {
+            const res = await axios.get(`${server}industry`);
+            setIndustry(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     useEffect(() => {
         // prevents non-admin users from viewing the page
         if (!tokenObj || tokenObj.role !== 1) {
@@ -208,98 +245,20 @@ const Admin = () => {
         const fetchData = async () => {
             await fetchAllUsers();
             await fetchRoles();
-            await fetchPerms();
             await fetchLogs();
             await fetchLogsLevel();
             await fetchLogsIPs();
             await fetchLogsUsers();
             await fetchLogsStatus();
             await fetchLogsReferrer();
+            await fetchCompany();
+            await fetchIndustry();
         };
         fetchData();
 
     }, [navigate, tokenObj]);
 
-    // Handle checkbox change
-    const handleCheckboxChange = (permId, permissionType) => {
-        setPerms(perms.map(perm =>
-            perm.permission_id === permId ?
-                { ...perm, [permissionType]: perm[permissionType] ? 0 : 1 } : perm
-        ));
-    };
-
-    // Function to submit the updated permissions
-    const handleSave = async (permId) => {
-        const permToUpdate = perms.find(perm => perm.permission_id === permId);
-        try {
-            await axios.put(`${server}updatePerms/${permId}`, permToUpdate);
-            window.alert('Permission updated successfully');
-        } catch (e) {
-            console.log(e);
-            window.alert('Failed to update permission');
-        }
-    };
-
-    // Function to create a new permission
-    const handleCreate = async () => {
-        const { roleid, resource, can_create, can_read, can_update, can_delete } = newPerm;
-
-        // Check if at least one checkbox is checked
-        if (!can_create && !can_read && !can_update && !can_delete) {
-            return window.alert('Please select at least one permission.');
-        }
-
-        // Check if required fields are filled
-        if (!roleid || !resource) {
-            return window.alert('Please fill out all fields.');
-        }
-
-        // Debugging: Log the newPerm object before submission
-        console.log('Creating permission with:', {
-            roleid,
-            resource,
-            can_create,
-            can_read,
-            can_update,
-            can_delete,
-        });
-
-        try {
-            const response = await axios.post(`${server}createPerms`, {
-                roleid,
-                resource,
-                can_create: can_create ? 1 : 0,
-                can_read: can_read ? 1 : 0,
-                can_update: can_update ? 1 : 0,
-                can_delete: can_delete ? 1 : 0,
-            });
-
-            // Debugging: Log the response from the backend
-            console.log('Response from server:', response.data);
-
-            window.alert('Permission created successfully');
-        } catch (e) {
-            // Debugging: Log the error if the request fails
-            console.log('Error creating permission:', e);
-
-            window.alert('Failed to create permission');
-        }
-    };
-
-    // Function to delete a permission
-    const handleDelete = async (permId) => {
-        try {
-            await axios.delete(`${server}deletePerms/${permId}`);
-            window.alert('Permission deleted successfully');
-            window.location.reload();
-        } catch (e) {
-            console.log(e);
-            window.alert('Failed to delete permission');
-        }
-    };
-
     // log filtering functions
-    // Log filtering function
     const applyFilters = async () => {
         // Get values from input fields
         const searchTerm = document.getElementById('search').value.trim().toLowerCase();
@@ -340,8 +299,6 @@ const Admin = () => {
         await fetchLogs(params);
     };
 
-
-
     // Render the admin content if authorized
     return (
         <>
@@ -349,153 +306,145 @@ const Admin = () => {
 
             {/* Menu buttons */}
             <div className="menu-buttons">
-                <button onClick={() => handleMenuChange('permissions')}>Manage Permissions</button>
                 <button onClick={() => handleMenuChange('users')}>Manage Users</button>
                 <button onClick={() => handleMenuChange('logs')}>Logs</button>
             </div>
 
-            {/* Conditionally render Permissions or Users or logs based on selectedMenu */}
-            {selectedMenu === 'permissions' && (
-                <div className="admin-form">
-                    <div className="add-form">
-                        <h1>Add New Permission</h1>
-                        <select name="roleid" onChange={handleChange} defaultValue="">
-                            <option disabled value="">Select one</option>
-                            {roles.map(role => (
-                                <option key={role.roleid} value={role.roleid}>{role.role}</option>
-                            ))}
-                        </select>
-                        <input type="text" placeholder='Resource' onChange={handleChange} name='resource' />
-                        <ul>
-                            <li>
-                                <label>
-                                    Can Create:
-                                    <input type="checkbox" name="can_create" onChange={handleCheckboxChangeForNewPerm} />
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    Can Read:
-                                    <input type="checkbox" name="can_read" onChange={handleCheckboxChangeForNewPerm} />
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    Can Update:
-                                    <input type="checkbox" name="can_update" onChange={handleCheckboxChangeForNewPerm} />
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    Can Delete:
-                                    <input type="checkbox" name="can_delete" onChange={handleCheckboxChangeForNewPerm} />
-                                </label>
-                            </li>
-                        </ul>
-                        <button onClick={handleCreate}>Add</button>
-                    </div>
-
-                    <div className="perms-list">
-                        {perms.map(perm => (
-                            <div className="perm-card" key={perm.permission_id}>
-                                <h2>Perm ID: {perm.permission_id}</h2>
-                                <p>Given to: {perm.role}</p>
-                                <p>Affects: {perm.resource}</p>
-                                <h3>Permissions</h3>
-                                <ul>
-                                    <li>
-                                        Can create:
-                                        <input
-                                            type="checkbox"
-                                            checked={perm.can_create === 1}
-                                            onChange={() => handleCheckboxChange(perm.permission_id, 'can_create')}
-                                        />
-                                    </li>
-                                    <li>
-                                        Can read:
-                                        <input
-                                            type="checkbox"
-                                            checked={perm.can_read === 1}
-                                            onChange={() => handleCheckboxChange(perm.permission_id, 'can_read')}
-                                        />
-                                    </li>
-                                    <li>
-                                        Can update:
-                                        <input
-                                            type="checkbox"
-                                            checked={perm.can_update === 1}
-                                            onChange={() => handleCheckboxChange(perm.permission_id, 'can_update')}
-                                        />
-                                    </li>
-                                    <li>
-                                        Can delete:
-                                        <input
-                                            type="checkbox"
-                                            checked={perm.can_delete === 1}
-                                            onChange={() => handleCheckboxChange(perm.permission_id, 'can_delete')}
-                                        />
-                                    </li>
-                                </ul>
-                                <button onClick={() => handleSave(perm.permission_id)}>Save Changes</button>
-                                <button onClick={() => handleDelete(perm.permission_id)}>Delete</button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
             {selectedMenu === 'users' && (
                 <>
-                    <div className="add-form">
-                        <h1>Add new user</h1>
-                        <br />
-                        <select name="roleid" onChange={handleUserChange} defaultValue="">
-                            <option disabled value="">Select one</option>
-                            {roles.map(role => (
-                                <option key={role.roleid} value={role.roleid}>{role.role}</option>
-                            ))}
-                        </select>
-                        <ul>
-                            <li>
-                                <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} />
-                            </li>
-                            <li>
-                                <input type="text" placeholder='first name' onChange={handleUserChange} name='fname' />
-                            </li>
-                            <li>
-                                <input type="text" placeholder='last name' onChange={handleUserChange} name='lname' />
-                            </li>
-                            <li>
-                                <input type="text" placeholder='contact' onChange={handleUserChange} name='contact' maxLength={8} />
-                            </li>
-                            <li>
-                                <input type="email" placeholder="email" onChange={handleUserChange} name='email' />
-                            </li>
-                            <li>
-                                <input type="password" placeholder="password" onChange={handleUserChange} name='password' />
-                            </li>
-                        </ul>
-                        <button onClick={handleClick}>Add</button>
+                    <div className="admin-form">
+                        <div className="add-form">
+                            <h1>Add new user</h1>
+                            <br />
+                            <select name="roleid" onChange={handleUserChange} defaultValue="">
+                                <option disabled value="">Select role</option>
+                                {roles.map(role => (
+                                    <option key={role.roleid} value={role.roleid}>{role.role}</option>
+                                ))}
+                            </select>
+
+                            <br />
+                            <ul>
+                                <li>
+                                    <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} />
+                                </li>
+                                <li>
+                                    <input type="text" placeholder='first name' onChange={handleUserChange} name='fname' />
+                                </li>
+                                <li>
+                                    <input type="text" placeholder='last name' onChange={handleUserChange} name='lname' />
+                                </li>
+                                <li>
+                                    <input type="text" placeholder='contact' onChange={handleUserChange} name='contact' maxLength={8} />
+                                </li>
+                                <li>
+                                    <input type="email" placeholder="email" onChange={handleUserChange} name='email' />
+                                </li>
+                                <li>
+                                    <input type="password" placeholder="password" onChange={handleUserChange} name='password' />
+                                </li>
+                            </ul>
+                            <select name="compid" onChange={handleUserChange} defaultValue="">
+                                <option disabled value="">Select company</option>
+                                {company.map(comp => (
+                                    <option key={comp.compid} value={comp.compid}>{comp.company}</option>
+                                ))}
+                            </select>
+                            <button onClick={handleClick}>Add</button>
+                        </div>
+
+                        {/* fields: company, addr, contact, emaill, website, industry[dynamic], est_size, status[static], est. date*/}
+                        <div className="add-form">
+                            <h1>Add new company</h1>
+                            <br />
+                            <ul>
+                                <li>
+                                    <input type="text" placeholder='company' onChange={handleCompanyChange} name='company'/>
+                                </li>
+                                <li>
+                                    <input type="text" placeholder='address' onChange={handleCompanyChange} name='address' />
+                                </li>
+                                <li>
+                                    <input type="text" placeholder='contact' onChange={handleCompanyChange} name='contact' maxLength={8}/>
+                                </li>
+                                <li>
+                                    <input type="email" placeholder='email' onChange={handleCompanyChange} name='email' />
+                                </li>
+                                <li>
+                                    <input type="text" placeholder="website" onChange={handleCompanyChange} name='website' />
+                                </li>
+                                {/* add industry, size, status */}
+                                <li>
+                                    <select name="industryid" onChange={handleCompanyChange} defaultValue="">
+                                        <option disabled value="">Select industry</option>
+                                        {industry.map(ind => (
+                                            <option key={ind.industryid} value={ind.industryid}>{ind.industry}</option>
+                                        ))}
+                                    </select>
+                                </li>
+                                <li>
+                                    {/* cannot be negative */}
+                                    <li>Estimated size</li>
+                                    <input type="number" placeholder="size" onChange={handleCompanyChange} name='size' min={1}/>
+                                </li>
+                                <li>
+                                    <select name="statusid" onChange={handleCompanyChange} defaultValue="">
+                                        <option disabled value="">Select status</option>
+                                        <option value="1">Active</option>
+                                        <option value="2">Inactive</option>
+                                    </select>
+                                </li>
+                                <li>
+                                    <li>Established date</li>
+                                    <input type="date" placeholder="established date" onChange={handleCompanyChange} name='est_date' />
+                                </li>
+                            </ul>
+                            <button onClick={handleCompanyClick}>Add</button>
+                        </div>
                     </div>
+
                     <div className="">
                         <h1>User List</h1>
                         <div className="user-list">
-                            {/* style this into an actual list form later on */}
-                            {users.map(user => (
-                                <div className="user-card" key={user.userid}>
-                                    <ul>
-                                        <li><h2>First Name: {user.fname}</h2></li>
-                                        <li><h2>Last Name: {user.lname}</h2></li>
-                                        <li><p><b>Role: </b>{user.role}</p></li>
-                                        <li><p><b>NRIC:</b> {user.nric}</p></li>
-                                        <li><p><b>Email:</b> {user.email}</p></li>
-                                        <li><p><b>Contact:</b> {user.contact}</p></li>
-                                        <li><p><b>Password:</b> {user.password}</p></li>
-                                    </ul>
-                                    <button className="update"><Link to={`/update/${user.userid}`}>update</Link></button>
-                                    <button className="delete" onClick={() => handleUserDelete(user.userid)}>delete</button>
-                                </div>
-                            ))}
+                            {/* style this into an actual table form later on */}
+                            <table className="user-table">
+                                <thead>
+                                    <tr>
+                                        <th>User ID</th>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Company</th>
+                                        <th>Role</th>
+                                        <th>NRIC</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Password</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.map(user => (
+                                        <tr key={user.userid}>
+                                            <td>{user.userid}</td>
+                                            <td>{user.fname}</td>
+                                            <td>{user.lname}</td>
+                                            <td>{user.company}</td>
+                                            <td>{user.role}</td>
+                                            <td>{user.nric}</td>
+                                            <td>{user.email}</td>
+                                            <td>{user.contact}</td>
+                                            <td>{user.password}</td>
+                                            <td>
+                                                <button className="update">
+                                                    <Link to={`/update/${user.userid}`}>Update</Link>
+                                                </button>
+                                                <button className="delete" onClick={() => handleUserDelete(user.userid)}>Delete</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
                         </div>
                     </div>
                 </>

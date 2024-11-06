@@ -18,6 +18,7 @@ app.use(cors());
 // import controllers
 const logController = require('./controller/logController');
 const adminController = require('./controller/adminController');
+const companyController = require('./controller/companyController');
 const employeeController = require('./controller/employeeController');
 const HRController = require('./controller/HRController');
 const managerController = require('./controller/managerController');
@@ -81,6 +82,12 @@ app.put("/updatePerms/:id", adminController.updatePerms);
 app.delete("/deletePerms/:id", adminController.deletePerms);
 app.get("/profile/:id", adminController.getProfile);
 app.put("/profile/:id", adminController.updateProfile);
+
+// define routes for companyController
+app.get("/company", companyController.getCompany);
+app.get("/compUsers", companyController.getCompUsers);
+app.get("/industry", companyController.getIndustry);
+app.post("/addCompany", companyController.addCompany);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);
