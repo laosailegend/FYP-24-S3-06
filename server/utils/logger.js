@@ -4,6 +4,7 @@ const { combine, timestamp, json, colorize, printf } = format;
 const mysql = require('mysql2/promise');
 const db = require('../dbConfig');
 const Transport = require('winston-transport'); // Import base Transport class
+const cron = require('node-cron');
 
 // Custom format for console logging with colors
 const consoleLogFormat = format.combine(
@@ -23,6 +24,26 @@ const pool = mysql.createPool({
     connectTimeout: 10000, // 10 seconds
     acquireTimeout: 10000 // 10 seconds
 });
+
+// Function to clear logs older than 30 days
+async function clearOldLogs() {
+    try {
+        const connection = await pool.getConnection();
+        const deleteQuery = `DELETE FROM logs WHERE timestamp < NOW() - INTERVAL 30 DAY`;
+        const [result] = await connection.execute(deleteQuery);
+        console.log(`Deleted ${result.affectedRows} old log entries.`);
+        connection.release();
+    } catch (error) {
+        console.error('Error clearing old logs:', error);
+    }
+}
+
+// Schedule the task to run every day at midnight
+cron.schedule('0 0 * * *', () => {
+    console.log('Running scheduled task to clear old logs...');
+    clearOldLogs();
+});
+
 
 // regex for logging
 const logRegex = /"level":"(info|error|warn)","message":"(([^'"]*)"|(HTTP REQUEST) 'ADDR':'([^']*)' 'USER':'([^']*)' 'REQ':'([^']*)' 'STATUS':'([^']*)' 'SIZE':'([^']*)' 'REF':'([^']*)' 'UA':'([^']*)'"),"timestamp":"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z)?"/gm;

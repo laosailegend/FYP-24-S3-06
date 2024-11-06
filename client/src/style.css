@@ -903,7 +903,9 @@ button:hover {
 #filterRequest,
 #filterIP,
 #filterReferrer,
-#filterSize{
+#filterSize,
+#startTimestamp,
+#endTimestamp{
   padding: 8px;
   width: 200px;
   border: 1px solid #ddd;

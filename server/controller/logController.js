@@ -4,10 +4,10 @@ const db = require('../dbConfig');
 // get logs
 exports.getLogs = (req, res) => {
     let minSize, maxSize;
-    const { level, request, ip, user, status, size, referrer, user_agent, start, end, search } = req.query;
+    const { level, request, ip, user, status, size, referrer, user_agent, startTime, endTime, search } = req.query;
     let q = "SELECT * FROM logs WHERE 1=1";  // Start with a base query that always returns true
     const filters = [];
-    
+
     // Add filters based on query parameters
     if (level) {
         q += " AND level = ?";
@@ -46,9 +46,18 @@ exports.getLogs = (req, res) => {
         q += " AND user_agent = ?";
         filters.push(user_agent);
     }
-    if (start && end) {
-        q += " AND timestamp BETWEEN ? AND ?";
-        filters.push(start, end);
+
+    // Handle timestamp filtering
+    if (startTime) {
+        const startTimestamp = startTime.includes("T") ? startTime.replace("T", " ") : `${startTime} 00:00:00.000`;
+        q += " AND timestamp >= ?";
+        filters.push(startTimestamp);
+    }
+    
+    if (endTime) {
+        const endTimestamp = endTime.includes("T") ? endTime.replace("T", " ") : `${endTime} 23:59:59.999`;
+        q += " AND timestamp <= ?";
+        filters.push(endTimestamp);
     }
 
     // Add search term (if present) to check across multiple columns
@@ -58,6 +67,8 @@ exports.getLogs = (req, res) => {
     }
 
     db.query(q, filters, (err, data) => {
+        console.log('Generated Query:', q, filters);
+
         if (err) return res.status(500).json(err);
         return res.json(data);
     });
@@ -101,7 +112,7 @@ exports.getLogsIPs = (req, res) => {
 // select distinct user from the logs
 exports.getLogsUsers = (req, res) => {
     const q = "SELECT DISTINCT user FROM logs WHERE user IS NOT NULL";
-    db.query(q, (err, data ) => {
+    db.query(q, (err, data) => {
         if (err) return res.json(err);
 
         return res.json(data);
@@ -122,7 +133,7 @@ exports.getLogsStatus = (req, res) => {
 // select distinct referrer from the logs
 exports.getLogsReferrers = (req, res) => {
     const q = "SELECT DISTINCT referrer FROM logs WHERE referrer IS NOT NULL";
-    db.query(q, (err, data ) => {
+    db.query(q, (err, data) => {
         if (err) return res.json(err);
 
         return res.json(data);

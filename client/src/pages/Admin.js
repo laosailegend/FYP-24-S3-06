@@ -50,7 +50,6 @@ const Admin = () => {
     const [logUser, getLogUser] = useState([]);
     const [logStatus, getLogStatus] = useState([]);
     const [logReferrer, getLogReferrer] = useState([]);
-    const [logTime, getLogTime] = useState([]);
 
     const handleChange = (e) => {
         setNewPerm((prev) => {
@@ -156,7 +155,7 @@ const Admin = () => {
             console.log(e);
         }
     };
-    
+
     const fetchLogsIPs = async () => {
         try {
             const res = await axios.get(`${server}logsIP`);
@@ -193,17 +192,6 @@ const Admin = () => {
         }
     };
 
-    // this will be coded differently - come back later
-    const fetchLogsTimestamp = async () => {
-        try {
-            const res = await axios.get(`${server}logsTimestamp`);
-            getLogTime(res.data);
-
-        } catch (e) {
-            console.log(e);
-        }
-    };
-
     useEffect(() => {
         // prevents non-admin users from viewing the page
         if (!tokenObj || tokenObj.role !== 1) {
@@ -227,7 +215,6 @@ const Admin = () => {
             await fetchLogsUsers();
             await fetchLogsStatus();
             await fetchLogsReferrer();
-            await fetchLogsTimestamp();
         };
         fetchData();
 
@@ -312,8 +299,9 @@ const Admin = () => {
     };
 
     // log filtering functions
+    // Log filtering function
     const applyFilters = async () => {
-        // add size range and timestamp range
+        // Get values from input fields
         const searchTerm = document.getElementById('search').value.trim().toLowerCase();
         const levelFilter = document.getElementById('filterLevel').value;
         const ipFilter = document.getElementById('filterIP').value;
@@ -322,15 +310,17 @@ const Admin = () => {
         const statusFilter = document.getElementById('filterStatus').value;
         const sizeFilter = document.getElementById('filterSize').value;
         const referrerFilter = document.getElementById('filterReferrer').value;
-        
-        console.log('Search Term:', searchTerm);
-        console.log('Level Filter:', levelFilter);
-        console.log('IP Filter:', ipFilter);
-        console.log('User Filter:', userFilter);
-        console.log('Request Filter:', requestFilter);
-        console.log('Status Filter:', statusFilter);
-        console.log('Size Filter:', sizeFilter);
-        console.log('Referrer Filter:', referrerFilter);
+        const startDate = document.getElementById("startDate").value;
+        const startTime = document.getElementById("startTime").value;
+        const endDate = document.getElementById("endDate").value;
+        const endTime = document.getElementById("endTime").value;
+
+        // Combine date and time based on availability
+        const startTimestamp = startDate ? `${startDate}T${startTime || "00:00:00"}` : null;
+        const endTimestamp = endDate ? `${endDate}T${endTime || "23:59:59"}` : null;
+
+        console.log('Start Timestamp:', startTimestamp);
+        console.log('End Timestamp:', endTimestamp);
 
         // Build the query parameters object
         const params = {
@@ -342,11 +332,14 @@ const Admin = () => {
             ...(statusFilter && { status: statusFilter }),
             ...(sizeFilter && { size: sizeFilter }),
             ...(referrerFilter && { referrer: referrerFilter }),
+            ...(startTimestamp && { startTime: startTimestamp }),
+            ...(endTimestamp && { endTime: endTimestamp }),
         };
 
         // Fetch logs with applied filters
         await fetchLogs(params);
     };
+
 
 
     // Render the admin content if authorized
@@ -584,7 +577,7 @@ const Admin = () => {
                                     ))}
                                 </select>
                             </div>
-                            
+
                             {/* Filter by size range */}
                             <div className="filter-item">
                                 <label for="filterSize">Filter by Size:</label>
@@ -597,7 +590,7 @@ const Admin = () => {
                                     <option value="5001-10000">5001-10000</option>
                                 </select>
                             </div>
-                            
+
                             {/* Filter by referrer */}
                             <div className="filter-item">
                                 <label for="filterReferrer">Filter by Referrer:</label>
@@ -609,6 +602,24 @@ const Admin = () => {
                                         </option>
                                     ))}
                                 </select>
+                            </div>
+
+                            {/* Filter by timestamp range */}
+                            <div class="filter-item">
+                                <label for="startDate">Start Date:</label>
+                                <input type="date" id="startDate" name="startDate" />
+                            </div>
+                            <div class="filter-item">
+                                <label for="startTime">Start Time:</label>
+                                <input type="time" id="startTime" name="startTime" />
+                            </div>
+                            <div class="filter-item">
+                                <label for="endDate">End Date:</label>
+                                <input type="date" id="endDate" name="endDate" />
+                            </div>
+                            <div class="filter-item">
+                                <label for="endTime">End Time:</label>
+                                <input type="time" id="endTime" name="endTime" />
                             </div>
 
 
