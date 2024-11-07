@@ -4,6 +4,12 @@ import axios from 'axios';
 const server = process.env.REACT_APP_SERVER;
 
 const Admin = () => {
+
+    const [tokenObj, setTokenObj] = useState(() => {
+        const token = localStorage.getItem("token");
+        return token ? JSON.parse(atob(token.split('.')[1])) : null;
+    });
+
     // console.log(server);
     const [selectedMenu, setSelectedMenu] = useState('users'); // Default to 'permissions'
 
@@ -17,11 +23,6 @@ const Admin = () => {
     const handleMenuChange = (menu) => {
         setSelectedMenu(menu);
     };
-
-    const [tokenObj, setTokenObj] = useState(() => {
-        const token = localStorage.getItem("token");
-        return token ? JSON.parse(atob(token.split('.')[1])) : null;
-    });
     // console.log(tokenObj);
     const navigate = useNavigate();
 
@@ -30,6 +31,7 @@ const Admin = () => {
     const [company, setCompany] = useState([]);
     const [industry, setIndustry] = useState([]);
 
+    // init company usestate
     const [newCompany, addCompany] = useState({
         company: "",
         address: "",
@@ -486,11 +488,11 @@ const Admin = () => {
                                     {users.map(user => (
                                         <tr key={user.userid}>
                                             <td>{user.userid}</td>
+                                            <td>{user.nric}</td>
                                             <td>{user.fname}</td>
                                             <td>{user.lname}</td>
                                             <td>{user.company}</td>
                                             <td>{user.role}</td>
-                                            <td>{user.nric}</td>
                                             <td>{user.email}</td>
                                             <td>{user.contact}</td>
                                             <td>{user.password}</td>

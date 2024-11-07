@@ -137,7 +137,7 @@ function App() {
               <></>
             )}
 
-            {/* only HR can see */}
+            {/* only compadmin can see */}
             {isLoggedIn && tokenObj.role === 5 ? (
               <>
                 <Link to="/compAdmin">Company Menu</Link>

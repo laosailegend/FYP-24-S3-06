@@ -87,6 +87,7 @@ app.get("/searchUser", adminController.searchUser);
 // define routes for companyController
 app.get("/company", companyController.getCompany);
 app.get("/compUsers", companyController.getCompUsers);
+app.get("/searchCompUser", companyController.searchCompUser);
 app.get("/industry", companyController.getIndustry);
 app.post("/addCompany", companyController.addCompany);
 

@@ -77,17 +77,20 @@ const CompAdmin = () => {
         }
     };
 
-    const fetchCompUsers = async () => {
+    const fetchCompUsers = async (filters = {}) => {
         try {
-            const res = await axios.get(`${server}compUsers`);
+            const queryString = new URLSearchParams(filters).toString();
+            const res = await axios.get(`${server}searchCompUser?${queryString}`);
+            // const res = await axios.get(`${server}compUsers`);
             getUsers(res.data);
         } catch (e) {
             console.log(e);
         }
     };
 
+    console.log(users)
     useEffect(() => {
-        if (!tokenObj || tokenObj.role !== 1) {
+        if (!tokenObj || (tokenObj.role !== 5 && tokenObj.role !== 1)) {
             window.alert("You are not authorized to view this page");
             navigate("/", { replace: true });
             return () => { };
@@ -105,6 +108,19 @@ const CompAdmin = () => {
         fetchData();
 
     }, [navigate, tokenObj]);
+
+    useEffect(() => {
+        const filters = {
+            ...(search.trim() && { search: search.trim() }),
+            ...(roleFilter && { role: roleFilter }),
+        };
+
+        // Debounce search functionality
+        if (typingTimeout) clearTimeout(typingTimeout);
+        const timeoutId = setTimeout(() => fetchCompUsers(filters), 120);
+        setTypingTimeout(timeoutId);
+
+    }, [search, roleFilter]);
 
     return (
         <>
@@ -147,15 +163,40 @@ const CompAdmin = () => {
             <div className="">
                 <h1>User List</h1>
                 <div className="user-list">
+                    <div className="filter-container">
+                        {/* filters by company, role*/}
+                        <div className="filter-item">
+                            <label htmlFor="search">Search Users:</label>
+                            <input
+                                type="text"
+                                id="search-user"
+                                placeholder="Search users..."
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="filter-item">
+                            <label htmlFor="filterRole">Filter by Role:</label>
+                            <select id="filterRole" onChange={(e) => setRoleFilter(e.target.value)}>
+                                <option value="">All Roles</option>
+                                {roles.map((role) => (
+                                    <option key={role.roleid} value={role.roleid}>
+                                        {role.role}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                     <table className="user-table">
                         <thead>
                             <tr>
                                 <th>User ID</th>
+                                <th>NRIC</th>
                                 <th>First Name</th>
                                 <th>Last Name</th>
                                 <th>Company</th>
                                 <th>Role</th>
-                                <th>NRIC</th>
+                                <th>Position</th>
                                 <th>Email</th>
                                 <th>Contact</th>
                                 <th>Password</th>
@@ -166,11 +207,12 @@ const CompAdmin = () => {
                             {users.map(user => (
                                 <tr key={user.userid}>
                                     <td>{user.userid}</td>
+                                    <td>{user.nric}</td>
                                     <td>{user.fname}</td>
                                     <td>{user.lname}</td>
                                     <td>{user.company}</td>
                                     <td>{user.role}</td>
-                                    <td>{user.nric}</td>
+                                    <td>{user.position}</td>
                                     <td>{user.email}</td>
                                     <td>{user.contact}</td>
                                     <td>{user.password}</td>

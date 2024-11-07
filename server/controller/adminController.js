@@ -161,8 +161,6 @@ exports.searchUser = (req, res) => {
     });
 };
 
-
-
 // retrive role details GET
 exports.getRoles = (req, res) => {
     const q = "SELECT * FROM roles"
