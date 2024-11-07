@@ -922,7 +922,9 @@ button:hover {
 #filterReferrer,
 #filterSize,
 #startTimestamp,
-#endTimestamp{
+#endTimestamp,
+#filterCompany
+#filterRole {
   padding: 8px;
   width: 200px;
   border: 1px solid #ddd;

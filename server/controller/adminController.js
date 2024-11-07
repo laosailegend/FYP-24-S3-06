@@ -9,6 +9,7 @@ const SECRET_KEY = process.env.JWT_SECRET;
 exports.logIP = (req, res, next) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     // console.log(ip);
+    console.log(req.headers);
     next();
 }
 
@@ -65,6 +66,8 @@ exports.createUser = (req, res) => {
     const saltRounds = 10;
     const password = req.body.password;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const token = req.headers['authorization']?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) return;
@@ -73,20 +76,22 @@ exports.createUser = (req, res) => {
         db.query(q, [values], (err, data) => {
             if (err) {
                 console.log(err);
-                logger.error(`Failed to create user in admin: ${req.body.email} at ${ip}`);
+                logger.error(`Failed to create user by ${decoded.email}: ${req.body.email} at ${ip}`);
                 return res.json(err)
             };
             return res.json("User created successfully");
         });
 
-        logger.info(`User created in admin: ${req.body.email} at ${ip}`);
+        logger.info(`User created by ${decoded.email}: ${req.body.email} at ${ip}`);
     });
 };
 
 // get user info and their role type GET 
 exports.getUsers = (req, res) => {
     // inner join to also get their role type as well
-    const q = "SELECT users.*, roles.role, company.company FROM users INNER JOIN roles ON users.roleid = roles.roleid INNER JOIN company ON users.compid = company.compid;"
+    const q = `SELECT users.*, roles.role, company.company FROM users 
+    INNER JOIN roles ON users.roleid = roles.roleid 
+    INNER JOIN company ON users.compid = company.compid`;
     db.query(q, (err, data) => {
         if (err) {
             console.log(err);
@@ -95,6 +100,68 @@ exports.getUsers = (req, res) => {
         return res.json(data);
     })
 };
+
+// filtering system for user search GET
+exports.searchUser = (req, res) => {
+    const { company, role, search } = req.query;
+    const filters = [];
+
+    // Base query with joins
+    let q = `
+    SELECT users.*, roles.role, company.company, positions.position 
+    FROM users 
+    INNER JOIN roles ON users.roleid = roles.roleid 
+    INNER JOIN company ON users.compid = company.compid
+    LEFT JOIN positions ON users.posid = positions.posid 
+    WHERE 1=1
+    `;
+
+    // Apply company filter if provided
+    if (company) {
+        q += " AND users.compid = ?";
+        filters.push(company);
+    }
+
+    // Apply role filter if provided
+    if (role) {
+        q += " AND users.roleid = ?";
+        filters.push(role);
+    }
+
+    // Apply search term across multiple fields if provided
+    if (search) {
+        q += ` AND (
+            users.userid LIKE ? OR 
+            roles.role LIKE ? OR 
+            users.nric LIKE ? OR 
+            users.fname LIKE ? OR 
+            users.lname LIKE ? OR 
+            users.contact LIKE ? OR 
+            users.email LIKE ? OR 
+            company.company LIKE ? OR
+            positions.position LIKE ?
+        )`;
+
+        // Adding the search term multiple times for each LIKE condition
+        const searchPattern = `%${search}%`;
+        filters.push(
+            searchPattern, searchPattern, searchPattern,
+            searchPattern, searchPattern, searchPattern,
+            searchPattern, searchPattern, searchPattern, searchPattern // Added the last `searchPattern` here
+        );
+    }
+
+    // Execute the query with filters
+    db.query(q, filters, (error, results) => {
+        if (error) {
+            console.error(error);
+            return res.status(500).json({ error: "Database query failed." });
+        }
+        res.json(results);
+    });
+};
+
+
 
 // retrive role details GET
 exports.getRoles = (req, res) => {
@@ -188,7 +255,7 @@ exports.deleteUser = (req, res) => {
 
     // First, fetch the user to get their email
     const fetchUserQuery = "SELECT email FROM users WHERE userid = ?";
-    
+
     db.query(fetchUserQuery, [userid], (err, results) => {
         if (err) {
             logger.error(`Failed to retrieve user at userid: ${userid}`);
@@ -206,7 +273,7 @@ exports.deleteUser = (req, res) => {
 
         // Now, proceed to delete the user
         const deleteUserQuery = "DELETE FROM users WHERE userid = ?";
-        
+
         db.query(deleteUserQuery, [userid], (err, data) => {
             if (err) {
                 logger.error(`Failed to delete user at userid: ${userid}, email: ${userEmail}`);

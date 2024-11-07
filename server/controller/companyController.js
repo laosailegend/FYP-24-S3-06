@@ -50,6 +50,20 @@ exports.getIndustry = (req, res) => {
     )
 }
 
+exports.getPosition = (req, res) => {
+    const q = `SELECT * FROM positions`;
+
+    db.query(q, (err, data
+    ) => {
+        if (err) {
+            console.log(err);
+            return res.json(err)
+        }
+        return res.json(data);
+    }
+    )
+}
+
 // add a company
 exports.addCompany = (req, res) => {
     const { company, address, contact, email, website, industryid, size, statusid, est_date } = req.body;

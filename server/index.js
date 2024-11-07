@@ -82,6 +82,7 @@ app.put("/updatePerms/:id", adminController.updatePerms);
 app.delete("/deletePerms/:id", adminController.deletePerms);
 app.get("/profile/:id", adminController.getProfile);
 app.put("/profile/:id", adminController.updateProfile);
+app.get("/searchUser", adminController.searchUser);
 
 // define routes for companyController
 app.get("/company", companyController.getCompany);

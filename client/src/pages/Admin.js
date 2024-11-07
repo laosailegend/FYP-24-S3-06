@@ -7,6 +7,12 @@ const Admin = () => {
     // console.log(server);
     const [selectedMenu, setSelectedMenu] = useState('users'); // Default to 'permissions'
 
+    // filter stuff
+    const [search, setSearch] = useState("");
+    const [typingTimeout, setTypingTimeout] = useState(null);
+    const [companyFilter, setCompanyFilter] = useState("");
+    const [roleFilter, setRoleFilter] = useState("");
+
     // Function to toggle menus
     const handleMenuChange = (menu) => {
         setSelectedMenu(menu);
@@ -145,9 +151,12 @@ const Admin = () => {
         }
     };
 
-    const fetchAllUsers = async () => {
+    const fetchAllUsers = async (filters = {}) => {
         try {
-            const res = await axios.get(`${server}users`)
+            // const res = await axios.get(`${server}users`)
+            const queryString = new URLSearchParams(filters).toString();
+            const res = await axios.get(`${server}searchUser?${queryString}`);
+            // console.log("QSTRING: ", queryString)
             getUsers(res.data);
         } catch (e) {
             console.log(e);
@@ -255,8 +264,23 @@ const Admin = () => {
             await fetchIndustry();
         };
         fetchData();
-
     }, [navigate, tokenObj]);
+
+    // Fetch users based on company and role filters
+
+    useEffect(() => {
+        const filters = {
+            ...(search.trim() && { search: search.trim() }),
+            ...(companyFilter && { company: companyFilter }),
+            ...(roleFilter && { role: roleFilter }),
+        };
+
+        // Debounce search functionality
+        if (typingTimeout) clearTimeout(typingTimeout);
+        const timeoutId = setTimeout(() => fetchAllUsers(filters), 120);
+        setTypingTimeout(timeoutId);
+
+    }, [search, companyFilter, roleFilter]);
 
     // log filtering functions
     const applyFilters = async () => {
@@ -326,22 +350,22 @@ const Admin = () => {
                             <br />
                             <ul>
                                 <li>
-                                    <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} required/>
+                                    <input type="text" placeholder='nric' onChange={handleUserChange} name='nric' maxLength={9} required />
                                 </li>
                                 <li>
                                     <input type="text" placeholder='first name' onChange={handleUserChange} name='fname' required />
                                 </li>
                                 <li>
-                                    <input type="text" placeholder='last name' onChange={handleUserChange} name='lname' required/>
+                                    <input type="text" placeholder='last name' onChange={handleUserChange} name='lname' required />
                                 </li>
                                 <li>
-                                    <input type="text" placeholder='contact' onChange={handleUserChange} name='contact' maxLength={8} required/>
+                                    <input type="text" placeholder='contact' onChange={handleUserChange} name='contact' maxLength={8} required />
                                 </li>
                                 <li>
-                                    <input type="email" placeholder="email" onChange={handleUserChange} name='email' required/>
+                                    <input type="email" placeholder="email" onChange={handleUserChange} name='email' required />
                                 </li>
                                 <li>
-                                    <input type="password" placeholder="password" onChange={handleUserChange} name='password' required/>
+                                    <input type="password" placeholder="password" onChange={handleUserChange} name='password' required />
                                 </li>
                             </ul>
                             <select name="compid" onChange={handleUserChange} defaultValue="" required>
@@ -359,13 +383,13 @@ const Admin = () => {
                             <br />
                             <ul>
                                 <li>
-                                    <input type="text" placeholder='company' onChange={handleCompanyChange} name='company'/>
+                                    <input type="text" placeholder='company' onChange={handleCompanyChange} name='company' />
                                 </li>
                                 <li>
                                     <input type="text" placeholder='address' onChange={handleCompanyChange} name='address' />
                                 </li>
                                 <li>
-                                    <input type="text" placeholder='contact' onChange={handleCompanyChange} name='contact' maxLength={8}/>
+                                    <input type="text" placeholder='contact' onChange={handleCompanyChange} name='contact' maxLength={8} />
                                 </li>
                                 <li>
                                     <input type="email" placeholder='email' onChange={handleCompanyChange} name='email' />
@@ -385,7 +409,7 @@ const Admin = () => {
                                 <li>
                                     {/* cannot be negative */}
                                     <li>Estimated size</li>
-                                    <input type="number" placeholder="size" onChange={handleCompanyChange} name='size' min={1}/>
+                                    <input type="number" placeholder="size" onChange={handleCompanyChange} name='size' min={1} />
                                 </li>
                                 <li>
                                     <select name="statusid" onChange={handleCompanyChange} defaultValue="">
@@ -406,7 +430,43 @@ const Admin = () => {
                     <div className="">
                         <h1>User List</h1>
                         <div className="user-list">
-                            {/* style this into an actual table form later on */}
+                            <div className="filter-container">
+                                {/* filters by company, role*/}
+                                <div className="filter-item">
+                                    <label htmlFor="search">Search Users:</label>
+                                    <input
+                                        type="text"
+                                        id="search-user"
+                                        placeholder="Search users..."
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="filter-item">
+                                    <label htmlFor="filterCompany">Filter by Company:</label>
+                                    <select id="filterCompany" onChange={(e) => setCompanyFilter(e.target.value)}>
+                                        <option value="" >All Companies</option>
+                                        {company.map((comp) => (
+                                            <option key={comp.compid} value={comp.compid}>
+                                                {comp.company}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="filter-item">
+                                    <label htmlFor="filterRole">Filter by Role:</label>
+                                    <select id="filterRole" onChange={(e) => setRoleFilter(e.target.value)}>
+                                        <option value="">All Roles</option>
+                                        {roles.map((role) => (
+                                            <option key={role.roleid} value={role.roleid}>
+                                                {role.role}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
                             <table className="user-table">
                                 <thead>
                                     <tr>
@@ -509,7 +569,6 @@ const Admin = () => {
                                     <option value="GET">GET</option>
                                     <option value="POST">POST</option>
                                     <option value="PUT">PUT</option>
-                                    <option value="PATCH">PATCH</option>
                                     <option value="DELETE">DELETE</option>
                                 </select>
                             </div>

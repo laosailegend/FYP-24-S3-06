@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 const server = process.env.REACT_APP_SERVER;
 
+
 const CompAdmin = () => {
     const [tokenObj, setTokenObj] = useState(() => {
         const token = localStorage.getItem("token");
@@ -10,6 +11,11 @@ const CompAdmin = () => {
     });
 
     const navigate = useNavigate();
+
+    // filter stuff
+    const [search, setSearch] = useState("");
+    const [typingTimeout, setTypingTimeout] = useState(null);
+    const [roleFilter, setRoleFilter] = useState("");
 
     const [roles, setRoles] = useState([]);
     const [users, getUsers] = useState([]);

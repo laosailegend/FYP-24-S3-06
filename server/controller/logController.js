@@ -63,7 +63,9 @@ exports.getLogs = (req, res) => {
     // Add search term (if present) to check across multiple columns
     if (search) {
         q += " AND (logid LIKE ? OR level LIKE ? OR message LIKE ? OR address LIKE ? OR user LIKE ? OR request LIKE ? OR status LIKE ? OR size LIKE ? OR referrer LIKE ? OR user_agent LIKE ? OR timestamp LIKE ?)";
-        filters.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+        filters.push(`%${search}%`, `%${search}%`, `%${search}%`, 
+            `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, 
+            `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
     }
 
     db.query(q, filters, (err, data) => {
