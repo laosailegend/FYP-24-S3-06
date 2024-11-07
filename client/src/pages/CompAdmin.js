@@ -17,7 +17,9 @@ const CompAdmin = () => {
     const [typingTimeout, setTypingTimeout] = useState(null);
     const [roleFilter, setRoleFilter] = useState("");
 
+    // init usestates for fetching data
     const [roles, setRoles] = useState([]);
+    const [positions, setPositions] = useState([]);
     const [users, getUsers] = useState([]);
     const [user, createUser] = useState({
         roleid: null,
@@ -27,11 +29,11 @@ const CompAdmin = () => {
         contact: "",
         email: "",
         compid: tokenObj ? tokenObj.company : null,
+        posid: null,
     });
 
     const handleUserChange = (e) => {
         createUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-        console.log(user);
     };
 
     const handleUserDelete = async (id) => {
@@ -44,9 +46,10 @@ const CompAdmin = () => {
     };
 
     const validateForm = () => {
-        const fields = ['roleid', 'nric', 'fname', 'lname', 'contact', 'email', 'password'];
+        const fields = ['roleid', 'posid', 'nric', 'fname', 'lname', 'contact', 'email', 'password'];
         for (const field of fields) {
             if (!user[field]) {
+                window.alert(`Please fill in ${field}`);
                 return false;
             }
         }
@@ -55,6 +58,11 @@ const CompAdmin = () => {
 
     const handleClick = async (e) => {
         e.preventDefault();
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!passwordPattern.test(user.password) && user.password !== "") {
+            window.alert("Password must be at least 8 characters long and contain both letters and numbers.");
+            return;
+        }
         if (validateForm()) {
             try {
                 await axios.post(`${server}createUser`, user);
@@ -77,6 +85,15 @@ const CompAdmin = () => {
         }
     };
 
+    const fetchPositions = async () => {
+        try {
+            const res = await axios.get(`${server}positions`);
+            setPositions(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
     const fetchCompUsers = async (filters = {}) => {
         try {
             const queryString = new URLSearchParams(filters).toString();
@@ -88,7 +105,7 @@ const CompAdmin = () => {
         }
     };
 
-    console.log(users)
+    // console.log(user)
     useEffect(() => {
         if (!tokenObj || (tokenObj.role !== 5 && tokenObj.role !== 1)) {
             window.alert("You are not authorized to view this page");
@@ -103,6 +120,7 @@ const CompAdmin = () => {
         const fetchData = async () => {
             await fetchCompUsers();
             await fetchRoles();
+            await fetchPositions();
         };
 
         fetchData();
@@ -135,6 +153,12 @@ const CompAdmin = () => {
                             <option key={role.roleid} value={role.roleid}>{role.role}</option>
                         ))}
                     </select>
+                    <select name="posid" onChange={handleUserChange} defaultValue="" required>
+                        <option disabled value="">Select position</option>
+                        {positions.map(pos => (
+                            <option key={pos.posid} value={pos.posid}>{pos.position}</option>
+                        ))}
+                    </select>
                     <br />
                     <ul>
                         <li>
@@ -153,7 +177,7 @@ const CompAdmin = () => {
                             <input type="email" placeholder="email" onChange={handleUserChange} name='email' required />
                         </li>
                         <li>
-                            <input type="password" placeholder="password" onChange={handleUserChange} name='password' required />
+                            <input type="password" placeholder="password" onChange={handleUserChange} name='password' required/>
                         </li>
                     </ul>
 

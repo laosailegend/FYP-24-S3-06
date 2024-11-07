@@ -114,7 +114,7 @@ exports.getIndustry = (req, res) => {
     )
 }
 
-exports.getPosition = (req, res) => {
+exports.getPositions = (req, res) => {
     const q = `SELECT * FROM positions`;
 
     db.query(q, (err, data

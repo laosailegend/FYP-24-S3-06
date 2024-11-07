@@ -4,7 +4,6 @@ import axios from 'axios';
 const server = process.env.REACT_APP_SERVER;
 
 const Admin = () => {
-
     const [tokenObj, setTokenObj] = useState(() => {
         const token = localStorage.getItem("token");
         return token ? JSON.parse(atob(token.split('.')[1])) : null;
@@ -54,7 +53,7 @@ const Admin = () => {
         lname: "",
         contact: "",
         email: "",
-        compid: null
+        compid: null,
     })
 
     // get logs from db, and other log related functions for filtering
@@ -97,6 +96,11 @@ const Admin = () => {
 
     const handleClick = async (e) => {
         e.preventDefault();
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!passwordPattern.test(user.password) && user.password !== "") {
+            window.alert("Password must be at least 8 characters long and contain both letters and numbers.");
+            return;
+        }
         if (validateForm()) {
             try {
                 await axios.post(`${server}createUser`, user);
@@ -473,11 +477,11 @@ const Admin = () => {
                                 <thead>
                                     <tr>
                                         <th>User ID</th>
+                                        <th>NRIC</th>
                                         <th>First Name</th>
                                         <th>Last Name</th>
                                         <th>Company</th>
                                         <th>Role</th>
-                                        <th>NRIC</th>
                                         <th>Email</th>
                                         <th>Contact</th>
                                         <th>Password</th>

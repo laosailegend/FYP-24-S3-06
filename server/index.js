@@ -75,13 +75,8 @@ app.post("/createUser", adminController.createUser);
 app.get("/users", adminController.getUsers);
 app.get("/roles", adminController.getRoles);
 app.put("/user/:id", adminController.updateUser);
-app.delete("/user/:id", adminController.deleteUser);
-app.post("/createPerms", adminController.createPerms);
-app.get("/permissions", adminController.getPerms);
-app.put("/updatePerms/:id", adminController.updatePerms);
-app.delete("/deletePerms/:id", adminController.deletePerms);
 app.get("/profile/:id", adminController.getProfile);
-app.put("/profile/:id", adminController.updateProfile);
+app.put("/profile", adminController.updateProfile);
 app.get("/searchUser", adminController.searchUser);
 
 // define routes for companyController
@@ -90,6 +85,7 @@ app.get("/compUsers", companyController.getCompUsers);
 app.get("/searchCompUser", companyController.searchCompUser);
 app.get("/industry", companyController.getIndustry);
 app.post("/addCompany", companyController.addCompany);
+app.get("/positions", companyController.getPositions);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);

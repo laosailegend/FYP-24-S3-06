@@ -62,17 +62,19 @@ exports.login = (req, res) => {
 
 // #21 admin create user accounts POST
 exports.createUser = (req, res) => {
-    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`, `availability`, `compid`) VALUES (?)";
+    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`, `availability`, `compid`, `posid`, `leave_balance`) VALUES (?)";
     const saltRounds = 10;
     const password = req.body.password;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const token = req.headers['authorization']?.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);   
 
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) return;
 
-        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash, null, req.body.compid];
+        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, 
+            req.body.contact, req.body.email, hash, null, req.body.compid, req.body.posid, null];
+
         db.query(q, [values], (err, data) => {
             if (err) {
                 console.log(err);
@@ -174,8 +176,10 @@ exports.getRoles = (req, res) => {
 
 // #44 PUT update user details - modified so that those empty fields are removed -> /user/:id
 exports.updateUser = (req, res) => {
-    const saltRounds = 10;
+    const token = req.headers['authorization']?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    const saltRounds = 10;
     const userid = req.params.id;
     const updates = [];
     const values = [];
@@ -206,10 +210,10 @@ exports.updateUser = (req, res) => {
             // Execute the query
             db.query(q, values, (err, data) => {
                 if (err) {
-                    logger.error(`Failed to update user password at userid: ${userid}`);
+                    logger.error(`Failed to update user password by ${decoded.email} at userid: ${userid}`);
                     return res.json(err)
                 };
-                logger.info(`Updated user password at userid: ${userid}`);
+                logger.info(`Updated user password by ${decoded.email} at userid: ${userid}`);
                 return res.json("User password has been updated successfully");
             });
         });
@@ -284,84 +288,6 @@ exports.deleteUser = (req, res) => {
     });
 };
 
-
-// POST create permissions
-exports.createPerms = (req, res) => {
-    const { roleid, resource, can_create, can_read, can_update, can_delete } = req.body;
-
-    if (!roleid || !resource || can_create === undefined || can_read === undefined || can_update === undefined || can_delete === undefined) {
-        return res.status(400).json({ error: "Invalid data format. Missing permission fields." });
-    }
-
-    const query = `
-        INSERT INTO permissions (roleid, resource, can_create, can_read, can_update, can_delete) 
-        VALUES (?, ?, ?, ?, ?, ?);
-    `;
-    const values = [roleid, resource, can_create, can_read, can_update, can_delete];
-
-    db.query(query, values, (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: "An error occurred while creating the permission." });
-        }
-
-        res.json({ message: "Permission created successfully." });
-    });
-};
-
-// POST get all permissions to display on the admin page
-exports.getPerms = (req, res) => {
-    const q = "SELECT permissions.*, roles.role FROM roles INNER JOIN permissions ON `roles`.roleid = permissions.roleid;";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-
-        return res.json(data);
-    })
-};
-
-// PUT update permissions
-exports.updatePerms = (req, res) => {
-    const permission_id = req.params.id; // Extract the permission_id from the URL
-    const { can_create, can_read, can_update, can_delete } = req.body; // Extract the permission fields from the request body
-
-    // Validate the required fields
-    if (can_create === undefined || can_read === undefined || can_update === undefined || can_delete === undefined) {
-        return res.status(400).json({ error: "Invalid data format. Missing permission fields." });
-    }
-
-    // SQL query to update the permission based on permission_id
-    const query = `
-        UPDATE permissions 
-        SET can_create = ?, can_read = ?, can_update = ?, can_delete = ? 
-        WHERE permission_id = ?
-    `;
-    const values = [can_create, can_read, can_update, can_delete, permission_id];
-
-    // Execute the query
-    db.query(query, values, (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: "An error occurred while updating the permission." });
-        }
-        res.json({ message: "Permission updated successfully." });
-    });
-};
-
-// DELETE delete permissions
-exports.deletePerms = (req, res) => {
-    const permission_id = req.params.id; // Extract the permission_id from the URL
-    const query = `DELETE FROM permissions WHERE permission_id = ?`;
-    const values = [permission_id];
-
-    // Execute the query
-    db.query(query, values, (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: "An error occurred while deleting the permission." });
-        }
-        res.json({ message: "Permission deleted successfully." });
-    });
-};
-
 // GET Fetch the user's own profile details
 exports.getProfile = (req, res) => {
     const userId = req.params.id;
@@ -369,7 +295,7 @@ exports.getProfile = (req, res) => {
 
     // Join the users and roles tables to get the role name
     const query = `
-        SELECT users.userid, users.fname, users.lname, users.email, users.contact, roles.role
+        SELECT *
         FROM users
         LEFT JOIN roles ON users.roleid = roles.roleid
         WHERE users.userid = ?`;
@@ -389,26 +315,77 @@ exports.getProfile = (req, res) => {
 
 // PUT update user profile 
 exports.updateProfile = (req, res) => {
-    const userId = req.params.id;
-    const { fname, lname, email, contact } = req.body; // Make sure the request body contains these fields
+    const token = req.headers['authorization']?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const query = `
-        UPDATE users
-        SET fname = ?, lname = ?, email = ?, contact = ?
-        WHERE userid = ?
-    `;
+    const saltRounds = 10;
+    const userid = decoded.id;
+    const updates = [];
+    const values = [];
 
-    db.query(query, [fname, lname, email, contact, userId], (err, results) => {
-        if (err) {
-            console.error('Error updating profile:', err);
-            return res.status(500).send({ error: 'Failed to update profile' });
+    // Check if password is being updated
+    if (req.body.password) {
+        bcrypt.hash(req.body.password, saltRounds, (err, hashedPassword) => {
+            if (err) return res.status(500).json("Error hashing password");
+
+            // Add password update to the query
+            updates.push('password = ?');
+            values.push(hashedPassword);
+
+            // Process other fields
+            for (const [key, value] of Object.entries(req.body)) {
+                if (value && key !== 'password' && key !== 'role') { // Skip the password field as it’s handled separately
+                    updates.push(`${key} = ?`);
+                    values.push(value);
+                }
+            }
+
+            // Add the user id as the last value for the WHERE clause
+            values.push(userid);
+            // Construct the SQL query
+            const q = `UPDATE users SET ${updates.join(', ')} WHERE userid = ?`;
+
+            // Execute the query
+            db.query(q, values, (err, data) => {
+                if (err) {
+                    logger.error(`Failed to update own user password by ${decoded.email} at userid: ${userid}`);
+                    console.log(err);
+                    return res.json(err)
+                };
+                logger.info(`Updated own user password by ${decoded.email} at userid: ${userid}`);
+                return res.json("User password has been updated successfully");
+            });
+        });
+    } else {
+        // No password update, handle as usual
+        for (const [key, value] of Object.entries(req.body)) {
+            if (value) { // Only add non-empty fields
+                updates.push(`${key} = ?`);
+                values.push(value);
+            }
         }
 
-        if (results.affectedRows === 0) {
-            return res.status(404).send({ error: 'User not found' });
+        // If there are no updates, return early
+        if (updates.length === 0) {
+            return res.json("No updates provided");
         }
 
-        res.send({ success: true, message: 'Profile updated successfully' });
-    });
+        // Add the user id as the last value for the WHERE clause
+        values.push(userid);
+
+        // Construct the SQL query
+        const q = `UPDATE users SET ${updates.join(', ')} WHERE userid = ?`;
+
+        // Execute the query
+        db.query(q, values, (err, data) => {
+            if (err) {
+                // console.log(err);
+                logger.error(`Failed to update user info at userid: ${userid}`);
+                return res.json(err)
+            };
+            logger.info(`Updated own user info at userid: ${userid}`);
+            return res.json("User info has been updated successfully");
+        });
+    }
 };
 
