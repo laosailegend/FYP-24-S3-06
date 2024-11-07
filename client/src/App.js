@@ -18,6 +18,8 @@ import AvailabilityForm from './pages/AvailabilityForm';
 import EmployeeDetails from './pages/EmployeeDetails';
 import Profile from './pages/Profile';
 import CompAdmin from './pages/CompAdmin';
+import Assignments from './pages/Assignments'; // Import the Assignments component
+
 import { AuthContext } from './auth/AuthContext';
 
 function Home() {
@@ -102,6 +104,7 @@ function App() {
                 <Link to="/timeoff">TimeOff(HR)</Link>
                 <Link to="/available">Availability(HR)</Link>
                 <Link to="/employees">View Employees(HR)</Link>
+                <Link to="/assignments">View Assignments</Link> {/* Add this line */}
               </>
             ) : (
               <></>
@@ -109,7 +112,10 @@ function App() {
 
             {/* only manager can see */}
             {isLoggedIn && tokenObj.role === 2 ? (
+              <>
               <Link to="/Tasks">Tasks(Manager)</Link>
+              <Link to="/assignments">Assignments</Link> {/* Add this line */}
+              </>
             ) : (
               <></>
             )}
@@ -175,6 +181,7 @@ function App() {
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/assignments" element={<Assignments />} /> {/* Add Assignments route */}
             <Route path='/update/:id' element={<UpdateUser />} />
             <Route path='/compAdmin' element={<CompAdmin />} />
           </Routes>

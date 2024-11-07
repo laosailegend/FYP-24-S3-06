@@ -142,11 +142,11 @@ app.get("/schedules", managerController.getSchedules);
 app.put("/updateSchedules/:id", managerController.updateSchedule);
 app.delete("/deleteSchedules/:id", managerController.deleteSchedule);
 app.post("/autoSchedule", managerController.autoScheduling);
-// app.get("/assignments", managerController.Assignments);
-
+app.get("/assignments", managerController.Assignments);
 
 app.get("/", (req, res) => {
     res.send("Homepage");
+
 })
 
 const PORT = process.env.PORT || 8800;

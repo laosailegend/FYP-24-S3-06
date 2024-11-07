@@ -1,14 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
 import axios from 'axios';
 
-function Tasks() {
+const Tasks = () => {
+  // Use state with a function to derive the initial tokenObj value
+  const [tokenObj] = useState(() => {
+    const token = localStorage.getItem("token");
+    return token ? JSON.parse(atob(token.split('.')[1])) : null;
+  });
+  const navigate = useNavigate();
   const [date, setDate] = useState(new Date());
   const [startTime, setStartTime] = useState(''); // Added state for start time
+  const [selectedCountry, setSelectedCountry] = useState('SG'); // Default to Singapore
+  const countryOptions = [
+    { code: 'SG', name: 'Singapore' },
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'MX', name: 'Mexico' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'IT', name: 'Italy' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'CN', name: 'China' },
+    // Add more countries as needed
+  ];
   const [endTime, setEndTime] = useState(''); // Added state for end time
+
+  const [holidays, setHolidays] = useState([]);
+
+  const fetchPublicHolidays = useCallback(async (year) => {
+    try {
+      const response = await axios.get(`https://date.nager.at/api/v3/publicholidays/${year}/${selectedCountry}`);
+      setHolidays(response.data); // Store the fetched holidays in state
+      console.log("Fetched holidays:", response.data);
+    } catch (error) {
+      console.error("Error fetching public holidays:", error);
+    }
+  }, [selectedCountry]);
+
+  const updatePublicHolidays = useCallback((activeYear) => {
+    fetchPublicHolidays(activeYear);
+  }, [fetchPublicHolidays]);
+
+  useEffect(() => {
+    updatePublicHolidays(new Date().getFullYear()); // Initialize with current year public holidays
+  }, [updatePublicHolidays]);
+
+  const handleCountryChange = (e) => {
+    const newCountry = e.target.value;
+    setSelectedCountry(newCountry);
+  };
+  
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      updatePublicHolidays(new Date().getFullYear());
+    }, 500);
+  
+    return () => clearTimeout(delayDebounceFn); // Cleanup
+  }, [selectedCountry, updatePublicHolidays]);
+
+  useEffect(() => {
+    if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
+      window.alert("You are not authorized to view this page");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    if (tokenObj === null) {
+      return null;  // You can replace this with a loading indicator if you prefer
+    }
+    fetchTasks();
+  }, [navigate, tokenObj]);
+
   const [taskDetails, setTaskDetails] = useState({
     taskname: '',
     description: '',
@@ -35,8 +105,30 @@ function Tasks() {
     }
   };
 
-  const onChange = (date) => {
-    setDate(date);
+  const onChange = (newDate) => {
+    setDate(newDate);
+  };
+
+  // Adjust tileContent to show holiday label
+  const tileContent = ({ date }) => {
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    const holiday = holidays.find(holiday => holiday.date === formattedDate);
+    if (holiday) {
+      return <p className="holiday">{holiday.localName}</p>; // Show holiday name
+    }
+    return null;
+  };
+  
+  // Adjust tileClassName to apply holiday class
+  const tileClassName = ({ date }) => {
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    const isHoliday = holidays.some(holiday => holiday.date === formattedDate);
+    return isHoliday ? 'holiday-tile' : null;
+  };
+
+  const handleActiveStartDateChange = ({ activeStartDate }) => {
+    const activeYear = activeStartDate.getFullYear();
+    updatePublicHolidays(activeYear); // Fetch holidays for the active year
   };
 
   const handleInputChange = (e) => {
@@ -44,17 +136,27 @@ function Tasks() {
     setTaskDetails({ ...taskDetails, [name]: value });
   };
 
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formattedDate = moment(date).format('YYYY-MM-DD');
+    const formattedDate = formatDate(date); // Use the new formatDate utility
+
     const newTask = { 
-      taskname: taskDetails.taskname, 
-      description: taskDetails.description, 
-      manpower_required: taskDetails.manpower_required, 
-      task_date: formattedDate, // Use task_date instead of timeslot
-      start_time: startTime, // Added start time
-      end_time: endTime, // Added end time
+        taskname: taskDetails.taskname, 
+        description: taskDetails.description, 
+        manpower_required: taskDetails.manpower_required, 
+        task_date: formattedDate, 
+        start_time: startTime, 
+        end_time: endTime, 
+        country_code: selectedCountry,
+        industryid: selectedIndustry,
     };
 
     try {
@@ -65,6 +167,7 @@ function Tasks() {
         setStartTime(''); // Reset start time
         setEndTime(''); // Reset end time
         fetchTasks();
+        setSelectedIndustry('');  // Reset the industry dropdown
       } else {
         alert('Failed to add task');
         console.error("Response Status:", response.status);
@@ -93,22 +196,23 @@ function Tasks() {
     });
     setStartTime(task.start_time); // Set start time for editing
     setEndTime(task.end_time); // Set end time for editing
+    setSelectedIndustry(task.industryid); // Set the selectedIndustry for editing
     setEditTaskId(task.taskid);
   };
-
   const handleUpdate = async (e) => {
     e.preventDefault();
-
-    const formattedDate = moment(date).format('YYYY-MM-DD');
+    
+    const formattedDate = formatDate(date); // Use the new formatDate utility
     const updatedTask = { 
       taskname: taskDetails.taskname, 
       description: taskDetails.description, 
       manpower_required: taskDetails.manpower_required, 
-      task_date: formattedDate, // Use task_date instead of timeslot
-      start_time: startTime, // Include start time
-      end_time: endTime, // Include end time
+      task_date: formattedDate, // Correctly formatted
+      start_time: startTime, 
+      end_time: endTime,
+      industryid: selectedIndustry, // Add the selectedIndustry for the update
     };
-
+  
     try {
       const response = await axios.put(`http://localhost:8800/task/${editTaskId}`, updatedTask);
       if (response.status === 200) {
@@ -116,8 +220,8 @@ function Tasks() {
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
         setStartTime(''); // Reset start time
         setEndTime(''); // Reset end time
-        setEditTaskId(null); // Reset edit state
         fetchTasks();
+        setSelectedIndustry(''); // Reset the industry dropdown
       } else {
         alert('Failed to update task');
         console.error("Response Status:", response.status);
@@ -128,10 +232,41 @@ function Tasks() {
     }
   };
 
+  // Industry dropdown state
+  const [selectedIndustry, setSelectedIndustry] = useState(''); // State to hold selected industry
+  const handleIndustryChange = (event) => {
+    setSelectedIndustry(event.target.value);  // Store the selected industryid in the state
+  };
+  const industryOptions = [
+    { id: 2, name: 'Retail' },
+    { id: 7, name: 'Education' },
+    { id: 9, name: 'Restaurant' },
+    { id: 1, name: 'Healthcare' },
+    { id: 3, name: 'IT' },
+    { id: 10, name: 'Transportation' },
+    // other industries...
+  ];
+
   return (
     <div className="tasks-container">
-      <h2>{editTaskId ? 'Update Task' : 'Add Task'}</h2>
-      <Calendar onChange={onChange} value={date} />
+      <h1>Tasks</h1>
+      <select value={selectedCountry} onChange={handleCountryChange}>
+        {countryOptions.map(country => (
+          <option key={country.code} value={country.code}>
+            {country.name}
+          </option>
+        ))}
+      </select>
+      {/* Calendar Component */}
+      <Calendar
+        onChange={onChange}
+        value={date}
+        tileContent={tileContent}
+        tileClassName={tileClassName}
+        onActiveStartDateChange={handleActiveStartDateChange} // Fetch holidays when month/year changes
+      />
+      
+      {/* Task Form */}
       <form onSubmit={editTaskId ? handleUpdate : handleSubmit}>
         <div>
           <label>Task Name:</label>
@@ -166,6 +301,19 @@ function Tasks() {
             required
           />
         </div>
+
+        {/* Industry Dropdown */}
+        <div>
+          <label>Select Industry:</label>
+          <select value={selectedIndustry} onChange={handleIndustryChange}>
+  {industryOptions.map((industry) => (
+    <option key={industry.id} value={industry.id}>
+      {industry.name}
+    </option>
+  ))}
+</select>
+        </div>
+
         <div>
           <label>Start Time:</label>
           <input
@@ -186,29 +334,35 @@ function Tasks() {
         </div>
         <button type="submit">{editTaskId ? 'Update Task' : 'Add Task'}</button>
       </form>
+  
+      {/* Task List */}
       <div className="tasks-list">
-  <h3>Tasks</h3>
-  <ul>
-    {tasks.length > 0 ? (
-      tasks.map((task) => (
-        <li key={task.taskid}>
-          <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
-          <strong>Description:</strong> {task.description || 'No Description'} <br />
-          <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
-          <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
-          <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
-          <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
-          <button onClick={() => startEditTask(task)}>Edit</button>
-          <button onClick={() => deleteTask(task.taskid)}>Delete</button>
-        </li>
-      ))
-    ) : (
-      <p>No tasks available.</p>
-    )}
-  </ul>
-</div>
+        <h3>Tasks</h3>
+        <ul>
+          {tasks.length > 0 ? (
+            tasks.map((task) => (
+              <li key={task.taskid}>
+                  <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
+                  <strong>Description:</strong> {task.description || 'No Description'} <br />
+                  <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
+                  <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
+                  <strong>Weekend:</strong> {task.isWeekend || 'No'} <br />
+                  <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
+                  <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
+                  <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
+                  <strong>Industry:</strong> {industryOptions.find(option => option.id === task.industryid)?.name || 'No Industry Info'} <br />
+                  <button onClick={() => startEditTask(task)}>Edit</button>
+                  <button onClick={() => deleteTask(task.taskid)}>Delete</button>
+              </li>
+            ))
+          ) : (
+            <p>No tasks available.</p>
+          )}
+        </ul>
+      </div>
     </div>
   );
+  
 }
 
 export default Tasks;

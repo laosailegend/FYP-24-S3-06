@@ -897,6 +897,52 @@ button:hover {
   width: 40%;
   text-align: justify;
 }
+/*Assignment styles */
+
+.assignments-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.error-message {
+  color: red;
+  text-align: center;
+  font-weight: bold;
+}
+
+.assignments-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.assignments-table th, .assignments-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.assignments-table th {
+  background-color: #f2f2f2;
+  color: #333;
+}
+
+.assignments-table tr:hover {
+  background-color: #f1f1f1; /* Highlight row on hover */
+}
+
+.assignments-table td {
+  color: #555;
+}
+
 
 /* Container for filters */
 .filter-container {
@@ -964,8 +1010,6 @@ button:hover {
   background-color: #f2f2f2;
   font-weight: bold;
 }
-
-
 /* Update user page styles uses similar styling to admin page above*/
 
 
