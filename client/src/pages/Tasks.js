@@ -19,7 +19,7 @@ function Tasks() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [navigate, tokenObj]);
 
   useEffect(() => {
     console.log('Tasks state updated:', tasks);

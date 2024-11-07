@@ -1,74 +1,97 @@
-
+// adminController.js
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
-const logger = require('./logger');
+const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
-// login
+// log IP addr
+exports.logIP = (req, res, next) => {
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    // console.log(ip);
+    console.log(req.headers);
+    next();
+}
+
+// login POST
 exports.login = (req, res) => {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const { email, password } = req.body;
 
     // Check if email and password are provided
     if (!email || !password) {
-        logger.customerLogger.log('error', 'failed login')
+        logger.error(`Failed login attempt with missing credentials from ${ip}`);
         return res.status(400).json({ error: "Email and password are required" });
     }
 
     const q = "SELECT * FROM users WHERE email = ?";
 
     db.query(q, [email], async (err, data) => {
-        if (err) return res.status(500).json({ error: "Database error" });
+        if (err) {
+            logger.error(`Database error during login from ${ip}: ${err.message}`);
+            return res.status(500).json({ error: "Database error" });
+        }
 
         // If no user is found with the provided email
         if (data.length === 0) {
+            logger.error(`Unsuccessful login attempt for non-existent user: ${ip}, ${email}`);
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
         const user = data[0];
 
-
         // Compare the provided password with the hashed password in the database
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
         if (!isPasswordCorrect) {
+            logger.error(`Unsuccessful login attempt for: ${ip}, ${user.email}`);
             return res.status(401).json({ error: "Invalid email or password" });
         }
 
-        //gen jwt token
+        // Generate JWT token
         const token = jwt.sign(
-            { id: user.userid, email: user.email, role: user.roleid, fname: user.fname, lname: user.lname },
+            { id: user.userid, email: user.email, role: user.roleid, fname: user.fname, lname: user.lname, company: user.compid },
             SECRET_KEY,
             { expiresIn: '1d' } // Token expires in 1 day
         );
-        // console.log(JSON.parse(atob(token.split('.')[1])));
-        logger.userLogger.log('info', 'Successful login')
 
+        logger.info(`Successful login for: ${ip}, ${user.email}`);
         return res.json({ message: "Login successful", token });
     });
 };
 
-
-// #21 admin create user accounts
+// #21 admin create user accounts POST
 exports.createUser = (req, res) => {
-    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`) VALUES (?)";
+    const q = "INSERT INTO users (`roleid`, `nric`, `fname`, `lname`, `contact`, `email`, `password`, `availability`, `compid`) VALUES (?)";
     const saltRounds = 10;
     const password = req.body.password;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const token = req.headers['authorization']?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) return;
 
-        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash];
+        const values = [req.body.roleid, req.body.nric, req.body.fname, req.body.lname, req.body.contact, req.body.email, hash, null, req.body.compid];
         db.query(q, [values], (err, data) => {
-            if (err) return res.json(err);
+            if (err) {
+                console.log(err);
+                logger.error(`Failed to create user by ${decoded.email}: ${req.body.email} at ${ip}`);
+                return res.json(err)
+            };
             return res.json("User created successfully");
         });
+
+        logger.info(`User created by ${decoded.email}: ${req.body.email} at ${ip}`);
     });
 };
 
+// get user info and their role type GET 
 exports.getUsers = (req, res) => {
     // inner join to also get their role type as well
-    const q = "SELECT * FROM users INNER JOIN roles ON users.roleid = roles.roleid"
+    const q = `SELECT users.*, roles.role, company.company FROM users 
+    INNER JOIN roles ON users.roleid = roles.roleid 
+    INNER JOIN company ON users.compid = company.compid`;
     db.query(q, (err, data) => {
         if (err) {
             console.log(err);
@@ -78,7 +101,69 @@ exports.getUsers = (req, res) => {
     })
 };
 
-// retrive role details
+// filtering system for user search GET
+exports.searchUser = (req, res) => {
+    const { company, role, search } = req.query;
+    const filters = [];
+
+    // Base query with joins
+    let q = `
+    SELECT users.*, roles.role, company.company, positions.position 
+    FROM users 
+    INNER JOIN roles ON users.roleid = roles.roleid 
+    INNER JOIN company ON users.compid = company.compid
+    LEFT JOIN positions ON users.posid = positions.posid 
+    WHERE 1=1
+    `;
+
+    // Apply company filter if provided
+    if (company) {
+        q += " AND users.compid = ?";
+        filters.push(company);
+    }
+
+    // Apply role filter if provided
+    if (role) {
+        q += " AND users.roleid = ?";
+        filters.push(role);
+    }
+
+    // Apply search term across multiple fields if provided
+    if (search) {
+        q += ` AND (
+            users.userid LIKE ? OR 
+            roles.role LIKE ? OR 
+            users.nric LIKE ? OR 
+            users.fname LIKE ? OR 
+            users.lname LIKE ? OR 
+            users.contact LIKE ? OR 
+            users.email LIKE ? OR 
+            company.company LIKE ? OR
+            positions.position LIKE ?
+        )`;
+
+        // Adding the search term multiple times for each LIKE condition
+        const searchPattern = `%${search}%`;
+        filters.push(
+            searchPattern, searchPattern, searchPattern,
+            searchPattern, searchPattern, searchPattern,
+            searchPattern, searchPattern, searchPattern, searchPattern // Added the last `searchPattern` here
+        );
+    }
+
+    // Execute the query with filters
+    db.query(q, filters, (error, results) => {
+        if (error) {
+            console.error(error);
+            return res.status(500).json({ error: "Database query failed." });
+        }
+        res.json(results);
+    });
+};
+
+
+
+// retrive role details GET
 exports.getRoles = (req, res) => {
     const q = "SELECT * FROM roles"
     db.query(q, (err, data) => {
@@ -89,7 +174,7 @@ exports.getRoles = (req, res) => {
     })
 };
 
-// #44 update user details - modified so that those empty fields are removed -> /user/:id
+// #44 PUT update user details - modified so that those empty fields are removed -> /user/:id
 exports.updateUser = (req, res) => {
     const saltRounds = 10;
 
@@ -122,8 +207,12 @@ exports.updateUser = (req, res) => {
 
             // Execute the query
             db.query(q, values, (err, data) => {
-                if (err) return res.json(err);
-                return res.json("User info has been updated successfully");
+                if (err) {
+                    logger.error(`Failed to update user password at userid: ${userid}`);
+                    return res.json(err)
+                };
+                logger.info(`Updated user password at userid: ${userid}`);
+                return res.json("User password has been updated successfully");
             });
         });
     } else {
@@ -148,24 +237,57 @@ exports.updateUser = (req, res) => {
 
         // Execute the query
         db.query(q, values, (err, data) => {
-            if (err) return res.json(err);
+            if (err) {
+                // console.log(err);
+                logger.error(`Failed to update user info at userid: ${userid}`);
+                return res.json(err)
+            };
+            logger.info(`Updated user info at userid: ${userid}`);
             return res.json("User info has been updated successfully");
         });
     }
 };
 
-// #45 delete user account /user/:id
+
+// #45 DELETE delete user account /user/:id
 exports.deleteUser = (req, res) => {
     const userid = req.params.id;
-    const q = "DELETE FROM users WHERE userid = ?"
 
-    db.query(q, [userid], (err, data) => {
-        if (err) return res.json(err);
-        return res.json("book has been deleted succ.");
-    })
+    // First, fetch the user to get their email
+    const fetchUserQuery = "SELECT email FROM users WHERE userid = ?";
+
+    db.query(fetchUserQuery, [userid], (err, results) => {
+        if (err) {
+            logger.error(`Failed to retrieve user at userid: ${userid}`);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        // Check if a user was found
+        if (results.length === 0) {
+            logger.error(`No user found with userid: ${userid}`);
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Get the user's email from the results
+        const userEmail = results[0].email;
+
+        // Now, proceed to delete the user
+        const deleteUserQuery = "DELETE FROM users WHERE userid = ?";
+
+        db.query(deleteUserQuery, [userid], (err, data) => {
+            if (err) {
+                logger.error(`Failed to delete user at userid: ${userid}, email: ${userEmail}`);
+                return res.status(500).json({ error: 'Failed to delete user' });
+            }
+
+            logger.info(`Deleted user at userid: ${userid}, email: ${userEmail}`);
+            return res.json({ message: "User has been deleted successfully." });
+        });
+    });
 };
 
-// create permissions
+
+// POST create permissions
 exports.createPerms = (req, res) => {
     const { roleid, resource, can_create, can_read, can_update, can_delete } = req.body;
 
@@ -189,7 +311,7 @@ exports.createPerms = (req, res) => {
     });
 };
 
-// get all permissions to display on the admin page
+// POST get all permissions to display on the admin page
 exports.getPerms = (req, res) => {
     const q = "SELECT permissions.*, roles.role FROM roles INNER JOIN permissions ON `roles`.roleid = permissions.roleid;";
     db.query(q, (err, data) => {
@@ -199,7 +321,7 @@ exports.getPerms = (req, res) => {
     })
 };
 
-// update permissions
+// PUT update permissions
 exports.updatePerms = (req, res) => {
     const permission_id = req.params.id; // Extract the permission_id from the URL
     const { can_create, can_read, can_update, can_delete } = req.body; // Extract the permission fields from the request body
@@ -227,7 +349,7 @@ exports.updatePerms = (req, res) => {
     });
 };
 
-// delete permissions
+// DELETE delete permissions
 exports.deletePerms = (req, res) => {
     const permission_id = req.params.id; // Extract the permission_id from the URL
     const query = `DELETE FROM permissions WHERE permission_id = ?`;
@@ -236,14 +358,13 @@ exports.deletePerms = (req, res) => {
     // Execute the query
     db.query(query, values, (err, result) => {
         if (err) {
-            console.error(err);
             return res.status(500).json({ error: "An error occurred while deleting the permission." });
         }
         res.json({ message: "Permission deleted successfully." });
     });
 };
 
-// Fetch the user's own profile details
+// GET Fetch the user's own profile details
 exports.getProfile = (req, res) => {
     const userId = req.params.id;
     // console.log("id: " + userId);
@@ -268,7 +389,7 @@ exports.getProfile = (req, res) => {
     });
 };
 
-//update user profile 
+// PUT update user profile 
 exports.updateProfile = (req, res) => {
     const userId = req.params.id;
     const { fname, lname, email, contact } = req.body; // Make sure the request body contains these fields

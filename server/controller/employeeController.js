@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
-const logger = require('./logger');
+const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
 // retrieve user details for employees only, no NRIC no password /employeeGetUser
@@ -148,55 +148,55 @@ exports.getClockTimes = (req, res) => {
 };
 
 // To fetch existing skill/qualification /get-skill/:userId
-exports.getSkills = async (req, res) => {
-    const { userId } = req.params;
-    const query = `SELECT skill, qualification FROM skillAcademic WHERE user_id = ?`;
+// exports.getSkills = async (req, res) => {
+//     const { userId } = req.params;
+//     const query = `SELECT skill, qualification FROM skillAcademic WHERE user_id = ?`;
 
-    db.query(query, [userId], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (results.length > 0) {
-            res.json(results[0]); // Return the user's skill/qualification
-        } else {
-            res.status(404).json({ message: 'No data found' });
-        }
-    });
-};
+//     db.query(query, [userId], (error, results) => {
+//         if (error) {
+//             return res.status(500).json({ error: 'Database error' });
+//         }
+//         if (results.length > 0) {
+//             res.json(results[0]); // Return the user's skill/qualification
+//         } else {
+//             res.status(404).json({ message: 'No data found' });
+//         }
+//     });
+// };
 
 // submit skill /submit-skill
-exports.submitSkill = (req, res) => {
-    const { user_id, skill, qualification } = req.body;
+// exports.submitSkill = (req, res) => {
+//     const { user_id, skill, qualification } = req.body;
 
-    // Validate the input
-    if (!user_id || !skill || !qualification) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
+//     // Validate the input
+//     if (!user_id || !skill || !qualification) {
+//         return res.status(400).json({ error: 'All fields are required' });
+//     }
 
-    // SQL query to insert data into the skillAcademic table
-    const sql = 'INSERT INTO skillAcademic (user_id, skill, qualification) VALUES (?, ?, ?)';
+//     // SQL query to insert data into the skillAcademic table
+//     const sql = 'INSERT INTO skillAcademic (user_id, skill, qualification) VALUES (?, ?, ?)';
 
-    // Execute the query
-    db.query(sql, [user_id, skill, qualification], (err, result) => {
-        if (err) {
-            console.error('Error inserting into database:', err);
-            return res.status(500).json({ error: 'Database insertion failed' });
-        }
+//     // Execute the query
+//     db.query(sql, [user_id, skill, qualification], (err, result) => {
+//         if (err) {
+//             console.error('Error inserting into database:', err);
+//             return res.status(500).json({ error: 'Database insertion failed' });
+//         }
 
-        // Respond with success
-        res.status(200).json({ message: 'Skill and qualification added successfully' });
-    });
-};
+//         // Respond with success
+//         res.status(200).json({ message: 'Skill and qualification added successfully' });
+//     });
+// };
 
 // To update skill/qualification /update-skill
-exports.updateSkill = (req, res) => {
-    const { user_id, skill, qualification } = req.body;
-    const query = `UPDATE skillAcademic SET skill = ?, qualification = ? WHERE user_id = ?`;
+// exports.updateSkill = (req, res) => {
+//     const { user_id, skill, qualification } = req.body;
+//     const query = `UPDATE skillAcademic SET skill = ?, qualification = ? WHERE user_id = ?`;
 
-    db.query(query, [skill, qualification, user_id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        res.json({ message: 'Skill and qualification updated successfully!' });
-    });
-};
+//     db.query(query, [skill, qualification, user_id], (error, results) => {
+//         if (error) {
+//             return res.status(500).json({ error: 'Database error' });
+//         }
+//         res.json({ message: 'Skill and qualification updated successfully!' });
+//     });
+// };
