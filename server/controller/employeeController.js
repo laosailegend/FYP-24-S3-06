@@ -304,7 +304,7 @@ exports.getAllTrainingSessions = (req, res) => {
         }
 
         if (results.length === 0) {
-            return res.status(404).json({ error: 'No training sessions found' });
+            return res.status(200).json({ error: 'No training sessions found',training_sessions:[] });
         }
 
         res.json({ training_sessions: results });
@@ -402,7 +402,7 @@ exports.getFeedback = async (req, res) => {
         }
 
         if (results.length === 0) {
-            return res.status(404).json({ error: 'No feedback found' });
+            return res.status(200).json({ error: 'No feedback found',feedback:[] });
         }
 
         // Return the feedback results
@@ -426,11 +426,201 @@ exports.getTask = async (req, res) => {
 
         // Step 4: Check if tasks are found
         if (results.length === 0) {
-            return res.status(404).json({ error: 'No tasks found' });
+            return res.status(200).json({ error: 'No tasks found',tasks:[] });
         }
 
         // Step 5: Return all tasks in JSON format
         res.json({ tasks: results });
     });
 };
+
+exports.getUserAssignments = async (req, res) => {
+    const { userId } = req.params;
+
+    // Validate input
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Join with tasks table to retrieve taskname
+    const query = `
+        SELECT a.assignment_id, a.assigned_date, a.start_time, a.end_time, 
+               a.public_holiday, a.weekends, t.taskname
+        FROM assignments AS a
+        JOIN tasks AS t ON a.taskid = t.taskid
+        WHERE a.userid = ?
+        ORDER BY a.assigned_date DESC
+    `;
+
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(200).json({ error: 'No assignments found',assignments:[] });
+        }
+
+        // Return the user's assignments with taskname
+        res.json({ assignments: results });
+    });
+};
+
+
+exports.getOtherUsersAssignments = async (req, res) => {
+    const { userId } = req.params;
+
+    // Validate input
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Join with tasks table to retrieve taskname
+    const query = `
+        SELECT a.assignment_id, a.assigned_date, a.start_time, a.end_time, 
+               a.public_holiday, a.weekends, t.taskname
+        FROM assignments AS a
+        JOIN tasks AS t ON a.taskid = t.taskid
+        WHERE a.userid != ?
+        ORDER BY a.assigned_date DESC
+    `;
+
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(200).json({ error: 'No assignments found for other users',assignments:[] });
+        }
+
+        // Return the other users' assignments with taskname
+        res.json({ assignments: results });
+    });
+};
+
+
+//swapping store in shift_swap_requests table
+exports.submitSwapRequest = async (req, res) => {
+    const { userid, requestor_assignment_id, target_assignment_id, status } = req.body;
+
+    // Validate input
+    if (!userid || !requestor_assignment_id || !target_assignment_id || !status) {
+        return res.status(400).json({ error: 'All fields are required: userid, requestor_assignment_id, target_assignment_id, status' });
+    }
+
+    const query = `
+        INSERT INTO shift_swap_requests (userid, requestor_assignment_id, target_assignment_id, status, request_date)
+        VALUES (?, ?, ?, ?, NOW())
+    `;
+
+    db.query(query, [userid, requestor_assignment_id, target_assignment_id, status], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        // Return success message and inserted swap request ID
+        res.json({ message: 'Swap request submitted successfully', swapRequestId: results.insertId });
+    });
+};
+
+// Fetch user's leave balance
+exports.getUserLeaveBalance = async (req, res) => {
+    const { userId } = req.params;
+  
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+  
+    const query = `SELECT leave_balance FROM users WHERE userid = ?`;
+  
+    db.query(query, [userId], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+  
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      // Return the user's leave balance
+      res.json({ leave_balance: results[0].leave_balance });
+    });
+  };
+  
+  // Fetch payroll records for a user
+  exports.getUserPayrolls = async (req, res) => {
+    const { userId } = req.params;
+  
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+  
+    const query = `SELECT * FROM payroll WHERE userid = ? ORDER BY pay_period_start DESC`;
+  
+    db.query(query, [userId], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+  
+      if (results.length === 0) {
+        // No records found for this user, but the request was successful
+        return res.status(200).json({ message: 'No payroll records found', payrolls: [] });
+      }
+  
+      // Return the user's payroll records
+      res.json({ payrolls: results });
+    });
+  };
+  
+  // In your Express backend
+exports.submitPayrollQuery = async (req, res) => {
+    const { user_id, description } = req.body;
+    
+    if (!user_id || !description) {
+      return res.status(400).json({ error: 'User ID and description are required' });
+    }
+  
+    const query = `INSERT INTO payroll_queries (user_id, query_date, description, status) VALUES (?, NOW(), ?, 'Pending')`;
+  
+    db.query(query, [user_id, description], (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.status(201).json({ message: 'Query submitted successfully' });
+    });
+  };
+  
+  // In your backend routes file, e.g., payrollQueriesRoutes.js
+  exports.getPayrollQueries = async (req, res) => {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const query = `SELECT * FROM payroll_queries WHERE user_id = ? ORDER BY query_date DESC`;
+
+    db.query(query, [userId], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      if (results.length === 0) {
+        return res.status(200).json({ message: 'No payrollQuery records found', payrollQueries: [] });
+      }
+
+      res.json({ payrollQueries: results });
+    });
+};
+
+
+
 

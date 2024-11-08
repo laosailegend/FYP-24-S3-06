@@ -76,6 +76,14 @@ app.delete('/deleteRequestLeave/:id',employeeController.deleteRequestLeave);
 app.post('/submitFeedback',employeeController.submitFeedback);
 app.get('/getFeedback/:userId',employeeController.getFeedback);
 app.get('/tasks',employeeController.getTask);
+app.get('/assignments/user/:userId',employeeController.getUserAssignments);
+app.get('/assignments/other/:userId',employeeController.getOtherUsersAssignments);
+app.post('/shiftSwapRequests',employeeController.submitSwapRequest);
+app.get('/users/:userId/leave_balance',employeeController.getUserLeaveBalance);
+app.get('/payrolls/user/:userId',employeeController.getUserPayrolls);
+app.post('/payrollQueries',employeeController.submitPayrollQuery);
+app.get('/payrollQueries/user/:userId',employeeController.getPayrollQueries);
+
 
 
 // define routes for HRController

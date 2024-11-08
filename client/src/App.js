@@ -22,6 +22,9 @@ import Skill from './pages/Skill';
 import TrainingSession from './pages/TrainingSession';
 import Feedback from './pages/Feedback';
 import Project from './pages/Project';
+import Shiftswapping from './pages/Shiftswapping';
+import Leave from './pages/Leave';
+import ViewPayroll from './pages/ViewPayroll';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -124,10 +127,14 @@ function App() {
                 <Link to="/Project">Project</Link>
                 {/*<Link to="/Availability">Availability(Employee)</Link>*/}
                 <Link to="/ClockInOut">Clock In/Clock Out</Link>
+                <Link to="/Shiftswapping">Shift Swapping</Link>
                 <Link to="/Skill">Skill</Link>
                 <Link to="/TrainingSession">Training session</Link>
                 <Link to="/TimeOffRequest">Request Time Off</Link>
+                <Link to="/Leave">Leave Balance</Link>
+                <Link to="/ViewPayroll">Payroll</Link>
                 <Link to="/Feedback">Feedback</Link>
+                
               </>
             ) : (
               <></>
@@ -181,6 +188,10 @@ function App() {
             <Route path="/TrainingSession" element={<TrainingSession />} />
             <Route path="/Feedback" element={<Feedback />} />
             <Route path="/Project" element={<Project />} />
+            <Route path="/Shiftswapping" element={<Shiftswapping />} />
+            <Route path="/ViewPayroll" element={<ViewPayroll />} />
+            <Route path="/Leave" element={<Leave />} />
+            
           </Routes>
         </main>
       </div>
