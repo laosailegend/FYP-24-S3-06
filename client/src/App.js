@@ -12,12 +12,21 @@ import Pricing from './pages/Pricing'; // Import the Pricing component
 import Schedule from './pages/Schedule'; // Import the Schedule component
 import scheduleImage from './images/Schedule.png'; // Schedule Image
 import Admin from './pages/Admin'; // Import the Admin component
+import CompAdmin from './pages/CompAdmin';
 import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
 import TimeOff from './pages/TimeOff';
 import AvailabilityForm from './pages/AvailabilityForm';
 import EmployeeDetails from './pages/EmployeeDetails';
 import Profile from './pages/Profile';
-import CompAdmin from './pages/CompAdmin';
+import ClockInOut from './pages/ClockInOut';
+import Skill from './pages/Skill';
+import TrainingSession from './pages/TrainingSession';
+import Feedback from './pages/Feedback';
+import Project from './pages/Project';
+import Shiftswapping from './pages/Shiftswapping';
+import Leave from './pages/Leave';
+import ViewPayroll from './pages/ViewPayroll';
+
 import { AuthContext } from './auth/AuthContext';
 
 function Home() {
@@ -120,8 +129,17 @@ function App() {
             {/* only employee can see */}
             {isLoggedIn && tokenObj.role === 3 ? (
               <>
-                <Link to="/Availability">Availability(Employee)</Link>
-                <Link to="/TimeOffRequest">Request Time Off(Employee)</Link>
+                <Link to="/Project">Project</Link>
+                {/*<Link to="/Availability">Availability(Employee)</Link>*/}
+                <Link to="/ClockInOut">Clock In/Clock Out</Link>
+                <Link to="/Shiftswapping">Shift Swapping</Link>
+                <Link to="/Skill">Skill</Link>
+                <Link to="/TrainingSession">Training session</Link>
+                <Link to="/TimeOffRequest">Request Time Off</Link>
+                <Link to="/Leave">Leave Balance</Link>
+                <Link to="/ViewPayroll">Payroll</Link>
+                <Link to="/Feedback">Feedback</Link>
+                
               </>
             ) : (
               <></>
@@ -134,6 +152,7 @@ function App() {
                 <Link to="/schedule">Create Schedule(HR)</Link> {/* Add Schedule link */}
                 <Link to="/available">Availability(HR)</Link>
                 <Link to="/employees">View Employees(HR)</Link>
+                <Link to="/weeklyhours">Employee Tracker</Link>
               </>
             ) : (
               <></>
@@ -167,6 +186,7 @@ function App() {
             <Route path="/contact" element={<Contact />} /> {/* Add Contact route */}
             <Route path="/Tasks" element={<Tasks />} /> {/* Add Contact route */}
             <Route path="/Payroll" element={<Payroll />} /> {/* Add Payroll route */}
+            <Route path="/weeklyhours" element={<WeeklyHours />} /> {/* Add WeeklyHours route*/} 
             <Route path="/Availability" element={<Availability />} /> {/* EMPLOYEE */}
             <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
             <Route path="/TimeOffRequest" element={<TimeOffRequest />} /> {/* Add Request Time Off route */}
@@ -177,8 +197,17 @@ function App() {
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path='/update/:id' element={<UpdateUser />} />
             <Route path='/compAdmin' element={<CompAdmin />} />
+            <Route path='/update/:id' element={<UpdateUser />} />
+            <Route path="/ClockInOut" element={<ClockInOut />} />
+            <Route path="/Skill" element={<Skill />} />
+            <Route path="/TrainingSession" element={<TrainingSession />} />
+            <Route path="/Feedback" element={<Feedback />} />
+            <Route path="/Project" element={<Project />} />
+            <Route path="/Shiftswapping" element={<Shiftswapping />} />
+            <Route path="/ViewPayroll" element={<ViewPayroll />} />
+            <Route path="/Leave" element={<Leave />} />
+            
           </Routes>
         </main>
       </div>
