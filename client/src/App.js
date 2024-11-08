@@ -101,6 +101,7 @@ function App() {
             {isLoggedIn && tokenObj.role === 1 ? (
               <>
                 <Link to="/admin">Admin Menu</Link>
+                <Link to="/compAdmin">Company Menu</Link>
                 <Link to="/Tasks">Tasks(Manager)</Link>
                 <Link to="/Availability">Availability(Employee)</Link>
                 <Link to="/TimeOffRequest">Request Time Off(Employee)</Link>
@@ -153,12 +154,21 @@ function App() {
               <></>
             )}
 
+            {/* only HR can see */}
+            {isLoggedIn && tokenObj.role === 5 ? (
+              <>
+                <Link to="/compAdmin">Company Menu</Link>
+              </>
+            ) : (
+              <></>
+            )}
+
             {isLoggedIn ? (
               <>
                 <Link to="/profile">Profile</Link>
                 <button className="logout" onClick={logout}>Logout</button>
               </>
-              
+
             ) : (
               <Link to="/login" className="login">Login</Link>
             )}
@@ -178,7 +188,7 @@ function App() {
             <Route path="/timeoff" element={<TimeOff />} />
             <Route path="/available" element={<AvailabilityForm />} /> {/* HR */}
             <Route path="/employees" element={<EmployeeDetails />} />
-            <Route path="/profile" element={<Profile/>} />
+            <Route path="/profile" element={<Profile />} />
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />

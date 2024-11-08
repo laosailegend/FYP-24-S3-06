@@ -5,12 +5,13 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [tokenObj, setTokenObj] = useState(null);
+    const [tokenObj, setTokenObj] = useState(null);  // Initialize tokenObj state
 
     useEffect(() => {
         const token = localStorage.getItem("token");
 
         if (!token) {
+            // No token found, user is not logged in
             setIsLoggedIn(false);
             setTokenObj(null);
         } else {
@@ -22,25 +23,20 @@ export const AuthProvider = ({ children }) => {
                     email: decodedToken.email || "",
                     role: decodedToken.role || "",
                     id: decodedToken.id || "",
-                    company: decodedToken.company || "", // Include company ID
                 });
                 setIsLoggedIn(true);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             } catch (error) {
                 console.error("Error decoding token:", error);
                 setIsLoggedIn(false);
                 setTokenObj(null);
             }
         }
-
-        const interval = setInterval(tokenExp, 60000);
-        return () => clearInterval(interval);
     }, []);
 
     const login = (token) => {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         localStorage.setItem("token", token);
         setIsLoggedIn(true);
+        // Re-decode token and set tokenObj upon login
         const decodedToken = JSON.parse(atob(token.split('.')[1]));
         setTokenObj({
             fname: decodedToken.fname || "",
@@ -48,19 +44,17 @@ export const AuthProvider = ({ children }) => {
             email: decodedToken.email || "",
             role: decodedToken.role || "",
             id: decodedToken.id || "",
-            company: decodedToken.company || "", // Include company ID
         });
-        console.log("auth header set");
     };
 
     const logout = () => {
         localStorage.removeItem("token");
         setIsLoggedIn(false);
-        setTokenObj(null);
-        delete axios.defaults.headers.common['Authorization'];
+        setTokenObj(null);  // Clear tokenObj on logout
         window.location.reload();
     };
 
+    // check if token exists, then check if token is expired, if expired, logout
     const tokenExp = () => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -68,12 +62,12 @@ export const AuthProvider = ({ children }) => {
             const now = new Date();
             const exp = new Date(decodedToken.exp * 1000);
             if (now > exp) {
-                window.alert("Token has expired. Logging out...");
+                window.alert("Token has expired. Logging out...")
                 logout();
             }
         }
-    };
-
+    }
+    // console.log(tokenObj);
     return (
         <AuthContext.Provider value={{ isLoggedIn, tokenObj, login, logout, tokenExp }}>
             {children}
