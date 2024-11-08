@@ -111,9 +111,11 @@ function App() {
 
             {/* only manager can see */}
             {isLoggedIn && tokenObj.role === 2 ? (
+               <>
               <Link to="/Tasks">Tasks(Manager)</Link>
               <Link to="/assignments">Assignments</Link>
               <Link to="/timeoff">TimeOff(Manager)</Link>
+              </>
             ) : (
               <></>
             )}
@@ -190,7 +192,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
             <Route path='/compAdmin' element={<CompAdmin />} />
-            <Route path="/assignments" element={<Assignments />}
+            <Route path="/assignments" element={<Assignments/>} />
             <Route path='/update/:id' element={<UpdateUser />} />
             <Route path="/ClockInOut" element={<ClockInOut />} />
             <Route path="/Skill" element={<Skill />} />
