@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
-import { AuthContext } from '../auth/AuthContext';
+
+const server = process.env.REACT_APP_SERVER;
 
 function Schedule() {
   const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
@@ -43,7 +44,7 @@ function Schedule() {
 
   const fetchSchedules = async () => {
     try {
-      const response = await fetch("http://localhost:8800/schedules");
+      const response = await fetch(`${server}schedules`);
       const data = await response.json();
       setSchedules(data);
     } catch (error) {
@@ -53,7 +54,7 @@ function Schedule() {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('http://localhost:8800/tasks');
+      const response = await fetch(`${server}tasks`);
       const data = await response.json();
       setTasks(data);
     } catch (error) {
@@ -64,7 +65,7 @@ function Schedule() {
   const fetchSchedulesByDate = async (selectedDate) => {
     const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
     try {
-      const response = await fetch(`http://localhost:8800/schedules?shift_date=${formattedDate}`);
+      const response = await fetch(`${server}schedules?shift_date=${formattedDate}`);
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
       setSchedules(data);
@@ -136,7 +137,7 @@ function Schedule() {
 
   const handleDeleteClick = async (schedule_id) => {
     try {
-      const response = await fetch(`http://localhost:8800/deleteSchedules/${schedule_id}`, {
+      const response = await fetch(`${server}$deleteSchedules/${schedule_id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -149,7 +150,7 @@ function Schedule() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { userid, shift_date, start_time, end_time, salary } = shiftDetails;
-    const url = isEditing ? `http://localhost:8800/updateSchedules/${editingId}` : 'http://localhost:8800/addSchedules';
+    const url = isEditing ? `${server}$updateSchedules/${editingId}` : `${server}addSchedules`;
     const method = isEditing ? 'PUT' : 'POST';
 
     try {

@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
+require('dotenv').config();
 
+// check if you can get server variable without require dotenv
 const ReviewShiftSwapping = () => {
   const [swapRequests, setSwapRequests] = useState([]);
   const [error, setError] = useState(null);
   const server = process.env.REACT_APP_SERVER;
+  console.log(server);
   const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
   const userId = tokenObj ? tokenObj.id : null;
 
@@ -11,6 +14,8 @@ const ReviewShiftSwapping = () => {
     const fetchSwapRequests = async () => {
       try {
         const response = await fetch(`${server}shiftSwapRequests/pending`);
+        const text = await response.text(); // Get raw response as text
+        console.log(text); // Log the response to see what is being returned
         if (!response.ok) {
           throw new Error('Failed to fetch shift swap requests');
         }

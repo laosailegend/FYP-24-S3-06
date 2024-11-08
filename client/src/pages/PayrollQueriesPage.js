@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import '../style.css';
 
+const server = process.env.REACT_APP_SERVER;
+
 const PayrollQueriesPage = () => {
     const [queries, setQueries] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -14,7 +16,7 @@ const PayrollQueriesPage = () => {
     useEffect(() => {
         const fetchQueries = async () => {
             try {
-                const response = await fetch('http://localhost:8800/payrollQueries/view');
+                const response = await fetch(`${server}payrollQueries/view`);
                 const data = await response.json();
                 setQueries(data);
             } catch (error) {
@@ -64,7 +66,7 @@ const PayrollQueriesPage = () => {
             }
 
             try {
-                const fetchResponse = await fetch(`http://localhost:8800/payrollQueries/respond/${selectedQuery.query_id}`, {
+                const fetchResponse = await fetch(`${server}payrollQueries/respond/${selectedQuery.query_id}`, {
                     method: 'PUT',
                     body: formData,
                 });

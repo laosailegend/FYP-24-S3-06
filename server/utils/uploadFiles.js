@@ -54,16 +54,29 @@ async function listLogFiles(bucketName) {
     }
 }
 
-// Function to delete logs older than 30 days
+// Function to delete logs older than 2 days
 async function deleteOldLogs() {
     try {
         const logs = await listLogFiles(bucket);
         const currentDate = new Date();
-        const thirtyDaysAgo = new Date(currentDate.setDate(currentDate.getDate() - 30));
+        const twoDaysAgo = new Date(currentDate.setDate(currentDate.getDate() - 2));
+        const logRegex = /"level":"(info|error|warn)","message":"(([^'"]*)"|(HTTP REQUEST) 'ADDR':'([^']*)' 'USER':'([^']*)' 'REQ':'([^']*)' 'STATUS':'([^']*)' 'SIZE':'([^']*)' 'REF':'([^']*)' 'UA':'([^']*)'"),"timestamp":"(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})?"/gm;
+
+        // check if app.log has lines older than 2 days with regex and delete those lines
+        const logFilePath = './logs/app.log';
+        const logContent = fs.readFileSync(logFilePath, 'utf8');
+        const lines = logContent.split('\n');
+        const filteredLines = lines.filter(line => {
+            let match = logRegex.exec(lines);
+            const time = match[12];
+            const logDate = new Date(time);
+            return logDate >= twoDaysAgo;
+        });
+        fs.writeFileSync(logFilePath, filteredLines.join('\n'));
 
         for (const log of logs) {
             const lastModified = new Date(log.LastModified);
-            if (lastModified < thirtyDaysAgo) {
+            if (lastModified < twoDaysAgo) {
                 const params = {
                     Bucket: bucket,
                     Key: log.Key
@@ -71,7 +84,7 @@ async function deleteOldLogs() {
 
                 try {
                     await s3.deleteObject(params).promise();
-                    console.log(`Deleted ${log.Key} as it was older than 30 days`);
+                    console.log(`Deleted ${log.Key} as it was older than 2 days`);
                 } catch (error) {
                     console.error(`Error deleting ${log.Key}: `, error);
                 }
@@ -83,10 +96,13 @@ async function deleteOldLogs() {
 }
 
 // Schedule the upload to run every 5 minutes (you can adjust this)
-// cron.schedule('*/30 * * * * *' = 30s, */5 * * * * = 5min
+// cron.schedule('*/30 * * * * *', */5 * * * * = 5min
 cron.schedule('*/5 * * * *', () => {
     const logFilePath = './logs/app.log'; // Path to your log file
-    const timestamp = new Date().toISOString().split('.')[0];  // Strip milliseconds
+    const timestamp = new Date().toLocaleString('en-US', {
+        timeZone: 'Asia/Singapore',
+        hour12: false
+    }).replace(',', '').replace('/', '-').replace('/', '-');
     const fileName = `logs/app_log_${timestamp}.log`;
     uploadLogFile(logFilePath, fileName);
     console.log("from uploadfiles: upload log file to S3 every 30 seconds");

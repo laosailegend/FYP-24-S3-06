@@ -4,7 +4,10 @@ import '../style.css';
 
 const Leave = () => {
   // Parse token from localStorage and retrieve userId
-  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const [tokenObj, setTokenObj] = useState(() => {
+    const token = localStorage.getItem("token");
+    return token ? JSON.parse(atob(token.split('.')[1])) : null;
+  });;
   const userId = tokenObj ? tokenObj.id : null;
 
   const navigate = useNavigate();
