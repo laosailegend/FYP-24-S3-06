@@ -1,12 +1,11 @@
+
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
-const logger = require('./logger');
+const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
-
-
 
 
 // retrieve user details w/o password for HR only + role /HRGetUser
@@ -44,33 +43,36 @@ exports.createPayroll = async (req, res) => {
     }
 
     try {
-        const result = await db.query(
-            `INSERT INTO payroll 
+        // Prepare the SQL insert query
+        const query = `
+            INSERT INTO payroll 
             (userid, pay_period_start, pay_period_end, total_hours_worked, 
             regular_hours, weekend_hours, public_holiday_hours, overtime_hours,
             base_pay, overtime_pay, total_pay) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                userid,
-                pay_period_start,
-                pay_period_end,
-                total_hours_worked,
-                regular_hours,
-                weekend_hours,
-                public_holiday_hours,
-                overtime_hours,
-                base_pay,
-                overtime_pay,
-                total_pay
-            ]
-        );
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
 
+        // Execute the query with the provided values
+        const result = db.query(query, [
+            userid,
+            pay_period_start,
+            pay_period_end,
+            total_hours_worked,
+            regular_hours,
+            weekend_hours,
+            public_holiday_hours,
+            overtime_hours,
+            base_pay,
+            overtime_pay,
+            total_pay
+        ]);
         res.status(201).json({ message: 'Payroll recorded successfully', payroll_id: result.insertId });
     } catch (error) {
         console.error('Error inserting payroll:', error);
-        res.status(500).json({ message: 'Failed to record payroll' });
+        res.status(500).json({ message: 'Failed to record payroll', error: error.message });
     }
 };
+
 
 
 // Calculating payroll for a specific user based on hours worked and conditions
@@ -193,7 +195,15 @@ exports.calculatePayroll = (req, res) => {
 
         // Calculate total pay by adding base and overtime pay
         const payrollResults = results.map(result => {
-            const totalPay = Math.round((result.base_pay + result.overtime_pay) * 100) / 100;
+            // Log the base and overtime pay before calculation
+            console.log('Base Pay:', result.base_pay);
+            console.log('Overtime Pay:', result.overtime_pay);
+
+            // Ensure base and overtime pay are numbers, and handle NaN cases
+            const totalPay = (isNaN(result.base_pay) ? 0 : parseFloat(result.base_pay)) + (isNaN(result.overtime_pay) ? 0 : parseFloat(result.overtime_pay));
+
+            console.log('Total Pay:', totalPay);
+
             return { 
                 ...result, 
                 totalPay,
@@ -205,6 +215,7 @@ exports.calculatePayroll = (req, res) => {
         res.status(200).json({ payroll: payrollResults });
     });
 };
+
 
 exports.getPayrollQueries = (req, res) => {
     const query_id = req.params.query_id;  // Extract query_id from the URL

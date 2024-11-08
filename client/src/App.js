@@ -24,6 +24,7 @@ import FeedbackList from './pages/FeedbackList';
 import ReviewShiftSwapping from './pages/ReviewShiftSwapping';
 import PayrollQueriesPage from './pages/PayrollQueriesPage';
 import Profile from './pages/Profile';
+<<<<<<< Updated upstream
 import ClockInOut from './pages/ClockInOut';
 import Skill from './pages/Skill';
 import TrainingSession from './pages/TrainingSession';
@@ -33,6 +34,9 @@ import Shiftswapping from './pages/Shiftswapping';
 import Leave from './pages/Leave';
 import ViewPayroll from './pages/ViewPayroll';
 import WeeklyHours from './pages/WeeklyHours';
+=======
+import CompAdmin from './pages/CompAdmin';
+>>>>>>> Stashed changes
 
 import { AuthContext } from './auth/AuthContext';
 

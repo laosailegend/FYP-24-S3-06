@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../style.css';; // Import your CSS for styling
+import '../style.css'; // Import your CSS for styling
 
 function TrainingSession() {
     const [sessions, setSessions] = useState([]);

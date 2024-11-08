@@ -12,11 +12,13 @@ function WeeklyHours() {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [weeklySchedules, setWeeklySchedules] = useState({});
+  const [selectedWeek, setSelectedWeek] = useState('');
 
   const fetchEmployees = async () => {
     try {
       const response = await fetch("http://localhost:8800/users");
-      if (!response.ok) throw new Error('Network response was not ok');
+      if (!response.ok) throw new Error("Network response was not ok");
+
       const data = await response.json();
       setEmployees(data.sort((a, b) => a.userid - b.userid));
     } catch (error) {
@@ -27,40 +29,52 @@ function WeeklyHours() {
 
   const fetchWeeklySchedules = async (employeeId) => {
     try {
-      const response = await fetch(`http://localhost:8800/user/schedules/${employeeId}`);
+      const response = await fetch(`http://localhost:8800/user/assignments/${employeeId}`);
       if (!response.ok) throw new Error('Failed to fetch schedules');
       const data = await response.json();
       const groupedAndSorted = groupAndSortSchedulesByWeek(data);
       setWeeklySchedules(groupedAndSorted);
+      // Set the selected week to the first one available
+      const firstWeek = Object.keys(groupedAndSorted)[0] || '';
+      setSelectedWeek(firstWeek);
     } catch (error) {
       console.error("Error fetching weekly schedules:", error);
       alert("Failed to fetch weekly schedules.");
     }
   };
 
-  // Group schedules by month and week, and sort within each week
   const groupAndSortSchedulesByWeek = (schedules) => {
     const grouped = schedules.reduce((acc, schedule) => {
-      const shiftMoment = moment(schedule.shiftDate);
-      const month = shiftMoment.format('MMMM'); // e.g., "September"
-      const weekOfMonth = Math.ceil(shiftMoment.date() / 7); // Week 1, 2, etc.
-      const key = `${month} - Week ${weekOfMonth}`;
+        if (schedule.taskDate) {
+            const shiftMoment = moment(schedule.taskDate);
+            const weekOfMonth = Math.ceil(shiftMoment.date() / 7);
+            const month = shiftMoment.format('MMMM');
+            const key = `${month} - Week ${weekOfMonth}`;
 
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(schedule);
-
-      return acc;
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(schedule);
+        } else {
+            console.warn('Task date is missing for schedule:', schedule);
+        }
+        return acc;
     }, {});
 
-    // Sort each week's schedules by date in ascending order
-    Object.keys(grouped).forEach((key) => {
-      grouped[key] = grouped[key].sort((a, b) =>
-        moment(a.shiftDate).diff(moment(b.shiftDate))
-      );
-    });
+    const sortedGrouped = Object.keys(grouped)
+        .sort((a, b) => {
+            const [monthA, weekA] = a.split(' - Week ');
+            const [monthB, weekB] = b.split(' - Week ');
 
-    return grouped;
-  };
+            const dateA = moment().month(monthA).date(1);
+            const dateB = moment().month(monthB).date(1);
+            return dateA.diff(dateB) || parseInt(weekA) - parseInt(weekB);
+        })
+        .reduce((sortedAcc, key) => {
+            sortedAcc[key] = grouped[key].sort((a, b) => moment(a.taskDate).diff(moment(b.taskDate)));
+            return sortedAcc;
+        }, {});
+
+    return sortedGrouped;
+};
 
   const handleEmployeeChange = (e) => {
     const employeeId = parseInt(e.target.value);
@@ -68,54 +82,55 @@ function WeeklyHours() {
     fetchWeeklySchedules(employeeId);
   };
 
-  const calculateWeeklyHours = useCallback((schedules) => {
-    let total = 0;
-    let overtime = 0;
-  
-    schedules.forEach((schedule) => {
-      // Parse clock-in and clock-out times
-      const clockInTime = schedule.clockInTime
-        ? moment(schedule.clockInTime, "HH:mm:ss")
-        : null;
-      const clockOutTime = schedule.clockOutTime
-        ? moment(schedule.clockOutTime, "HH:mm:ss")
-        : null;
-  
+  const handleWeekChange = (e) => {
+    setSelectedWeek(e.target.value);
+  };
+
+  const calculateWeeklyHours = useCallback((assignments) => {
+    let totalHours = 0;
+    let overtimeHours = 0;
+    const weeklyThreshold = 44;
+
+    assignments.forEach((assignment) => {
+      const clockInTime = assignment.clockInTime ? moment(assignment.clockInTime, "HH:mm:ss") : null;
+      const clockOutTime = assignment.clockOutTime ? moment(assignment.clockOutTime, "HH:mm:ss") : null;
+
       let actualHours = 0;
-  
-      // Calculate actual hours only if both times are valid
+
       if (clockInTime && clockOutTime) {
         if (clockOutTime.isBefore(clockInTime)) {
-          clockOutTime.add(1, 'days'); // Adjust for overnight shifts
+          clockOutTime.add(1, 'days');
         }
         actualHours = clockOutTime.diff(clockInTime, 'hours', true);
-        total += actualHours;
+        totalHours += actualHours;
+      } else {
+        console.warn('Missing clock times for assignment:', assignment);
       }
-  
-      // Parse scheduled start and end times
-      const startTime = moment(schedule.startTime, "HH:mm:ss");
-      const endTime = moment(schedule.endTime, "HH:mm:ss");
-  
-      // Adjust endTime if the shift goes past midnight
+
+      const startTime = moment(assignment.startTime, "HH:mm:ss");
+      const endTime = moment(assignment.endTime, "HH:mm:ss");
+
       if (endTime.isBefore(startTime)) {
         endTime.add(1, 'days');
       }
-  
+
       const scheduledHours = endTime.diff(startTime, 'hours', true);
-  
-      // Calculate overtime only if actual hours exceed scheduled hours
+
       if (actualHours > scheduledHours) {
-        overtime += actualHours - scheduledHours;
+        overtimeHours += actualHours - scheduledHours;
       }
     });
-  
-    // Set total and overtime hours (ensure no NaN values)
+
+    if (totalHours > weeklyThreshold) {
+      overtimeHours += totalHours - weeklyThreshold;
+    }
+
     return {
-      totalHours: total || 0,
-      overtime: overtime || 0,
+      totalHours: totalHours || 0,
+      overtimeHours: overtimeHours || 0,
     };
   }, []);
-  
+
   useEffect(() => {
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
       alert("You are not authorized to view this page.");
@@ -123,7 +138,7 @@ function WeeklyHours() {
     } else {
       fetchEmployees();
     }
-  }, [navigate, tokenObj]);
+  }, []);
 
   return (
     <div className="weekly-hours-container">
@@ -144,39 +159,40 @@ function WeeklyHours() {
       {selectedEmployee && (
         <div>
           <h3>Schedules for {selectedEmployee.fname} {selectedEmployee.lname}</h3>
+          <div className="select-week">
+            <label>Select Week:</label>
+            <select onChange={handleWeekChange} value={selectedWeek}>
+              {Object.keys(weeklySchedules).map((weekKey) => (
+                <option key={weekKey} value={weekKey}>
+                  {weekKey}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          {Object.entries(weeklySchedules).map(([key, schedules]) => {
-            const { totalHours, overtime } = calculateWeeklyHours(schedules);
-
-            return (
-              <div key={key} className="weekly-section">
-                <h4>{key}</h4>
-                <ul>
-                  {schedules.map((schedule) => (
-                    <li key={schedule.scheduleId}>
-                      {moment(schedule.shiftDate).format('DD-MM-YYYY')}: 
-                      {schedule.startTime} - {schedule.endTime}
-                      <div>
-                        <p>Clock In: {schedule.clockInTime || "Not clocked in"}</p>
-                        <p>Clock Out: {schedule.clockOutTime || "Not clocked out"}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <p>
-                  Total Hours: <span style={{ color: totalHours > 44 ? 'red' : 'black' }}>
-                    {totalHours.toFixed(2)}
-                  </span>
-                </p>
-                <p>
-                  Overtime: <span style={{ color: overtime > 0 ? 'red' : 'black' }}>
-                    {overtime.toFixed(2)}
-                  </span>
-                </p>
-                {totalHours > 44 && <p style={{ color: 'red' }}>Overtime limit exceeded!</p>}
-              </div>
-            );
-          })}
+          {selectedWeek && weeklySchedules[selectedWeek] && (
+            <div className="weekly-section">
+              <h4>{selectedWeek}</h4>
+              <ul>
+                {weeklySchedules[selectedWeek].map((schedule) => (
+                  <li key={schedule.assignmentId} className="task-entry">
+                    <h5>{moment(schedule.taskDate).format('DD-MM-YYYY')}</h5>
+                    <div className="schedule-details">
+                      <p>Scheduled: {schedule.startTime} - {schedule.endTime}</p>
+                      <p>Clock In: {schedule.clockInTime || "Not clocked in"}</p>
+                      <p>Clock Out: {schedule.clockOutTime || "Not clocked out"}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {calculateWeeklyHours(weeklySchedules[selectedWeek]) && (
+                <div>
+                  <p>Total Hours: {calculateWeeklyHours(weeklySchedules[selectedWeek]).totalHours.toFixed(2)}</p>
+                  <p>Overtime Hours: {calculateWeeklyHours(weeklySchedules[selectedWeek]).overtimeHours.toFixed(2)}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
