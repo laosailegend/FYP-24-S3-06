@@ -150,6 +150,7 @@ function App() {
                 <Link to="/timeoff">TimeOff(HR)</Link>
                 <Link to="/available">Availability(HR)</Link>
                 <Link to="/employees">View Employees(HR)</Link>
+                <Link to="/weeklyhours">Employee Tracker</Link>
               </>
             ) : (
               <></>
@@ -183,6 +184,7 @@ function App() {
             <Route path="/contact" element={<Contact />} /> {/* Add Contact route */}
             <Route path="/Tasks" element={<Tasks />} /> {/* Add Contact route */}
             <Route path="/Payroll" element={<Payroll />} /> {/* Add Payroll route */}
+            <Route path="/weeklyhours" element={<WeeklyHours />} /> {/* Add WeeklyHours route*/} 
             <Route path="/Availability" element={<Availability />} /> {/* EMPLOYEE */}
             <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
             <Route path="/TimeOffRequest" element={<TimeOffRequest />} /> {/* Add Request Time Off route */}
