@@ -64,6 +64,10 @@ const Admin = () => {
     const [logStatus, getLogStatus] = useState([]);
     const [logReferrer, getLogReferrer] = useState([]);
 
+    // download logs
+    const [downloadUrl, setDownloadUrl] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     const handleUserChange = (e) => {
         createUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
@@ -244,6 +248,17 @@ const Admin = () => {
         }
     }
 
+    const fetchDownloadUrl = async () => {
+        try {
+            const response = await fetch(`${server}logs/latest`);
+            const data = await response.json();
+            setDownloadUrl(data.downloadUrl);
+            console.log(downloadUrl);
+        } catch (error) {
+            console.error('Error fetching download URL:', error);
+        }
+    };
+
     useEffect(() => {
         // prevents non-admin users from viewing the page
         if (!tokenObj || tokenObj.role !== 1) {
@@ -268,8 +283,14 @@ const Admin = () => {
             await fetchLogsReferrer();
             await fetchCompany();
             await fetchIndustry();
+
+            // Fetch the latest log download URL
+            await fetchDownloadUrl(); // Insert the fetchDownloadUrl here
         };
         fetchData();
+        const intervalId = setInterval(fetchDownloadUrl, 30000); // Update every 30 seconds
+        // Clean up the interval when the component unmounts
+        return () => clearInterval(intervalId);
     }, [navigate, tokenObj]);
 
     // Fetch users based on company and role filters
@@ -639,6 +660,14 @@ const Admin = () => {
 
                             {/* <!-- Apply Filters Button --> */}
                             <button onClick={() => applyFilters()} className="filter-button">Apply Filters</button>
+
+                            {downloadUrl ? (
+                                <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+                                    Download Logs
+                                </a>
+                            ) : (
+                                <p>No logs available for download</p>
+                            )}
                         </div>
 
                         {/* <!-- Logs Table --> */}

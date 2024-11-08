@@ -109,7 +109,10 @@ function App() {
 
             {/* only manager can see */}
             {isLoggedIn && tokenObj.role === 2 ? (
-              <Link to="/Tasks">Tasks(Manager)</Link>
+              <>
+                <Link to="/Tasks">Tasks(Manager)</Link>
+                <Link to="/timeoff">TimeOff(HR)</Link>
+              </>
             ) : (
               <></>
             )}
@@ -129,7 +132,6 @@ function App() {
               <>
                 <Link to="/Payroll">Payroll(HR)</Link> {/* Add Payroll link */}
                 <Link to="/schedule">Create Schedule(HR)</Link> {/* Add Schedule link */}
-                <Link to="/timeoff">TimeOff(HR)</Link>
                 <Link to="/available">Availability(HR)</Link>
                 <Link to="/employees">View Employees(HR)</Link>
               </>
