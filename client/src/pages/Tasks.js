@@ -32,7 +32,7 @@ function Tasks() {
       return null;  // You can replace this with a loading indicator if you prefer
     }
     fetchTasks();
-  }, []);
+  }, [navigate, tokenObj]);
 
   useEffect(() => {
     console.log('Tasks state updated:', tasks);
