@@ -1,79 +1,169 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import '../style.css';
 
 function Payroll() {
-  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const tokenObj = localStorage.getItem("token")
+    ? JSON.parse(atob(localStorage.getItem("token").split('.')[1]))
+    : null;
   const navigate = useNavigate();
 
-  const [date, setDate] = useState(new Date());
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [workDays, setWorkDays] = useState([]);
-  const [shiftDetails, setShiftDetails] = useState({
-    start_time: '',
-    end_time: '',
-  });
+  const [schedules, setSchedules] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [totalHoursWorked, setTotalHoursWorked] = useState(0);
+  const [regularHours, setRegularHours] = useState(0);
+  const [weekendHours, setWeekendHours] = useState(0);
+  const [publicHolidayHours, setPublicHolidayHours] = useState(0);
+  const [overtimeHours, setOvertimeHours] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(moment().month());
 
-  // Sample employee data with hourly rates
-  const [employees] = useState([
-    { id: 1, name: 'Alice', hourly_rate: 20 },
-    { id: 2, name: 'Bob', hourly_rate: 25 },
-    { id: 3, name: 'Charlie', hourly_rate: 30 }
-  ]);
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch("http://localhost:8800/users");
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+      setEmployees(data.sort((a, b) => a.userid - b.userid));
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      alert("Failed to fetch employees. Please try again later.");
+    }
+  };
+
+  const fetchSchedules = async (employeeId) => {
+    const payPeriodStart = moment().startOf('month').format('YYYY-MM-DD');
+    const payPeriodEnd = moment().endOf('month').format('YYYY-MM-DD');
+
+    try {
+      const response = await fetch(
+        `http://localhost:8800/schedules?userid=${employeeId}&start=${payPeriodStart}&end=${payPeriodEnd}`
+      );
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+      setSchedules(data);
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+      alert("Failed to fetch schedules. Please try again later.");
+    }
+  };
 
   const handleEmployeeChange = (e) => {
     const employeeId = parseInt(e.target.value);
-    const employee = employees.find(emp => emp.id === employeeId);
+    const employee = employees.find((emp) => emp.userid === employeeId);
     setSelectedEmployee(employee);
+    setSchedules([]);
+    setTotalEarnings(0);
+    setTotalHoursWorked(0);
+    fetchSchedules(employeeId);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setShiftDetails({ ...shiftDetails, [name]: value });
+  const handleMonthChange = (e) => {
+    setSelectedMonth(parseInt(e.target.value));
   };
 
-  const handleDateSelect = () => {
-    if (!selectedEmployee || !shiftDetails.start_time || !shiftDetails.end_time) {
-      alert('Please fill out all fields and select an employee.');
-      return;
+  const handleOvertimeChange = (e) => {
+    setOvertimeHours(parseFloat(e.target.value));
+  };
+
+  const calculatePayroll = useCallback(() => {
+    if (!selectedEmployee) return;
+
+    let totalHours = 0;
+    let totalPay = 0;
+    let regular = 0;
+    let weekend = 0;
+    let publicHoliday = 0;
+
+    const filteredSchedules = schedules.filter(schedule =>
+      moment(schedule.shift_date).month() === selectedMonth
+    );
+
+    filteredSchedules.forEach((schedule) => {
+      const start = moment(schedule.start_time, "HH:mm:ss");
+      const end = moment(schedule.end_time, "HH:mm:ss");
+
+      if (end.isBefore(start)) end.add(1, 'days');
+
+      const hoursWorked = end.diff(start, "hours", true);
+
+      if (hoursWorked > 0) {
+        totalHours += hoursWorked;
+        let payRate = schedule.salary;
+
+        if (schedule.is_weekend) {
+          payRate *= 1.5;
+          weekend += hoursWorked;
+        } else if (schedule.is_public_holiday) {
+          payRate *= 2;
+          publicHoliday += hoursWorked;
+        } else {
+          regular += hoursWorked;
+        }
+
+        totalPay += hoursWorked * payRate;
+      }
+    });
+
+    const overtimePay = overtimeHours * 1.5 * filteredSchedules[0]?.salary || 0;
+
+    setTotalEarnings(totalPay + overtimePay);
+    setTotalHoursWorked(totalHours);
+    setRegularHours(regular);
+    setWeekendHours(weekend);
+    setPublicHolidayHours(publicHoliday);
+  }, [schedules, selectedEmployee, selectedMonth, overtimeHours]);
+
+  const recordPayroll = async () => {
+    if (!selectedEmployee) return;
+
+    const payPeriodStart = moment().month(selectedMonth).startOf('month').format('YYYY-MM-DD');
+    const payPeriodEnd = moment().month(selectedMonth).endOf('month').format('YYYY-MM-DD');
+
+    try {
+      const response = await fetch("http://localhost:8800/payroll", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userid: selectedEmployee.userid,
+          pay_period_start: payPeriodStart,
+          pay_period_end: payPeriodEnd,
+          total_hours_worked: totalHoursWorked,
+          regular_hours: regularHours,
+          weekend_hours: weekendHours,
+          public_holiday_hours: publicHolidayHours,
+          overtime_hours: overtimeHours,
+          total_earnings: totalEarnings,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to record payroll');
+      const result = await response.json();
+      alert(`Payroll recorded successfully! Payroll ID: ${result.payroll_id}`);
+    } catch (error) {
+      console.error('Error recording payroll:', error);
+      alert("Failed to record payroll. Please try again later.");
     }
-
-    const { start_time, end_time } = shiftDetails;
-    const start = moment(start_time, 'HH:mm');
-    const end = moment(end_time, 'HH:mm');
-    const hoursWorked = end.diff(start, 'hours', true); // Calculate hours worked
-
-    if (hoursWorked < 0) {
-      alert('End time must be after start time.');
-      return;
-    }
-
-    const workDay = {
-      date: moment(date).format('DD-MM-YYYY'),
-      hours: hoursWorked,
-      pay: hoursWorked * selectedEmployee.hourly_rate
-    };
-
-    setWorkDays([...workDays, workDay]);
-    setShiftDetails({ start_time: '', end_time: '' }); // Clear inputs
-  };
-
-  const calculateMonthlyTotal = () => {
-    const total = workDays.reduce((acc, workDay) => acc + workDay.pay, 0);
-    return total.toFixed(2);
   };
 
   useEffect(() => {
-    // prevents non-admin users from viewing the page
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
-      window.alert("You are not authorized to view this page");
+      alert("You are not authorized to view this page");
       navigate("/", { replace: true });
-      return () => { };
+    } else {
+      fetchEmployees();
     }
-  });
+  }, [navigate, tokenObj]);
+
+  useEffect(() => {
+    if (selectedEmployee) calculatePayroll();
+  }, [schedules, selectedEmployee, selectedMonth, calculatePayroll]);
+
+  const monthOptions = moment.months().map((month, index) => ({
+    value: index,
+    label: month,
+  }));
 
   return (
     <div className="calendar-payroll-container">
@@ -83,62 +173,45 @@ function Payroll() {
         <label>Select Employee:</label>
         <select onChange={handleEmployeeChange} defaultValue="">
           <option value="" disabled>Select an employee</option>
-          {employees.map(emp => (
-            <option key={emp.id} value={emp.id}>{emp.name}</option>
+          {employees.map((emp) => (
+            <option key={emp.userid} value={emp.userid}>
+              {emp.fname} {emp.lname}
+            </option>
           ))}
         </select>
       </div>
 
       {selectedEmployee && (
         <div>
-          <Calendar
-            onChange={setDate}
-            value={date}
-            minDetail="month"
-            formatDay={(locale, date) => moment(date).format('DD')}
-          />
+          <div className="month-selector">
+            <label>Select Month:</label>
+            <select onChange={handleMonthChange} value={selectedMonth}>
+              {monthOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <div className="shift-details">
-            <h3>Add Shift for {selectedEmployee.name}</h3>
+          <div className="overtime-input">
+            <label>Overtime Hours:</label>
+            <input
+              type="number"
+              value={overtimeHours}
+              onChange={handleOvertimeChange}
+              min="0"
+              step="0.1"
+            />
+          </div>
 
-            <div>
-              <label>Start Time:</label>
-              <input
-                type="time"
-                name="start_time"
-                value={shiftDetails.start_time}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div>
-              <label>End Time:</label>
-              <input
-                type="time"
-                name="end_time"
-                value={shiftDetails.end_time}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <button onClick={handleDateSelect}>Add Shift</button>
-
-            <div className="work-days-list">
-              <h3>Work Days</h3>
-              <ul>
-                {workDays.map((workDay, index) => (
-                  <li key={index}>
-                    Date: {workDay.date}, Hours Worked: {workDay.hours.toFixed(2)}, Pay: ${workDay.pay.toFixed(2)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="monthly-total">
-              <h3>Monthly Total: ${calculateMonthlyTotal()}</h3>
-            </div>
+          <div className="monthly-total">
+            <h3>Total Hours Worked: {totalHoursWorked.toFixed(2)}</h3>
+            <h3>Regular Hours: {regularHours.toFixed(2)}</h3>
+            <h3>Weekend Hours: {weekendHours.toFixed(2)}</h3>
+            <h3>Public Holiday Hours: {publicHolidayHours.toFixed(2)}</h3>
+            <h3>Total Earnings: ${totalEarnings.toFixed(2)}</h3>
+            <button onClick={recordPayroll}>Record Payroll</button>
           </div>
         </div>
       )}

@@ -60,13 +60,6 @@ class MySQLTransport extends Transport {
             try {
                 await this.logToDatabase(match);
 
-                // Check the status code to determine if it should be logged as an error
-                // const statusCode = parseInt(match[8], 10);
-                // if (statusCode >= 400) {
-                //     // Log to error transport if status code is an error
-                //     console.log("LOGGER ERROR: ", message);
-                //     // logger.error(message); // Log the original message as an error
-                // }
             } catch (error) {
                 console.error('Error logging to MySQL:', error);
 
@@ -118,7 +111,7 @@ class MySQLTransport extends Transport {
             ];
     
             // Log the clean log entry
-            console.log("log: ", logEntry);
+            // console.log("log: ", logEntry);
     
             // Execute the database insert
             db.execute(query, values, (err) => {
