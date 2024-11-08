@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+const server = process.env.REACT_APP_SERVER;
 
 const TimeOff = () => {
     const [requests, setRequests] = useState([]);
@@ -22,7 +23,7 @@ const TimeOff = () => {
 
         const fetchRequests = async () => {
             try {
-                const response = await axios.get('http://localhost:8800/timeoff');
+                const response = await axios.get(`${server}timeoff`);
                 setRequests(response.data);
             } catch (error) {
                 console.error('Error fetching requests:', error);
@@ -34,7 +35,7 @@ const TimeOff = () => {
 
     const handleStatusChange = async (request_Id, newStatus) => {
         try {
-            await axios.put(`http://localhost:8800/timeoff/${request_Id}`, { status: newStatus });
+            await axios.put(`${server}timeoff/${request_Id}`, { status: newStatus });
             // Remove the updated request from the list if it's no longer pending
             setRequests(requests.filter(request =>
                 request.request_id !== request_Id || newStatus === 'pending'

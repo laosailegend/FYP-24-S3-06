@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const server = process.env.REACT_APP_SERVER;
+
 const Home = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -10,7 +12,7 @@ const Home = () => {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post("http://localhost:8800/login", { email, password });
+            const response = await axios.post(`${server}login`, { email, password });
 
             // If login is successful, store the token and navigate to another page
             if (response.data.token) {

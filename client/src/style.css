@@ -839,26 +839,6 @@ button:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.perm-card {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  margin: 10px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  float: left;
-}
-
-.perms-list, .user-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.perm-card ul, .add-form ul, .user-card ul {
-  list-style: none;
-  padding: 0;
-}
-
 .add-form, .update-form {
   background-color: #fff;
   padding: 20px;

@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../style.css';; // Import your CSS for styling
 
+const server = process.env.REACT_APP_SERVER;
+
 const FeedbackList = () => {
     const [feedbacks, setFeedbacks] = useState([]);
 
     useEffect(() => {
         const fetchFeedback = async () => {
             try {
-                const response = await axios.get('http://localhost:8800/feedback');
+                const response = await axios.get(`${server}feedback`);
                 setFeedbacks(response.data);
             } catch (error) {
                 console.error('Error fetching feedback:', error);

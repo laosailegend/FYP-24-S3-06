@@ -14,7 +14,24 @@ const consoleLogFormat = format.combine(
     })
 );
 
-// const pool = mysql.createPool(db);
+// Function to format date to MySQL DATETIME format
+const formatDateToMySQL = (date) => {
+    const pad = (n) => n < 10 ? '0' + n : n;
+    return date.getFullYear() + '-' +
+        pad(date.getMonth() + 1) + '-' +
+        pad(date.getDate()) + ' ' +
+        pad(date.getHours()) + ':' +
+        pad(date.getMinutes()) + ':' +
+        pad(date.getSeconds());
+};
+
+// Custom timestamp format to convert to local time zone
+const localTimestamp = format((info) => {
+    const date = new Date();
+    info.timestamp = formatDateToMySQL(date);
+    return info;
+});
+
 const pool = mysql.createPool({
     ...db,
     waitForConnections: true,
@@ -25,11 +42,11 @@ const pool = mysql.createPool({
     acquireTimeout: 10000 // 10 seconds
 });
 
-// Function to clear logs older than 30 days
+// Function to clear logs from db older than 2 days
 async function clearOldLogs() {
     try {
         const connection = await pool.getConnection();
-        const deleteQuery = `DELETE FROM logs WHERE timestamp < NOW() - INTERVAL 30 DAY`;
+        const deleteQuery = `DELETE FROM logs WHERE timestamp < CONVERT_TZ(NOW(), '+00:00', '+08:00') - INTERVAL 2 DAY;`;
         const [result] = await connection.execute(deleteQuery);
         console.log(`Deleted ${result.affectedRows} old log entries.`);
         connection.release();
@@ -44,14 +61,15 @@ cron.schedule('0 0 * * *', () => {
     clearOldLogs();
 });
 
-
 // regex for logging
-const logRegex = /"level":"(info|error|warn)","message":"(([^'"]*)"|(HTTP REQUEST) 'ADDR':'([^']*)' 'USER':'([^']*)' 'REQ':'([^']*)' 'STATUS':'([^']*)' 'SIZE':'([^']*)' 'REF':'([^']*)' 'UA':'([^']*)'"),"timestamp":"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z)?"/gm;
+// const logRegex = /"level":"(info|error|warn)","message":"(([^'"]*)"|(HTTP REQUEST) 'ADDR':'([^']*)' 'USER':'([^']*)' 'REQ':'([^']*)' 'STATUS':'([^']*)' 'SIZE':'([^']*)' 'REF':'([^']*)' 'UA':'([^']*)'"),"timestamp":"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z)?"/gm;
+const logRegex = /"level":"(info|error|warn)","message":"(([^'"]*)"|(HTTP REQUEST) 'ADDR':'([^']*)' 'USER':'([^']*)' 'REQ':'([^']*)' 'STATUS':'([^']*)' 'SIZE':'([^']*)' 'REF':'([^']*)' 'UA':'([^']*)'"),"timestamp":"(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})?"/gm;
 
 // Custom transport for logging to MySQL
 class MySQLTransport extends Transport {
     async log(info, callback) {
         const message = info[Symbol.for('message')]; // Using Symbol to access the message
+        // console.log("message: ", message);  
         logRegex.lastIndex = 0; // Reset regex lastIndex
 
         let match = logRegex.exec(message); // Try to match the log format
@@ -94,7 +112,8 @@ class MySQLTransport extends Transport {
                 message: match[3], // This is also already a string
                 timestamp: match[12],
             };
-    
+            
+
             // Create the query and values based on whether we have a complete log entry or not
             const query = match[4] ? 
                 `INSERT INTO logs (level, message, address, user, request, status, size, referrer, user_agent, timestamp)
@@ -116,6 +135,7 @@ class MySQLTransport extends Transport {
             // Execute the database insert
             db.execute(query, values, (err) => {
                 if (err) {
+                    console.log("err: ", err);
                     return reject(err);
                 }
                 resolve();
@@ -125,11 +145,10 @@ class MySQLTransport extends Transport {
     
 }
 
-
 // Create a Winston logger
 const logger = createLogger({
     level: "info",
-    format: combine(timestamp(), json()), // Log in JSON format for files
+    format: combine(localTimestamp(), json()), // Log in JSON format for files
     transports: [
         new transports.Console({
             format: consoleLogFormat, // Colorized console output
