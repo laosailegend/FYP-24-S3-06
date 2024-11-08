@@ -26,6 +26,7 @@ import Project from './pages/Project';
 import Shiftswapping from './pages/Shiftswapping';
 import Leave from './pages/Leave';
 import ViewPayroll from './pages/ViewPayroll';
+import WeeklyHours from './pages/WeeklyHours';
 
 import { AuthContext } from './auth/AuthContext';
 
