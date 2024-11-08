@@ -2,11 +2,16 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const multer = require('multer');
 const morgan = require('morgan');
-const logger = require('./utils/logger');
+//const logger = require('./utils/logger');
 const jwt = require('jsonwebtoken');
 
 const app = express();
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const upload = multer({ dest: 'uploads/' });
 
 // parse every request as json and urlencoded data
 app.use(express.json());
@@ -111,22 +116,29 @@ app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);
-app.get("/timeoff", HRController.getTimeoffRequests);
-app.put("/timeoff/:request_id", HRController.updateTimeoffStatus);
-app.get("/available", HRController.getAvailStatus);
-app.post("/available", HRController.createAvailabilityForm);
-app.delete("/available/:id", HRController.deleteAvailabilityForm);
-app.get("/getAvailable", HRController.getAvailable);
+//app.get("/timeoff", HRController.getTimeoffRequests);
+//app.put("/timeoff/:request_id", HRController.updateTimeoffStatus);
+//app.get("/available", HRController.getAvailStatus);
+//app.post("/available", HRController.createAvailabilityForm);
+//app.delete("/available/:id", HRController.deleteAvailabilityForm);
+//app.get("/getAvailable", HRController.getAvailable);
 app.post("/payroll", HRController.createPayroll);
-//app.get("/user/schedules/:userId", HRController.getUserSchedule);
-// app.post("/training", HRController.createTrainingSession);
-// app.get("/getTraining", HRController.getTrainingSessions);
-// app.put("/updateTraining/:session_id", HRController.updateTrainingSession);
-// app.delete("/deleteTraining/:id", HRController.deleteTraining);
-// app.get("/getSkills", HRController.getSkills);
-// app.post("/postTraining/:userid/:session_id", HRController.postTraining);
-// app.get("/getAllSessions", HRController.getAllSessions);
-// app.get("/feedback", HRController.getFeedback);
+app.get("/positions/:posid", HRController.getPosition);
+app.get("/clockTimes/:userid", HRController.getclockTime);
+app.get("/calculatePayroll/:userid", HRController.calculatePayroll);
+app.get("/user/assignments/:userid", HRController.getUserAssignment);
+app.post("/training", HRController.createTrainingSession);
+app.get("/getTraining", HRController.getTrainingSessions);
+app.put("/updateTraining/:session_id", HRController.updateTrainingSession);
+app.delete("/deleteTraining/:id", HRController.deleteTraining);
+app.get("/getSkills", HRController.getSkills);
+app.post("/postTraining/:interest_id", HRController.postTraining);
+app.get("/getAllSessions", HRController.getAllSessions);
+app.get("/feedback", HRController.getFeedback);
+app.get('/shiftSwapRequests/pending', HRController.getPendingShiftSwapRequests);
+app.post('/shiftSwapRequests/handle', HRController.handleShiftSwapRequest);
+app.get('/payrollQueries/view', HRController.getPayrollQueries);
+app.put('/payrollQueries/respond/:query_id', upload.single('receipt'),HRController.updatePayrollQueries);
 
 // define routes for managerController
 app.get("/managerGetUsers", managerController.managerGetUsers);
