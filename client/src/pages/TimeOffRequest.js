@@ -9,6 +9,7 @@ import '../style.css';
 function TimeOffRequest() {
   const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
   const navigate = useNavigate();
+  const server=process.env.REACT_APP_SERVER;
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
@@ -29,30 +30,29 @@ function TimeOffRequest() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Dummy user ID
-    const userid = tokenObj.id; // Replace with actual userid if needed
+    const userid = tokenObj.id;
 
     const formattedStartDate = moment(startDate).format('YYYY-MM-DD');
     const formattedEndDate = moment(endDate).format('YYYY-MM-DD');
     const reasonText = reason.trim();
-    const requestDate = moment().format('YYYY-MM-DD'); // Current date for request_date
+    const requestDate = moment().format('YYYY-MM-DD');
 
-    fetch('http://localhost:8800/requestLeave', {
+    fetch(`${server}requestLeave`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userid, // Dummy userid
-        request_date: requestDate, // Current date
+        userid,
+        request_date: requestDate,
         start_date: formattedStartDate,
         end_date: formattedEndDate,
-        reason: reasonText
+        reason: reasonText,
       }),
     })
       .then((res) => res.json())
       .then(() => {
         alert('Time off request submitted successfully');
+        setReason('');
+        fetchLeave(); // Refresh the request list after submission
       })
       .catch((err) => {
         console.error('Error:', err);
@@ -60,31 +60,37 @@ function TimeOffRequest() {
       });
   };
 
-  // Convert date to dd/mm/yyyy format for display
+  const handleDelete = async (requestId) => {
+    try {
+      await axios.delete(`${server}deleteRequestLeave/${requestId}`);
+      alert('Request deleted successfully');
+      setRequests(requests.filter((request) => request.request_id !== requestId)); // Update the UI
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      alert('Failed to delete request');
+    }
+  };
+
   const formatDate = (date) => moment(date).format('DD/MM/YYYY');
+
+  const fetchLeave = async () => {
+    try {
+      const res = await axios.get(`${server}getRequestLeave/${tokenObj.id}`);
+      setRequests(res.data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   useEffect(() => {
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 3)) {
       window.alert("You are not authorized to view this page");
       navigate("/", { replace: true });
-      return () => { }
+      return () => {};
     }
-
-    if (tokenObj === null) {
-      return null;
-    }
-
-    const fetchLeave = async () => {
-      try {
-        const res = await axios.get(`http://localhost:8800/getRequestLeave/${tokenObj.id}`);
-        setRequests(res.data);
-      } catch (e) {
-        console.log(e);
-      }
-    };
 
     fetchLeave();
-  });
+  }, []);
 
   return (
     <div className="time-off-request-container">
@@ -104,21 +110,11 @@ function TimeOffRequest() {
       <form onSubmit={handleSubmit}>
         <div>
           <label>Start Date:</label>
-          <input
-            type="text"
-            value={formatDate(startDate)}
-            readOnly
-            placeholder="dd/mm/yyyy"
-          />
+          <input type="text" value={formatDate(startDate)} readOnly placeholder="dd/mm/yyyy" />
         </div>
         <div>
           <label>End Date:</label>
-          <input
-            type="text"
-            value={formatDate(endDate)}
-            readOnly
-            placeholder="dd/mm/yyyy"
-          />
+          <input type="text" value={formatDate(endDate)} readOnly placeholder="dd/mm/yyyy" />
         </div>
         <div>
           <label>Reason:</label>
@@ -134,13 +130,21 @@ function TimeOffRequest() {
       </form>
 
       <div className="request-history">
-        <h3>Request History</h3>
+        <h3>Your Request History</h3>
         <ul>
-          {requests.map((request, index) => (
-            <li key={index}>
-              From: {moment(request.start_date).format('DD/MM/YYYY')} - To: {moment(request.end_date).format('DD/MM/YYYY')} - Reason: {request.reason} - Status: {request.status}
-            </li>
-          ))}
+          {requests.length > 0 ? (
+            requests.map((request) => (
+              <li key={request.request_id}>
+                From: {formatDate(request.start_date)} - To: {formatDate(request.end_date)} - 
+                Reason: {request.reason} - Status: {request.status} 
+                <button onClick={() => handleDelete(request.request_id)} className="delete-button">
+                  Delete
+                </button>
+              </li>
+            ))
+          ) : (
+            <p>No requests found.</p>
+          )}
         </ul>
       </div>
     </div>

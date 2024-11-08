@@ -1,5 +1,8 @@
 const db = require('../dbConfig');
 // const logger = require('../utils/logger');
+const { generatePreSignedUrl } = require('../utils/s3-utils');
+const { listLogFiles } = require('../utils/uploadFiles');
+const bucket = process.env.AWS_S3_BUCKET;
 
 // get logs
 exports.getLogs = (req, res) => {
@@ -142,16 +145,6 @@ exports.getLogsReferrers = (req, res) => {
     })
 }
 
-// select distinct user_agent from the logs
-// exports.getLogsUA = (req, res) => {
-//     const q = "SELECT DISTINCT user_agent FROM logs WHERE user_agent IS NOT NULL";
-//     db.query(q, (err, data ) => {
-//         if (err) return res.json(err);
-
-//         return res.json(data);
-//     })
-// }
-
 // get logs by timestamp but use a date range
 exports.getLogsTimestamp = (req, res) => {
     const start = req.query.start;
@@ -164,3 +157,31 @@ exports.getLogsTimestamp = (req, res) => {
         return res.json(data);
     })
 };
+
+exports.getLatestLogs = async (req, res) => {
+    try {
+        // List all log files in the 'logs/' directory of your bucket
+        const logs = await listLogFiles(bucket);
+
+        if (logs.length === 0) {
+            return res.status(404).json({ error: 'No log files found' });
+        }
+
+        // Find the most recent log file by sorting the logs by LastModified
+        const latestLog = logs.reduce((latest, log) => {
+            return (new Date(log.LastModified) > new Date(latest.LastModified)) ? log : latest;
+        });
+
+        const fileKey = latestLog.Key;  // Use the key of the most recent log
+
+        // Generate pre-signed URL for the most recent log file
+        const url = await generatePreSignedUrl(bucket, fileKey);
+        
+        res.json({ downloadUrl: url });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Error generating download URL' });
+    }
+};
+
+
