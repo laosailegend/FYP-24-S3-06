@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
-import { AuthContext } from '../auth/AuthContext';
-
 
 // EMPLOYEE
 function Availability() {
@@ -21,8 +19,7 @@ function Availability() {
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 3)) {
       window.alert("You are not authorized to view this page");
       navigate("/", { replace: true });
-      return () => {
-      }
+      return () => {};
     }
 
     if (tokenObj === null) {
@@ -30,16 +27,7 @@ function Availability() {
     }
 
     // Fetch availability data from the backend
-    fetch('http://localhost:8800/getAvailable')  // Make sure to use the correct port number
-      .then((res) => res.json())
-      .then((data) => {
-        console.log('Fetched availability:', data);
-        setAvailabilityList(data); // Set availability list
-        filterAvailability(data, date); // Filter availability for initial selected date
-      })
-      .catch((err) => {
-        console.error('Error fetching availability data:', err);
-      });
+    fetchAvailability();
 
     // Fetch tasks data
     fetch('http://localhost:8800/tasks')  // Adjust the URL if necessary
@@ -52,6 +40,20 @@ function Availability() {
         console.error('Error fetching tasks:', err);
       });
   }, []);
+
+  // Fetch availability data from the backend
+  const fetchAvailability = () => {
+    fetch('http://localhost:8800/getAvailable')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Fetched availability:', data);
+        setAvailabilityList(data); // Set availability list
+        filterAvailability(data, date); // Filter availability for the selected date
+      })
+      .catch((err) => {
+        console.error('Error fetching availability data:', err);
+      });
+  };
 
   // Filter availability when a new date is selected
   const onChange = (newDate) => {
@@ -78,27 +80,26 @@ function Availability() {
 
   // Handle status change
   const handleStatusChange = (availability_id, newStatus) => {
-    fetch(`http://localhost:8800/updateAvailability/${availability_id}`,{
+    const userid = tokenObj.id; // Get the user ID from the token
+  
+    fetch(`http://localhost:8800/updateAvailability/${availability_id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ availability_id, status: newStatus }),
+      body: JSON.stringify({
+        status: newStatus,
+        userid, // Pass the userid along with the status update
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
         console.log(data.message);
-        // Update the availability list locally
-        setFilteredAvailability((prevList) =>
-          prevList.map((item) =>
-            item.availability_id === availability_id
-              ? { ...item, status: newStatus }
-              : item
-          )
-        );
+        // Re-fetch the availability list after updating status
+        fetchAvailability();
       })
       .catch((err) => {
-        console.error('Error updating availability status:', err);
+        console.error('Error updating availability status and userid:', err);
       });
   };
 
