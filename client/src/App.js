@@ -12,6 +12,7 @@ import Pricing from './pages/Pricing'; // Import the Pricing component
 import Schedule from './pages/Schedule'; // Import the Schedule component
 import scheduleImage from './images/Schedule.png'; // Schedule Image
 import Admin from './pages/Admin'; // Import the Admin component
+import CompAdmin from './pages/CompAdmin';
 import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
 import TimeOff from './pages/TimeOff';
 import AvailabilityForm from './pages/AvailabilityForm';
@@ -192,6 +193,7 @@ function App() {
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path='/compAdmin' element={<CompAdmin />} />
             <Route path='/update/:id' element={<UpdateUser />} />
             <Route path="/ClockInOut" element={<ClockInOut />} />
             <Route path="/Skill" element={<Skill />} />
