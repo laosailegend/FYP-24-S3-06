@@ -17,7 +17,9 @@ const CompAdmin = () => {
     const [typingTimeout, setTypingTimeout] = useState(null);
     const [roleFilter, setRoleFilter] = useState("");
 
+    // init usestates for fetching data
     const [roles, setRoles] = useState([]);
+    const [positions, setPositions] = useState([]);
     const [users, getUsers] = useState([]);
     const [user, createUser] = useState({
         roleid: null,
@@ -27,11 +29,11 @@ const CompAdmin = () => {
         contact: "",
         email: "",
         compid: tokenObj ? tokenObj.company : null,
+        posid: null,
     });
 
     const handleUserChange = (e) => {
         createUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-        console.log(user);
     };
 
     const handleUserDelete = async (id) => {
@@ -44,9 +46,10 @@ const CompAdmin = () => {
     };
 
     const validateForm = () => {
-        const fields = ['roleid', 'nric', 'fname', 'lname', 'contact', 'email', 'password'];
+        const fields = ['roleid', 'posid', 'nric', 'fname', 'lname', 'contact', 'email', 'password'];
         for (const field of fields) {
             if (!user[field]) {
+                window.alert(`Please fill in ${field}`);
                 return false;
             }
         }
@@ -55,6 +58,11 @@ const CompAdmin = () => {
 
     const handleClick = async (e) => {
         e.preventDefault();
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!passwordPattern.test(user.password) && user.password !== "") {
+            window.alert("Password must be at least 8 characters long and contain both letters and numbers.");
+            return;
+        }
         if (validateForm()) {
             try {
                 await axios.post(`${server}createUser`, user);
@@ -77,17 +85,29 @@ const CompAdmin = () => {
         }
     };
 
-    const fetchCompUsers = async () => {
+    const fetchPositions = async () => {
         try {
-            const res = await axios.get(`${server}compUsers`);
+            const res = await axios.get(`${server}positions`);
+            setPositions(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    const fetchCompUsers = async (filters = {}) => {
+        try {
+            const queryString = new URLSearchParams(filters).toString();
+            const res = await axios.get(`${server}searchCompUser?${queryString}`);
+            // const res = await axios.get(`${server}compUsers`);
             getUsers(res.data);
         } catch (e) {
             console.log(e);
         }
     };
 
+    // console.log(user)
     useEffect(() => {
-        if (!tokenObj || tokenObj.role !== 1) {
+        if (!tokenObj || (tokenObj.role !== 5 && tokenObj.role !== 1)) {
             window.alert("You are not authorized to view this page");
             navigate("/", { replace: true });
             return () => { };
@@ -100,11 +120,25 @@ const CompAdmin = () => {
         const fetchData = async () => {
             await fetchCompUsers();
             await fetchRoles();
+            await fetchPositions();
         };
 
         fetchData();
 
     }, [navigate, tokenObj]);
+
+    useEffect(() => {
+        const filters = {
+            ...(search.trim() && { search: search.trim() }),
+            ...(roleFilter && { role: roleFilter }),
+        };
+
+        // Debounce search functionality
+        if (typingTimeout) clearTimeout(typingTimeout);
+        const timeoutId = setTimeout(() => fetchCompUsers(filters), 120);
+        setTypingTimeout(timeoutId);
+
+    }, [search, roleFilter]);
 
     return (
         <>
@@ -117,6 +151,12 @@ const CompAdmin = () => {
                         <option disabled value="">Select role</option>
                         {roles.filter(role => role.roleid !== 1).map(role => (
                             <option key={role.roleid} value={role.roleid}>{role.role}</option>
+                        ))}
+                    </select>
+                    <select name="posid" onChange={handleUserChange} defaultValue="" required>
+                        <option disabled value="">Select position</option>
+                        {positions.map(pos => (
+                            <option key={pos.posid} value={pos.posid}>{pos.position}</option>
                         ))}
                     </select>
                     <br />
@@ -137,7 +177,7 @@ const CompAdmin = () => {
                             <input type="email" placeholder="email" onChange={handleUserChange} name='email' required />
                         </li>
                         <li>
-                            <input type="password" placeholder="password" onChange={handleUserChange} name='password' required />
+                            <input type="password" placeholder="password" onChange={handleUserChange} name='password' required/>
                         </li>
                     </ul>
 
@@ -147,15 +187,40 @@ const CompAdmin = () => {
             <div className="">
                 <h1>User List</h1>
                 <div className="user-list">
+                    <div className="filter-container">
+                        {/* filters by company, role*/}
+                        <div className="filter-item">
+                            <label htmlFor="search">Search Users:</label>
+                            <input
+                                type="text"
+                                id="search-user"
+                                placeholder="Search users..."
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="filter-item">
+                            <label htmlFor="filterRole">Filter by Role:</label>
+                            <select id="filterRole" onChange={(e) => setRoleFilter(e.target.value)}>
+                                <option value="">All Roles</option>
+                                {roles.map((role) => (
+                                    <option key={role.roleid} value={role.roleid}>
+                                        {role.role}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                     <table className="user-table">
                         <thead>
                             <tr>
                                 <th>User ID</th>
+                                <th>NRIC</th>
                                 <th>First Name</th>
                                 <th>Last Name</th>
                                 <th>Company</th>
                                 <th>Role</th>
-                                <th>NRIC</th>
+                                <th>Position</th>
                                 <th>Email</th>
                                 <th>Contact</th>
                                 <th>Password</th>
@@ -166,11 +231,12 @@ const CompAdmin = () => {
                             {users.map(user => (
                                 <tr key={user.userid}>
                                     <td>{user.userid}</td>
+                                    <td>{user.nric}</td>
                                     <td>{user.fname}</td>
                                     <td>{user.lname}</td>
                                     <td>{user.company}</td>
                                     <td>{user.role}</td>
-                                    <td>{user.nric}</td>
+                                    <td>{user.position}</td>
                                     <td>{user.email}</td>
                                     <td>{user.contact}</td>
                                     <td>{user.password}</td>

@@ -12,6 +12,7 @@ import Pricing from './pages/Pricing'; // Import the Pricing component
 import Schedule from './pages/Schedule'; // Import the Schedule component
 import scheduleImage from './images/Schedule.png'; // Schedule Image
 import Admin from './pages/Admin'; // Import the Admin component
+import CompAdmin from './pages/CompAdmin';
 import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
 import TimeOff from './pages/TimeOff';
 import AvailabilityForm from './pages/AvailabilityForm';
@@ -23,6 +24,15 @@ import FeedbackList from './pages/FeedbackList';
 import ReviewShiftSwapping from './pages/ReviewShiftSwapping';
 import PayrollQueriesPage from './pages/PayrollQueriesPage';
 import Profile from './pages/Profile';
+import ClockInOut from './pages/ClockInOut';
+import Skill from './pages/Skill';
+import TrainingSession from './pages/TrainingSession';
+import Feedback from './pages/Feedback';
+import Project from './pages/Project';
+import Shiftswapping from './pages/Shiftswapping';
+import Leave from './pages/Leave';
+import ViewPayroll from './pages/ViewPayroll';
+import WeeklyHours from './pages/WeeklyHours';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -115,7 +125,10 @@ function App() {
 
             {/* only manager can see */}
             {isLoggedIn && tokenObj.role === 2 ? (
-              <Link to="/Tasks">Tasks(Manager)</Link>
+              <>
+                <Link to="/Tasks">Tasks(Manager)</Link>
+                <Link to="/timeoff">TimeOff(HR)</Link>
+              </>
             ) : (
               <></>
             )}
@@ -123,8 +136,17 @@ function App() {
             {/* only employee can see */}
             {isLoggedIn && tokenObj.role === 3 ? (
               <>
-                <Link to="/Availability">Availability(Employee)</Link>
-                <Link to="/TimeOffRequest">Request Time Off(Employee)</Link>
+                <Link to="/Project">Project</Link>
+                {/*<Link to="/Availability">Availability(Employee)</Link>*/}
+                <Link to="/ClockInOut">Clock In/Clock Out</Link>
+                <Link to="/Shiftswapping">Shift Swapping</Link>
+                <Link to="/Skill">Skill</Link>
+                <Link to="/TrainingSession">Training session</Link>
+                <Link to="/TimeOffRequest">Request Time Off</Link>
+                <Link to="/Leave">Leave Balance</Link>
+                <Link to="/ViewPayroll">Payroll</Link>
+                <Link to="/Feedback">Feedback</Link>
+                
               </>
             ) : (
               <></>
@@ -146,7 +168,7 @@ function App() {
               <></>
             )}
 
-            {/* only HR can see */}
+            {/* only compadmin can see */}
             {isLoggedIn && tokenObj.role === 5 ? (
               <>
                 <Link to="/compAdmin">Company Menu</Link>
@@ -191,8 +213,17 @@ function App() {
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path='/update/:id' element={<UpdateUser />} />
             <Route path='/compAdmin' element={<CompAdmin />} />
+            <Route path='/update/:id' element={<UpdateUser />} />
+            <Route path="/ClockInOut" element={<ClockInOut />} />
+            <Route path="/Skill" element={<Skill />} />
+            <Route path="/TrainingSession" element={<TrainingSession />} />
+            <Route path="/Feedback" element={<Feedback />} />
+            <Route path="/Project" element={<Project />} />
+            <Route path="/Shiftswapping" element={<Shiftswapping />} />
+            <Route path="/ViewPayroll" element={<ViewPayroll />} />
+            <Route path="/Leave" element={<Leave />} />
+            
           </Routes>
         </main>
       </div>

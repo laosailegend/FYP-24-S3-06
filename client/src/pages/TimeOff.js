@@ -2,15 +2,19 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+
 const TimeOff = () => {
     const [requests, setRequests] = useState([]);
 
-    const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+    const [tokenObj, setTokenObj] = useState(() => {
+        const token = localStorage.getItem("token");
+        return token ? JSON.parse(atob(token.split('.')[1])) : null;
+    });
     const navigate = useNavigate();
 
     useEffect(() => {
         // prevents non-admin users from viewing the page
-        if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
+        if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
             window.alert("You are not authorized to view this page");
             navigate("/", { replace: true });
             return () => { };

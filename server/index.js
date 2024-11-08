@@ -7,6 +7,9 @@ const multer = require('multer');
 const morgan = require('morgan');
 //const logger = require('./utils/logger');
 const jwt = require('jsonwebtoken');
+const aws = require('aws-sdk');
+const fs = require('fs');
+const cron = require('node-cron');
 
 const app = express();
 
@@ -19,6 +22,21 @@ app.use(express.urlencoded({ extended: true }));
 
 // enable cors
 app.use(cors());
+
+// AWS SDK configuration
+const accessKey = process.env.AWS_ACCESS_KEY_ID;
+const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
+const region = process.env.AWS_REGION;
+const bucket = process.env.AWS_S3_BUCKET;
+
+aws.config.update({
+    accessKeyId: accessKey,
+    secretAccessKey: secretKey,
+    region: region
+});
+
+const s3 = new aws.S3();
+
 
 // import controllers
 const logController = require('./controller/logController');
@@ -70,9 +88,9 @@ app.get("/logsIP", logController.getLogsIPs);
 app.get("/logsUser", logController.getLogsUsers);
 app.get("/logsRequest", logController.getLogsRequest);
 app.get("/logsStatus", logController.getLogsStatus);
-// make frontend for below later
 app.get("/logsReferrer", logController.getLogsReferrers);
 app.get("/logsTimestamp", logController.getLogsTimestamp);
+app.get("/logs/latest", logController.getLatestLogs);
 
 // define routes for adminController
 app.post("/login", adminController.login);
@@ -80,20 +98,17 @@ app.post("/createUser", adminController.createUser);
 app.get("/users", adminController.getUsers);
 app.get("/roles", adminController.getRoles);
 app.put("/user/:id", adminController.updateUser);
-app.delete("/user/:id", adminController.deleteUser);
-app.post("/createPerms", adminController.createPerms);
-app.get("/permissions", adminController.getPerms);
-app.put("/updatePerms/:id", adminController.updatePerms);
-app.delete("/deletePerms/:id", adminController.deletePerms);
 app.get("/profile/:id", adminController.getProfile);
-app.put("/profile/:id", adminController.updateProfile);
+app.put("/profile", adminController.updateProfile);
 app.get("/searchUser", adminController.searchUser);
 
 // define routes for companyController
 app.get("/company", companyController.getCompany);
 app.get("/compUsers", companyController.getCompUsers);
+app.get("/searchCompUser", companyController.searchCompUser);
 app.get("/industry", companyController.getIndustry);
 app.post("/addCompany", companyController.addCompany);
+app.get("/positions", companyController.getPositions);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);
@@ -101,18 +116,27 @@ app.get("/employeeGetUser", employeeController.employeeGetUser);
 app.post("/requestLeave", employeeController.requestLeave);
 app.get("/getRequestLeave/:id", employeeController.getRequestLeaveByID);
 app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
-//app.get("/schedules/:userid",employeeController.getScheduleId);
-//app.post("/clock-in", employeeController.clockIn);
-//app.post("/clock-out", employeeController.clockOut);
-//app.get("/clock-times/:user_id/:schedule_id", employeeController.getClockTimes);
-//app.post("/submit-skills", employeeController.submitSkill);
-//app.get('/userSkills/:user_id', employeeController.userSkill);
-// app.get('/trainingSessions', employeeController.getAllTrainingSessions);
-// app.post('/expressInterest', employeeController.expressInterest);
-// app.get('/trainingSessions/interest/:userId',employeeController.retriveUserInterest);
-// app.delete('/deleteRequestLeave/:id',employeeController.deleteRequestLeave);
-// app.post('/submitFeedback',employeeController.submitFeedback);
-// app.get('/getFeedback/:userId',employeeController.getFeedback);
+app.get("/assignments/:userid",employeeController.getAssignmentId);
+app.post("/clock-in", employeeController.clockIn);
+app.post("/clock-out", employeeController.clockOut);
+app.get("/clock-times/:user_id/:assignment_id", employeeController.getClockTimes);
+app.put('/update-clock-time',employeeController.updatedClocktime);
+app.post("/submitSkill/:userid", employeeController.submitSkill);
+//app.get('/getUserSkills/:userid', employeeController.userSkill);
+app.get('/trainingSessions', employeeController.getAllTrainingSessions);
+app.post('/expressInterest', employeeController.expressInterest);
+app.get('/trainingSessions/interest/:userId',employeeController.retriveUserInterest);
+app.delete('/deleteRequestLeave/:id',employeeController.deleteRequestLeave);
+app.post('/submitFeedback',employeeController.submitFeedback);
+app.get('/getFeedback/:userId',employeeController.getFeedback);
+app.get('/tasks',employeeController.getTask);
+app.get('/assignments/user/:userId',employeeController.getUserAssignments);
+app.get('/assignments/other/:userId',employeeController.getOtherUsersAssignments);
+app.post('/shiftSwapRequests',employeeController.submitSwapRequest);
+app.get('/users/:userId/leave_balance',employeeController.getUserLeaveBalance);
+app.get('/payrolls/user/:userId',employeeController.getUserPayrolls);
+app.post('/payrollQueries',employeeController.submitPayrollQuery);
+app.get('/payrollQueries/user/:userId',employeeController.getPayrollQueries);
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);
@@ -161,4 +185,5 @@ app.get("/", (req, res) => {
     res.send("Homepage");
 })
 
-app.listen(8800, console.log("server started on port 8800"));
+const PORT = process.env.PORT || 8800;
+app.listen(PORT, console.log(`server started on port ${PORT}`));
