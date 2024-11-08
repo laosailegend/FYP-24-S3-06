@@ -132,14 +132,13 @@ const ViewPayroll = () => {
 ) : (
   <ul>
     {queries.map(query => (
-      query.status !== 'Resolved' && (  // Only render the query if status is not 'Resolved'
+        // Only render the query if status is not 'Resolved'
         <li key={query.query_id}>
           <p><strong>Date:</strong> {new Date(query.query_date).toLocaleDateString('en-US')}</p>
           <p><strong>Description:</strong> {query.description}</p>
           <p><strong>Status:</strong> {query.status}</p>
           {query.response && <p><strong>Response:</strong> {query.response}</p>}
         </li>
-      )
     ))}
   </ul>
 )}
