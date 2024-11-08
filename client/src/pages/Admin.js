@@ -4,6 +4,11 @@ import axios from 'axios';
 const server = process.env.REACT_APP_SERVER;
 
 const Admin = () => {
+    const [tokenObj, setTokenObj] = useState(() => {
+        const token = localStorage.getItem("token");
+        return token ? JSON.parse(atob(token.split('.')[1])) : null;
+    });
+
     // console.log(server);
     const [selectedMenu, setSelectedMenu] = useState('users'); // Default to 'permissions'
 
@@ -17,11 +22,6 @@ const Admin = () => {
     const handleMenuChange = (menu) => {
         setSelectedMenu(menu);
     };
-
-    const [tokenObj, setTokenObj] = useState(() => {
-        const token = localStorage.getItem("token");
-        return token ? JSON.parse(atob(token.split('.')[1])) : null;
-    });
     // console.log(tokenObj);
     const navigate = useNavigate();
 
@@ -30,6 +30,7 @@ const Admin = () => {
     const [company, setCompany] = useState([]);
     const [industry, setIndustry] = useState([]);
 
+    // init company usestate
     const [newCompany, addCompany] = useState({
         company: "",
         address: "",
@@ -52,7 +53,7 @@ const Admin = () => {
         lname: "",
         contact: "",
         email: "",
-        compid: null
+        compid: null,
     })
 
     // get logs from db, and other log related functions for filtering
@@ -62,6 +63,10 @@ const Admin = () => {
     const [logUser, getLogUser] = useState([]);
     const [logStatus, getLogStatus] = useState([]);
     const [logReferrer, getLogReferrer] = useState([]);
+
+    // download logs
+    const [downloadUrl, setDownloadUrl] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const handleUserChange = (e) => {
         createUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -95,6 +100,11 @@ const Admin = () => {
 
     const handleClick = async (e) => {
         e.preventDefault();
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!passwordPattern.test(user.password) && user.password !== "") {
+            window.alert("Password must be at least 8 characters long and contain both letters and numbers.");
+            return;
+        }
         if (validateForm()) {
             try {
                 await axios.post(`${server}createUser`, user);
@@ -238,6 +248,17 @@ const Admin = () => {
         }
     }
 
+    const fetchDownloadUrl = async () => {
+        try {
+            const response = await fetch(`${server}logs/latest`);
+            const data = await response.json();
+            setDownloadUrl(data.downloadUrl);
+            console.log(downloadUrl);
+        } catch (error) {
+            console.error('Error fetching download URL:', error);
+        }
+    };
+
     useEffect(() => {
         // prevents non-admin users from viewing the page
         if (!tokenObj || tokenObj.role !== 1) {
@@ -262,8 +283,14 @@ const Admin = () => {
             await fetchLogsReferrer();
             await fetchCompany();
             await fetchIndustry();
+
+            // Fetch the latest log download URL
+            await fetchDownloadUrl(); // Insert the fetchDownloadUrl here
         };
         fetchData();
+        const intervalId = setInterval(fetchDownloadUrl, 30000); // Update every 30 seconds
+        // Clean up the interval when the component unmounts
+        return () => clearInterval(intervalId);
     }, [navigate, tokenObj]);
 
     // Fetch users based on company and role filters
@@ -471,11 +498,11 @@ const Admin = () => {
                                 <thead>
                                     <tr>
                                         <th>User ID</th>
+                                        <th>NRIC</th>
                                         <th>First Name</th>
                                         <th>Last Name</th>
                                         <th>Company</th>
                                         <th>Role</th>
-                                        <th>NRIC</th>
                                         <th>Email</th>
                                         <th>Contact</th>
                                         <th>Password</th>
@@ -486,11 +513,11 @@ const Admin = () => {
                                     {users.map(user => (
                                         <tr key={user.userid}>
                                             <td>{user.userid}</td>
+                                            <td>{user.nric}</td>
                                             <td>{user.fname}</td>
                                             <td>{user.lname}</td>
                                             <td>{user.company}</td>
                                             <td>{user.role}</td>
-                                            <td>{user.nric}</td>
                                             <td>{user.email}</td>
                                             <td>{user.contact}</td>
                                             <td>{user.password}</td>
@@ -633,6 +660,14 @@ const Admin = () => {
 
                             {/* <!-- Apply Filters Button --> */}
                             <button onClick={() => applyFilters()} className="filter-button">Apply Filters</button>
+
+                            {downloadUrl ? (
+                                <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+                                    Download Logs
+                                </a>
+                            ) : (
+                                <p>No logs available for download</p>
+                            )}
                         </div>
 
                         {/* <!-- Logs Table --> */}

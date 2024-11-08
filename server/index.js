@@ -5,6 +5,9 @@ const cors = require('cors');
 const morgan = require('morgan');
 const logger = require('./utils/logger');
 const jwt = require('jsonwebtoken');
+const aws = require('aws-sdk');
+const fs = require('fs');
+const cron = require('node-cron');
 
 const app = express();
 
@@ -14,6 +17,21 @@ app.use(express.urlencoded({ extended: true }));
 
 // enable cors
 app.use(cors());
+
+// AWS SDK configuration
+const accessKey = process.env.AWS_ACCESS_KEY_ID;
+const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
+const region = process.env.AWS_REGION;
+const bucket = process.env.AWS_S3_BUCKET;
+
+aws.config.update({
+    accessKeyId: accessKey,
+    secretAccessKey: secretKey,
+    region: region
+});
+
+const s3 = new aws.S3();
+
 
 // import controllers
 const logController = require('./controller/logController');
@@ -65,9 +83,9 @@ app.get("/logsIP", logController.getLogsIPs);
 app.get("/logsUser", logController.getLogsUsers);
 app.get("/logsRequest", logController.getLogsRequest);
 app.get("/logsStatus", logController.getLogsStatus);
-// make frontend for below later
 app.get("/logsReferrer", logController.getLogsReferrers);
 app.get("/logsTimestamp", logController.getLogsTimestamp);
+app.get("/logs/latest", logController.getLatestLogs);
 
 // define routes for adminController
 app.post("/login", adminController.login);
@@ -75,20 +93,17 @@ app.post("/createUser", adminController.createUser);
 app.get("/users", adminController.getUsers);
 app.get("/roles", adminController.getRoles);
 app.put("/user/:id", adminController.updateUser);
-app.delete("/user/:id", adminController.deleteUser);
-app.post("/createPerms", adminController.createPerms);
-app.get("/permissions", adminController.getPerms);
-app.put("/updatePerms/:id", adminController.updatePerms);
-app.delete("/deletePerms/:id", adminController.deletePerms);
 app.get("/profile/:id", adminController.getProfile);
-app.put("/profile/:id", adminController.updateProfile);
+app.put("/profile", adminController.updateProfile);
 app.get("/searchUser", adminController.searchUser);
 
 // define routes for companyController
 app.get("/company", companyController.getCompany);
 app.get("/compUsers", companyController.getCompUsers);
+app.get("/searchCompUser", companyController.searchCompUser);
 app.get("/industry", companyController.getIndustry);
 app.post("/addCompany", companyController.addCompany);
+app.get("/positions", companyController.getPositions);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);
