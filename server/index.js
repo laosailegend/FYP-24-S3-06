@@ -27,6 +27,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions)); // Apply CORS middleware globally
 
+// Explicitly handle OPTIONS requests for preflight across all routes
+app.options('*', cors(corsOptions)); 
+
 // AWS SDK configuration
 const accessKey = process.env.AWS_ACCESS_KEY_ID;
 const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
