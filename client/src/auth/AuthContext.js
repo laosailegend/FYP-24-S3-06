@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
         // Prepare payload (if needed for the backend)
         const payload = {
             email: decodedToken.email,
-            // Add other fields if needed
+            password: decodedToken.password,
         };
 
         try {
