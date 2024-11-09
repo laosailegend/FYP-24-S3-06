@@ -23,3 +23,5 @@
 {"level":"error","message":"Unsuccessful login attempt for: ::1, test@gmail.com","timestamp":"2024-11-07T23:20:37.320Z"}
 {"level":"error","message":"Unsuccessful login attempt for: ::1, test@gmail.com","timestamp":"2024-11-07T23:25:34.533Z"}
 {"level":"error","message":"Unsuccessful login attempt for: ::1, comp@gmail.com","timestamp":"2024-11-07T23:25:44.069Z"}
+{"level":"error","message":"Unsuccessful login attempt for: ::1, test@gmail.com","timestamp":"2024-11-10 05:28:27"}
+{"level":"error","message":"Unsuccessful login attempt for: ::1, test@gmail.com","timestamp":"2024-11-10 05:28:35"}
