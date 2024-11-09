@@ -5,6 +5,10 @@ const db = require('../dbConfig');
 const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
+exports.helloWorld = (req, res) => {
+    res.send("Hello World if this doesn't go through am i cooked");
+};
+
 // log IP addr
 exports.logIP = (req, res, next) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
