@@ -26,6 +26,7 @@
     "winston": "^3.15.0"
   },
   "devDependencies": {
+    "lambda-build": "^1.0.6",
     "nodemon": "^3.1.4"
   },
   "description": ""
