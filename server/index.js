@@ -78,6 +78,8 @@ app.use(
 // middleware for logging IP address
 app.use(adminController.logIP);
 
+app.get("/hello", adminController.helloWorld);
+
 // define routes for logController
 app.get("/logs", logController.getLogs);
 app.get("/logsLevel", logController.getLogsLevel);
