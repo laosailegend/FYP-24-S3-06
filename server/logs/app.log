@@ -29,3 +29,6 @@
 {"level":"info","message":"HTTP REQUEST 'ADDR':'::1' 'USER':'no-token' 'REQ':'POST /hello HTTP/1.1' 'STATUS':'404' 'SIZE':'145' 'REF':'-' 'UA':'PostmanRuntime/7.42.0'","timestamp":"2024-11-09 21:25:01"}
 {"level":"info","message":"HTTP REQUEST 'ADDR':'::1' 'USER':'no-token' 'REQ':'GET /hello HTTP/1.1' 'STATUS':'200' 'SIZE':'50' 'REF':'-' 'UA':'PostmanRuntime/7.42.0'","timestamp":"2024-11-09 21:25:05"}
 {"level":"info","message":"HTTP REQUEST 'ADDR':'::1' 'USER':'no-token' 'REQ':'GET /test HTTP/1.1' 'STATUS':'200' 'SIZE':'49' 'REF':'-' 'UA':'PostmanRuntime/7.42.0'","timestamp":"2024-11-09 21:29:47"}
+{"level":"info","message":"HTTP REQUEST 'ADDR':'::1' 'USER':'no-token' 'REQ':'GET /test HTTP/1.1' 'STATUS':'200' 'SIZE':'49' 'REF':'-' 'UA':'PostmanRuntime/7.42.0'","timestamp":"2024-11-09 21:37:49"}
+{"level":"info","message":"HTTP REQUEST 'ADDR':'::1' 'USER':'no-token' 'REQ':'GET /hello HTTP/1.1' 'STATUS':'200' 'SIZE':'50' 'REF':'-' 'UA':'PostmanRuntime/7.42.0'","timestamp":"2024-11-09 21:37:51"}
+{"level":"info","message":"HTTP REQUEST 'ADDR':'::1' 'USER':'no-token' 'REQ':'GET /apiWorks HTTP/1.1' 'STATUS':'200' 'SIZE':'12' 'REF':'-' 'UA':'PostmanRuntime/7.42.0'","timestamp":"2024-11-09 22:13:45"}
