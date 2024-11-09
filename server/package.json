@@ -27,6 +27,7 @@
     "mysql2": "^3.11.4",
     "nock": "^13.5.6",
     "node-cron": "^3.0.3",
+    "serverless-http": "^3.2.0",
     "winston": "^3.15.0"
   },
   "devDependencies": {

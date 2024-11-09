@@ -1,7 +1,7 @@
 require('dotenv').config();
 
-const awsServerlessExpress = require('aws-serverless-express');
 const express = require('express');
+const serverless = require('serverless-http');
 const cors = require('cors');
 const morgan = require('morgan');
 const logger = require('./utils/logger');
@@ -177,18 +177,12 @@ app.get("/assignments", managerController.Assignments);
 app.get("/timeoff", managerController.getTimeoffRequests);
 
 
-app.get("/", (req, res) => {
+app.get("/homepage", (req, res) => {
     res.send("Homepage");
 })
 
-const PORT = process.env.PORT || 8800;
-app.listen(PORT, console.log(`server started on port ${PORT}`));
+// const PORT = process.env.PORT || 8800;
+// app.listen(PORT, console.log(`server started on port ${PORT}`));
 
-//create the server using aws-serverless-express
-const server = awsServerlessExpress.createServer(app);
 
-// Lambda handler function
-exports.handler = (event, context) => {
-    // Use aws-serverless-express to handle the event and context
-    awsServerlessExpress.proxy(server, event, context);
-};
+module.exports.handler = serverless(app);
