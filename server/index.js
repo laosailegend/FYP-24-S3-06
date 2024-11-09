@@ -16,7 +16,24 @@ const bcrypt = require('bcryptjs');
 const app = express();
 
 // enable cors
-app.use(cors());
+//app.use(cors());
+
+const corsOptions = {
+    origin: '*',  // Allow any origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow common HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow specific headers
+};
+
+// Use the cors middleware with the custom options
+app.use(cors(corsOptions));
+
+// Handle OPTIONS preflight requests explicitly (needed for Lambda URLs)
+app.options('*', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.status(204).end();  // No content for OPTIONS request
+});
 
 // parse every request as json and urlencoded data
 app.use(express.json());
@@ -35,7 +52,6 @@ aws.config.update({
 });
 
 const s3 = new aws.S3();
-
 
 // import controllers
 const logController = require('./controller/logController');
@@ -176,13 +192,18 @@ app.post("/autoSchedule", managerController.autoScheduling);
 app.get("/assignments", managerController.Assignments);
 app.get("/timeoff", managerController.getTimeoffRequests);
 
-
 app.get("/homepage", (req, res) => {
     res.send("Homepage");
 })
 
 // const PORT = process.env.PORT || 8800;
 // app.listen(PORT, console.log(`server started on port ${PORT}`));
+
+// Handling errors and CORS if necessary
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).send({ error: 'Internal Server Error' });
+});
 
 
 module.exports.handler = serverless(app);
