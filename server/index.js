@@ -80,6 +80,10 @@ app.use(adminController.logIP);
 
 app.get("/hello", adminController.helloWorld);
 
+app.get("/test", (req, res) => {
+    res.send("Test page hellooooooooooooooooooooooooooooooooooo");
+})
+
 // define routes for logController
 app.get("/logs", logController.getLogs);
 app.get("/logsLevel", logController.getLogsLevel);
