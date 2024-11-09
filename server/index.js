@@ -13,12 +13,12 @@ const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 
+// enable cors
+app.use(cors());
+
 // parse every request as json and urlencoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// enable cors
-app.use(cors());
 
 // AWS SDK configuration
 const accessKey = process.env.AWS_ACCESS_KEY_ID;
@@ -77,6 +77,12 @@ app.use(
 
 // middleware for logging IP address
 app.use(adminController.logIP);
+
+app.get("/hello", adminController.helloWorld);
+
+app.get("/test", (req, res) => {
+    res.send("Test page hellooooooooooooooooooooooooooooooooooo");
+})
 
 // define routes for logController
 app.get("/logs", logController.getLogs);
