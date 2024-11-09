@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+const server = process.env.REACT_APP_SERVER;
 
 const EmployeeDetails = () => {
     const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
@@ -21,7 +22,7 @@ const EmployeeDetails = () => {
         
         const fetchEmployees = async () => {
             try {
-                const res = await axios.get('http://localhost:8800/HRGetUser');
+                const res = await axios.get(`${server}HRGetUser`);
                 setEmployees(res.data);
             } catch (err) {
                 setError('Failed to fetch employee details');

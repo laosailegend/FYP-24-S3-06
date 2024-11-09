@@ -8,6 +8,8 @@ const jwt = require('jsonwebtoken');
 const aws = require('aws-sdk');
 const fs = require('fs');
 const cron = require('node-cron');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 
@@ -107,7 +109,6 @@ app.get("/positions", companyController.getPositions);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);
-//app.put("/updateAvailability/:id", employeeController.updateAvailability);
 app.post("/requestLeave", employeeController.requestLeave);
 app.get("/getRequestLeave/:id", employeeController.getRequestLeaveByID);
 app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
@@ -117,7 +118,7 @@ app.post("/clock-out", employeeController.clockOut);
 app.get("/clock-times/:user_id/:assignment_id", employeeController.getClockTimes);
 app.put('/update-clock-time',employeeController.updatedClocktime);
 app.post("/submitSkill/:userid", employeeController.submitSkill);
-//app.get('/getUserSkills/:userid', employeeController.userSkill);
+app.get('/getUserSkills/:userid', employeeController.userSkill);
 app.get('/trainingSessions', employeeController.getAllTrainingSessions);
 app.post('/expressInterest', employeeController.expressInterest);
 app.get('/trainingSessions/interest/:userId',employeeController.retriveUserInterest);
@@ -135,22 +136,23 @@ app.get('/payrollQueries/user/:userId',employeeController.getPayrollQueries);
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);
-app.get("/timeoff", HRController.getTimeoffRequests);
-app.put("/timeoff/:request_id", HRController.updateTimeoffStatus);
-app.get("/available", HRController.getAvailStatus);
-app.post("/available", HRController.createAvailabilityForm);
-app.delete("/available/:id", HRController.deleteAvailabilityForm);
-app.get("/getAvailable", HRController.getAvailable);
 app.post("/payroll", HRController.createPayroll);
-//app.get("/user/schedules/:userId", HRController.getUserSchedule);
-// app.post("/training", HRController.createTrainingSession);
-// app.get("/getTraining", HRController.getTrainingSessions);
-// app.put("/updateTraining/:session_id", HRController.updateTrainingSession);
-// app.delete("/deleteTraining/:id", HRController.deleteTraining);
-// app.get("/getSkills", HRController.getSkills);
-// app.post("/postTraining/:userid/:session_id", HRController.postTraining);
-// app.get("/getAllSessions", HRController.getAllSessions);
-// app.get("/feedback", HRController.getFeedback);
+app.get("/positions/:posid", HRController.getPosition);
+app.get("/clockTimes/:userid", HRController.getclockTime);
+app.get("/calculatePayroll/:userid", HRController.calculatePayroll);
+app.get("/user/assignments/:userid", HRController.getUserAssignment);
+app.post("/training", HRController.createTrainingSession);
+app.get("/getTraining", HRController.getTrainingSessions);
+app.put("/updateTraining/:session_id", HRController.updateTrainingSession);
+app.delete("/deleteTraining/:id", HRController.deleteTraining);
+app.get("/getSkills", HRController.getSkills);
+app.post("/postTraining/:interest_id", HRController.postTraining);
+app.get("/getAllSessions", HRController.getAllSessions);
+app.get("/feedback", HRController.getFeedback);
+app.get('/shiftSwapRequests/pending', HRController.getPendingShiftSwapRequests);
+app.post('/shiftSwapRequests/handle', HRController.handleShiftSwapRequest);
+app.get('/payrollQueries/view', HRController.getPayrollQueries);
+app.put('/payrollQueries/respond/:query_id', upload.single('receipt'), HRController.updatePayrollQueries);
 
 // define routes for managerController
 app.get("/managerGetUsers", managerController.managerGetUsers);
@@ -166,7 +168,8 @@ app.get("/schedules", managerController.getSchedules);
 app.put("/updateSchedules/:id", managerController.updateSchedule);
 app.delete("/deleteSchedules/:id", managerController.deleteSchedule);
 app.post("/autoSchedule", managerController.autoScheduling);
-// app.get("/assignments", managerController.Assignments);
+app.get("/assignments", managerController.Assignments);
+app.get("/timeoff", managerController.getTimeoffRequests);
 
 
 app.get("/", (req, res) => {

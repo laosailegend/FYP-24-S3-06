@@ -66,7 +66,6 @@ const Admin = () => {
 
     // download logs
     const [downloadUrl, setDownloadUrl] = useState(null);
-    const [loading, setLoading] = useState(true);
 
     const handleUserChange = (e) => {
         createUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -178,6 +177,13 @@ const Admin = () => {
             // Create a query string from the filters
             const queryString = new URLSearchParams(filters).toString();
             const res = await axios.get(`${server}logs?${queryString}`);
+
+            // change the timestamp to UTC+8 with format YYYY-MM-DD HH:MM:SS
+            res.data.forEach((log) => {
+                const date = new Date(log.timestamp);
+                log.timestamp = date.toLocaleString('en-SG', { timeZone: 'Asia/Singapore' });
+            });
+
             getLogs(res.data);
         } catch (e) {
             console.log(e);

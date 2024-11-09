@@ -5,6 +5,8 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 
+const server = process.env.REACT_APP_SERVER;
+
 const Update = () => {
     const [user,setUser] = useState({
         nric:"",
@@ -22,7 +24,7 @@ const Update = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = await axios.get(`http://localhost:8800/users/${userId}`);
+                const res = await axios.get(`${server}users/${userId}`);
                 setUser(res.data); 
             } catch (err) {
                 console.log(err);
@@ -45,7 +47,7 @@ const Update = () => {
         }
     
         try {
-            await axios.put(`http://localhost:8800/users/${userId}`, user);
+            await axios.put(`${server}users/${userId}`, user);
             navigate("/");
         } catch (err) {
             console.log(err);

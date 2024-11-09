@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import '../style.css';
 
 function ClockInOut() {
-  const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
+  const [tokenObj, setTokenObj] = useState(() => {
+    const token = localStorage.getItem("token");
+    return token ? JSON.parse(atob(token.split('.')[1])) : null;
+});
   const userId = tokenObj ? tokenObj.id : null;
   const [assignmentData, setAssignmentData] = useState([]);
   const [clockInTimes, setClockInTimes] = useState({});

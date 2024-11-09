@@ -5,7 +5,6 @@ import Login from './pages/Login';
 import Features from './pages/Features'; // Import the Features component
 import Contact from './pages/Contact'; // Import the Contact component
 import TimeOffRequest from './pages/TimeOffRequest'; // Import the Contact component
-import Availability from './pages/Availability'; // Import the Availability component
 import Tasks from './pages/Tasks'; // Import the Tasks component
 import Payroll from './pages/Payroll'; // Import the Payroll component
 import Pricing from './pages/Pricing'; // Import the Pricing component
@@ -15,7 +14,6 @@ import Admin from './pages/Admin'; // Import the Admin component
 import CompAdmin from './pages/CompAdmin';
 import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
 import TimeOff from './pages/TimeOff';
-import AvailabilityForm from './pages/AvailabilityForm';
 import EmployeeDetails from './pages/EmployeeDetails';
 import Profile from './pages/Profile';
 import ClockInOut from './pages/ClockInOut';
@@ -188,11 +186,9 @@ function App() {
             <Route path="/Tasks" element={<Tasks />} /> {/* Add Contact route */}
             <Route path="/Payroll" element={<Payroll />} /> {/* Add Payroll route */}
             <Route path="/weeklyhours" element={<WeeklyHours />} /> {/* Add WeeklyHours route*/} 
-            <Route path="/Availability" element={<Availability />} /> {/* EMPLOYEE */}
             <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
             <Route path="/TimeOffRequest" element={<TimeOffRequest />} /> {/* Add Request Time Off route */}
             <Route path="/timeoff" element={<TimeOff />} />
-            <Route path="/available" element={<AvailabilityForm />} /> {/* HR */}
             <Route path="/employees" element={<EmployeeDetails />} />
             <Route path="/profile" element={<Profile />} />
             {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> Add Login route */}
