@@ -13,22 +13,12 @@ const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 
+// enable cors
+app.use(cors());
+
 // parse every request as json and urlencoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// enable cors
-// CORS options to allow only specific origin (your frontend URL)
-const corsOptions = {
-    origin: 'https://emproster.vercel.app', // Allow only requests from this origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
-    credentials: true, // Allow credentials (cookies, authentication headers)
-};
-
-app.use(cors(corsOptions)); // Apply CORS middleware globally
-
-// Explicitly handle OPTIONS requests for preflight across all routes
-app.options('*', cors(corsOptions)); 
 
 // AWS SDK configuration
 const accessKey = process.env.AWS_ACCESS_KEY_ID;
