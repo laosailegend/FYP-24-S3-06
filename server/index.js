@@ -18,7 +18,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // enable cors
-app.use(cors());
+// CORS options to allow only specific origin (your frontend URL)
+const corsOptions = {
+    origin: 'https://emproster.vercel.app', // Allow only requests from this origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+    credentials: true, // Allow credentials (cookies, authentication headers)
+};
+
+app.use(cors(corsOptions)); // Apply CORS middleware globally
 
 // AWS SDK configuration
 const accessKey = process.env.AWS_ACCESS_KEY_ID;
