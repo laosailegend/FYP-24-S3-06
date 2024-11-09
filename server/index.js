@@ -78,11 +78,8 @@ app.use(
 // middleware for logging IP address
 app.use(adminController.logIP);
 
-app.get("/hello", adminController.helloWorld);
-
-app.get("/test", (req, res) => {
-    res.send("Test page hellooooooooooooooooooooooooooooooooooo");
-})
+// check that api is being called
+app.get("/apiWorks", adminController.apiWorks);
 
 // define routes for logController
 app.get("/logs", logController.getLogs);
