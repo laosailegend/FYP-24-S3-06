@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../style.css';
+const server = process.env.REACT_APP_SERVER
 
 const Payroll = () => {
   const [employees, setEmployees] = useState([]);
@@ -14,7 +15,7 @@ const Payroll = () => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get('http://localhost:8800/users');
+        const response = await axios.get(`${server}users`);
         setEmployees(response.data);
       } catch (err) {
         setError('Failed to fetch employees');
@@ -28,7 +29,7 @@ const Payroll = () => {
       const fetchPayrollData = async () => {
         try {
           setLoading(true);
-          const response = await axios.get(`http://localhost:8800/calculatePayroll/${selectedUser}`);
+          const response = await axios.get(`${server}calculatePayroll/${selectedUser}`);
           setPayrollData(response.data.payroll);
         } catch (err) {
           setError('Failed to fetch payroll data');
@@ -62,7 +63,7 @@ const Payroll = () => {
 
     // Send the calculated payroll data to the backend
     try {
-      const response = await axios.post('http://localhost:8800/payroll', {
+      const response = await axios.post(`${server}payroll`, {
         userid: selectedUser,
         pay_period_start: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`,
         pay_period_end: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${new Date(selectedYear, selectedMonth, 0).getDate()}`,

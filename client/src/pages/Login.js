@@ -38,21 +38,6 @@ function Login() {
     setCredentials((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    try {
-      // Ensure all fields are filled
-      if (!credentials.nric || !credentials.fname || !credentials.lname || !credentials.contact || !credentials.email || !credentials.password) {
-        setError("All fields are required for signup");
-        return;
-      }
-      await axios.post(`${server}createUser`, credentials);
-      window.alert("User added!");
-    } catch (error) {
-      setError("Error creating user, please try again");
-    }
-  };
-
   return (
     <div className="login-form">
       <h2>{isLoggedIn ? "Welcome Back!" : "Login"}</h2>
@@ -77,40 +62,6 @@ function Login() {
             />
             <button className="formButton" type="submit">Login</button>
           </form>
-
-          <div className="add-form">
-            <h1>Sign Up</h1>
-            <br />
-            <select name="roleid" onChange={handleChange} defaultValue="">
-              <option disabled>Select one</option>
-              <option value="1">admin</option>
-              <option value="2">manager</option>
-              <option value="3">employee</option>
-              <option value="4">HR</option>
-            </select>
-
-            <ul>
-              <li>
-                <input type="text" placeholder='nric' onChange={handleChange} name='nric' maxLength={9} />
-              </li>
-              <li>
-                <input type="text" placeholder='first name' onChange={handleChange} name='fname' />
-              </li>
-              <li>
-                <input type="text" placeholder='last name' onChange={handleChange} name='lname' />
-              </li>
-              <li>
-                <input type="text" placeholder='contact' onChange={handleChange} name='contact' maxLength={8} />
-              </li>
-              <li>
-                <input type="email" placeholder="email" onChange={handleChange} name='email' />
-              </li>
-              <li>
-                <input type="password" placeholder="password" onChange={handleChange} name='password' />
-              </li>
-            </ul>
-            <button onClick={handleSignup}>Sign Up</button>
-          </div>
         </>
       ) : (
         <button className="formButton" onClick={logout}>Logout</button>

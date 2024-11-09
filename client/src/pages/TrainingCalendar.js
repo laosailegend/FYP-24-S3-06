@@ -1,16 +1,17 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import '../style.css'; // Import your CSS for styling
-
+const server = process.env.REACT_APP_SERVER; // Retrieve server URL from environment variables
 const TrainingCalendar = ({ userid }) => {
     const [sessions, setSessions] = useState([]);
 
     // Fetch training sessions from the backend
     const fetchSessions = useCallback(async () => {
         try {
-            const response = await fetch('http://localhost:8800/getAllSessions');
+            const response = await fetch(`${server}getAllSessions`);
             const data = await response.json();
             console.log('Fetched sessions:', data); // Log fetched sessions
             setSessions(data || []); // Set sessions directly from fetched data
@@ -26,7 +27,7 @@ const TrainingCalendar = ({ userid }) => {
     // Handle training completion
     const handleCompleteTraining = async (interest_id) => {
         try {
-            const response = await fetch(`http://localhost:8800/postTraining/${interest_id}`, {
+            const response = await fetch(`${server}postTraining/${interest_id}`, {
                 method: 'POST',
             });
 

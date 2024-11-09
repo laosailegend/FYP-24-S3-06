@@ -1,11 +1,27 @@
+require('dotenv').config();
 
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const db = require('../dbConfig');
-const logger = require('../utils/logger');
-const SECRET_KEY = process.env.JWT_SECRET;
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
 const multer = require('multer');
+const morgan = require('morgan');
+const logger = require('../utils/logger');
+const jwt = require('jsonwebtoken');
+const aws = require('aws-sdk');
+const fs = require('fs');
+const cron = require('node-cron');
+
+const app = express();
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const upload = multer({ dest: 'uploads/' });
+
+// parse every request as json and urlencoded data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// enable cors
+app.use(cors());
 
 
 // retrieve user details w/o password for HR only + role /HRGetUser
@@ -72,6 +88,8 @@ exports.createPayroll = async (req, res) => {
         res.status(500).json({ message: 'Failed to record payroll', error: error.message });
     }
 };
+
+
 
 
 
@@ -204,8 +222,8 @@ exports.calculatePayroll = (req, res) => {
 
             console.log('Total Pay:', totalPay);
 
-            return { 
-                ...result, 
+            return {
+                ...result,
                 totalPay,
                 overtime_hours: result.overtime_hours, // Add overtime hours to the result
             };
@@ -224,21 +242,21 @@ exports.getPayrollQueries = (req, res) => {
     const query = `
       SELECT pq.query_id, pq.query_date, pq.description, pq.status, pq.response, u.fname, u.lname 
       FROM payroll_queries pq
-      LEFT JOIN users u ON pq.user_id = u.userid;`;  
+      LEFT JOIN users u ON pq.user_id = u.userid;`;
 
     db.query(query, [query_id], (error, results) => {
-      if (error) {
-        console.error('Error fetching queries:', error);
-        return res.status(500).json({ error: 'Database query error' });
-      }
+        if (error) {
+            console.error('Error fetching queries:', error);
+            return res.status(500).json({ error: 'Database query error' });
+        }
 
-      // If no results are found, return an empty array
-      if (results.length === 0) {
-        return res.json([]);
-      }
+        // If no results are found, return an empty array
+        if (results.length === 0) {
+            return res.json([]);
+        }
 
-      // Send the results back as a response
-      res.json(results);
+        // Send the results back as a response
+        res.json(results);
     });
 };
 
@@ -288,50 +306,50 @@ exports.updatePayrollQueries = async (req, res) => {
 // Assuming you have a positions table in your database
 exports.getPosition = (req, res) => {
     const posid = req.params.posid;
-  
+
     // Adjust the SQL query to match your database structure
     const query = `
       SELECT posid, position, type, pay, industryid 
       FROM positions `;
     db.query(query, [posid], (error, results) => {
-      if (error) {
-        console.error('Error fetching position:', error);
-        return res.status(500).json({ error: 'Database query error' });
-      }
-      
-      // If no positions found, return an empty array
-      if (results.length === 0) {
-        return res.json([]);
-      }
-  
-      // Send the results back as a response
-      res.json(results);
-    });
-  };
+        if (error) {
+            console.error('Error fetching position:', error);
+            return res.status(500).json({ error: 'Database query error' });
+        }
 
-  exports.getclockTime = (req, res) => {
+        // If no positions found, return an empty array
+        if (results.length === 0) {
+            return res.json([]);
+        }
+
+        // Send the results back as a response
+        res.json(results);
+    });
+};
+
+exports.getclockTime = (req, res) => {
     const userid = req.params.userid;
-  
+
     // Adjust the SQL query to match your database structure
     const query = `
       SELECT id, user_id, assignment_id, clock_in_time, clock_out_time, status 
       FROM clock_times `;
     db.query(query, [userid], (error, results) => {
-      if (error) {
-        console.error('Error fetching position:', error);
-        return res.status(500).json({ error: 'Database query error' });
-      }
-      
-      // If no clocktime found, return an empty array
-      if (results.length === 0) {
-        return res.json([]);
-      }
-  
-      // Send the results back as a response
-      res.json(results);
+        if (error) {
+            console.error('Error fetching position:', error);
+            return res.status(500).json({ error: 'Database query error' });
+        }
+
+        // If no clocktime found, return an empty array
+        if (results.length === 0) {
+            return res.json([]);
+        }
+
+        // Send the results back as a response
+        res.json(results);
     });
-  };
-  
+};
+
 
 // get user schedule /user/assignments/:userid
 exports.getUserAssignment = (req, res) => {
@@ -366,10 +384,10 @@ exports.getUserAssignment = (req, res) => {
 
         // Format the output to include taskDate
         const formattedResults = results.map(row => ({
-            assignmentId: row.assignment_id, 
+            assignmentId: row.assignment_id,
             userId: row.userid,
             taskDate: row.task_date,         // Add taskDate to formatted results
-            assignedDate: row.assigned_date, 
+            assignedDate: row.assigned_date,
             startTime: row.start_time,
             endTime: row.end_time,
             clockInTime: row.clock_in_time,
@@ -385,44 +403,44 @@ exports.getUserAssignment = (req, res) => {
 // insert a new training session
 exports.createTrainingSession = async (req, res) => {
     const { skill_id, description, trainer, start_date, start_time, end_date, end_time } = req.body;
-  
+
     try {
-      const query = `
+        const query = `
         INSERT INTO training_sessions (skill_id, description, trainer, start_date, start_time, end_date, end_time)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
-      
-      await db.query(query, [skill_id, description, trainer, start_date, start_time, end_date, end_time]);
-  
-      res.status(201).json({ message: 'Training session created successfully.' });
+
+        await db.query(query, [skill_id, description, trainer, start_date, start_time, end_date, end_time]);
+
+        res.status(201).json({ message: 'Training session created successfully.' });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Failed to create training session.' });
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create training session.' });
     }
-  };
+};
 
 // retrieve all training sessions
 exports.getTrainingSessions = async (req, res) => {
-        const query = `
+    const query = `
             SELECT ts.session_id, ts.skill_id, ts.description, ts.trainer, 
                    ts.start_date, ts.start_time, ts.end_date, ts.end_time, 
                    s.skill_name
             FROM training_sessions ts
             JOIN skills s ON ts.skill_id = s.skill_id
         `;
-        
-        db.query(query, (err, results) => {
-            if (err) {
-                console.error('Error fetching time-off requests:', err);
-                return res.status(500).json({ error: 'Failed to fetch requests' });
-            }
-            res.json(results);
-        });
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching time-off requests:', err);
+            return res.status(500).json({ error: 'Failed to fetch requests' });
+        }
+        res.json(results);
+    });
 };
 
 
-  // update a training session by ID
-  exports.updateTrainingSession = async (req, res) => {
+// update a training session by ID
+exports.updateTrainingSession = async (req, res) => {
     const { session_id } = req.params;
     const { skill_id, description, trainer, start_date, start_time, end_date, end_time } = req.body;
 
@@ -458,8 +476,8 @@ exports.getTrainingSessions = async (req, res) => {
 };
 
 
-  // delete a training session by ID
-  exports.deleteTraining = (req, res) => {
+// delete a training session by ID
+exports.deleteTraining = (req, res) => {
     const { id } = req.params;
     const deleteQuery = 'DELETE FROM training_sessions WHERE session_id = ?';
 
@@ -477,35 +495,35 @@ exports.getTrainingSessions = async (req, res) => {
     });
 };
 
-  exports.getSkills=(req,res) => {
+exports.getSkills = (req, res) => {
     const userId = req.params.user_id;
-  
+
     // Adjust the SQL query to match your database structure
     const query = `
-      SELECT skills.skill_id, skills.skill_name 
-      FROM skills `;
+        SELECT skills.skill_id, skills.skill_name 
+        FROM skills `;
     db.query(query, [userId], (error, results) => {
-      if (error) {
-        console.error('Error fetching skills:', error);
-        return res.status(500).json({ error: 'Database query error' });
-      }
-      
-      // If no skills found, return an empty array
-      if (results.length === 0) {
-        return res.json([]);
-      }
-  
-      // Send the results back as a response
-      res.json(results);
-    });
-  };
+        if (error) {
+            console.error('Error fetching skills:', error);
+            return res.status(500).json({ error: 'Database query error' });
+        }
 
-  //updating the user interest status to 'completed'
-  exports.postTraining = (req, res) => {
+        // If no skills found, return an empty array
+        if (results.length === 0) {
+            return res.json([]);
+        }
+
+        // Send the results back as a response
+        res.json(results);
+    });
+};
+
+//updating the user interest status to 'completed'
+exports.postTraining = (req, res) => {
     const { interest_id } = req.params;
     db.query(
-        `UPDATE user_interest SET status = 'completed' WHERE interest_id = ?`, 
-        [interest_id], 
+        `UPDATE user_interest SET status = 'completed' WHERE interest_id = ?`,
+        [interest_id],
         (err, results) => {
             if (err) {
                 console.error('Error updating training status:', err);
@@ -558,7 +576,7 @@ exports.getFeedback = (req, res) => {
         FROM feedback f
         JOIN users u ON f.user_id = u.userid
     `;
-    
+
     db.query(query, (err, results) => {
         if (err) {
             console.error('Error fetching feedback:', err);
@@ -587,7 +605,7 @@ exports.handleShiftSwapRequest = (req, res) => {
                 console.error('Error fetching swap request:', err);
                 return res.status(500).json({ error: 'Server error', details: err.message });
             }
-            
+
             const swapRequest = swapRequests[0];
             if (!swapRequest) {
                 return res.status(404).json({ error: 'Shift swap request not found or already processed' });
@@ -644,7 +662,7 @@ exports.handleShiftSwapRequest = (req, res) => {
 exports.getPendingShiftSwapRequests = async (req, res) => {
     const query = `
         SELECT ssr.swap_id, ssr.userid, ssr.requestor_assignment_id, ssr.target_assignment_id, ssr.status, 
-               u.fname AS requestor_fname, u.lname AS requestor_lname
+        u.fname AS requestor_fname, u.lname AS requestor_lname
         FROM shift_swap_requests ssr
         JOIN users u ON ssr.userid = u.userid
         WHERE ssr.status = 'pending'
@@ -658,9 +676,8 @@ exports.getPendingShiftSwapRequests = async (req, res) => {
         res.status(200).json({ swapRequests: results });
     });
 };
-  
-  
-  
-  
-  
-  
+
+
+
+
+

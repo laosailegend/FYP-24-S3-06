@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import '../style.css';
 
+const server = process.env.REACT_APP_SERVER;
+
 function WeeklyHours() {
   const tokenObj = localStorage.getItem("token")
     ? JSON.parse(atob(localStorage.getItem("token").split('.')[1]))
@@ -16,7 +18,7 @@ function WeeklyHours() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch("http://localhost:8800/users");
+      const response = await fetch(`${server}users`);
       if (!response.ok) throw new Error("Network response was not ok");
 
       const data = await response.json();
@@ -29,7 +31,7 @@ function WeeklyHours() {
 
   const fetchWeeklySchedules = async (employeeId) => {
     try {
-      const response = await fetch(`http://localhost:8800/user/assignments/${employeeId}`);
+      const response = await fetch(`${server}user/assignments/${employeeId}`);
       if (!response.ok) throw new Error('Failed to fetch schedules');
       const data = await response.json();
       const groupedAndSorted = groupAndSortSchedulesByWeek(data);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../style.css'; // Import your CSS for styling
 
+const server = process.env.REACT_APP_SERVER; // Retrieve server URL from environment variables
+
 function TrainingSession() {
     const [sessions, setSessions] = useState([]);
     const [skills, setSkills] = useState([]);
@@ -26,7 +28,7 @@ function TrainingSession() {
     // Fetch training sessions
     const fetchSessions = async () => {
         try {
-            const response = await fetch('http://localhost:8800/getTraining');
+            const response = await fetch(`${server}getTraining`);
             const data = await response.json();
             setSessions(Array.isArray(data) ? data : []);
         } catch (error) {
@@ -38,7 +40,7 @@ function TrainingSession() {
 
     const fetchSkills = async () => {
         try {
-            const response = await fetch('http://localhost:8800/getSkills');
+            const response = await fetch(`${server}getSkills`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             setSkills(Array.isArray(data) ? data : []);
@@ -51,7 +53,7 @@ function TrainingSession() {
 
     const handleCreateOrUpdateSession = async (e) => {
         e.preventDefault();
-        const endpoint = editingSessionId ? `http://localhost:8800/updateTraining/${editingSessionId}` : 'http://localhost:8800/training';
+        const endpoint = editingSessionId ? `${server}updateTraining/${editingSessionId}` : `${server}training`;
         const method = editingSessionId ? 'PUT' : 'POST';
 
         try {
@@ -81,7 +83,7 @@ function TrainingSession() {
 
     const handleDeleteSession = async (id) => {
         try {
-            const response = await fetch(`http://localhost:8800/deleteTraining/${id}`, {
+            const response = await fetch(`${server}deleteTraining/${id}`, {
                 method: 'DELETE',
             });
             const data = await response.json();
