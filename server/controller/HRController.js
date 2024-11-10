@@ -268,7 +268,7 @@ exports.updatePayrollQueries = async (req, res) => {
         res.status(200).json({ message: 'Payroll query updated successfully.' });
     } catch (error) {
         console.error('Error updating payroll query:', error);
-        res.status(500).json({ error: 'Failed to update payroll query.' });
+        res.status(500).json({ error: `Failed to update payroll query: ${error}` });
     }
 };
 
