@@ -11,7 +11,7 @@ async function generatePreSignedUrl(bucketName, fileKey) {
 
     try {
         const url = await s3.getSignedUrlPromise('getObject', params);
-        // console.log('URL generated:', url);
+        console.log('URL generated:', url);
         return url;
     } catch (error) {
         // Improved error handling
