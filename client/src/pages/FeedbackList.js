@@ -17,7 +17,10 @@ const FeedbackList = () => {
             }
         };
 
-        fetchFeedback();
+        const fetchData = async () => {
+            await fetchFeedback();
+        }
+        fetchData();
     }, []);
 
     const formatDate = (dateString) => {
