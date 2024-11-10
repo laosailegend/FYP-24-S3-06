@@ -45,7 +45,7 @@ async function listLogFiles(bucketName) {
 
     try {
         const response = await s3.listObjectsV2(params).promise();
-        // console.log('List of log files:', response.Contents);
+        console.log('List of log files:', response.Contents);
         // console.log("params: ", params);
         return response.Contents;  // List of objects in the bucket
     } catch (error) {

@@ -135,7 +135,7 @@ function App() {
                 <Link to="/Leave">Leave Balance</Link>
                 <Link to="/ViewPayroll">Payroll</Link>
                 <Link to="/Feedback">Feedback</Link>
-                
+
               </>
             ) : (
               <></>
@@ -149,9 +149,9 @@ function App() {
                 <Link to="/employees">View Employees</Link>  {/* Add Employee link */}
                 <Link to="/weeklyhours">Employee Tracker</Link>  {/* Add WeeklyHours link */}
                 <Link to="/TrainingSession">Training</Link>  {/* Add TrainingSession link */}
-                <Link to= "/TrainingCalendar">Training Calendar</Link> {/* Add Training Calendar link */}
+                <Link to="/TrainingCalendar">Training Calendar</Link> {/* Add Training Calendar link */}
                 <Link to="/ReviewShiftSwapping">Review shift swap</Link>  {/* Add Review Shif Swap link */}
-                <Link to= "/feedback">Feedback</Link> {/* Add Feedback link */}
+                <Link to="/feedback">Feedback</Link> {/* Add Feedback link */}
               </>
             ) : (
               <></>
@@ -185,12 +185,7 @@ function App() {
             <Route path="/contact" element={<Contact />} /> {/* Add Contact route */}
             <Route path="/Tasks" element={<Tasks />} /> {/* Add Contact route */}
             <Route path="/Payroll" element={<Payroll />} /> {/* Add Payroll route */}
-            <Route path="/PayrollQueriesPage"element={<PayrollQueriesPage />} />  {/* Add Payroll Queries route */}
-            <Route path="/weeklyhours" element={<WeeklyHours />} /> {/* Add WeeklyHours route*/} 
-            <Route path="/weeklyhours" element={<WeeklyHours />} /> {/* Add WeeklyHours route*/} 
-            <Route path="/TrainingSession" element={<TrainingSession />} /> {/* Add TrainingSession route*/}
-            <Route path="/TrainingCalendar" element={<TrainingCalendar />} /> {/* Add Training Calendar route*/}
-            <Route path="/feedback" element={<FeedbackList/>} /> {/* Add FeedbackList route*/}
+            <Route path="/weeklyhours" element={<WeeklyHours />} /> {/* Add WeeklyHours route*/}
             <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
             <Route path="/TimeOffRequest" element={<TimeOffRequest />} /> {/* Add Request Time Off route */}
             <Route path="/timeoff" element={<TimeOff />} />
@@ -210,7 +205,7 @@ function App() {
             <Route path="/Shiftswapping" element={<Shiftswapping />} />
             <Route path="/ViewPayroll" element={<ViewPayroll />} />
             <Route path="/Leave" element={<Leave />} />
-            
+
           </Routes>
         </main>
       </div>

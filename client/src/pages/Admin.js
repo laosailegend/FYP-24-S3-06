@@ -254,9 +254,15 @@ const Admin = () => {
         }
     }
 
-    const fetchDownloadUrl = async () => {
+    const fetchDownloadUrl = async () => { 
         try {
             const response = await fetch(`${server}logs/latest`);
+            
+            if (!response.ok) {
+                // If response status is not in the 200 range, throw an error
+                throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+            }
+            
             const data = await response.json();
             setDownloadUrl(data.downloadUrl);
             console.log(downloadUrl);
@@ -264,6 +270,7 @@ const Admin = () => {
             console.error('Error fetching download URL:', error);
         }
     };
+    
 
     useEffect(() => {
         // prevents non-admin users from viewing the page
@@ -297,7 +304,7 @@ const Admin = () => {
         const intervalId = setInterval(fetchDownloadUrl, 30000); // Update every 30 seconds
         // Clean up the interval when the component unmounts
         return () => clearInterval(intervalId);
-    }, [navigate, tokenObj]);
+    }, [navigate, tokenObj, downloadUrl]);
 
     // Fetch users based on company and role filters
 
