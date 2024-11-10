@@ -29,6 +29,7 @@ import EmployeeTrainingSession from './pages/EmployeeTrainingSession';
 import PayrollQueriesPage from './pages/PayrollQueriesPage';
 import ReviewShiftSwapping from './pages/ReviewShiftSwapping';
 import TrainingCalendar from './pages/TrainingCalendar';
+import FeedbackList from './pages/FeedbackList';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -155,7 +156,7 @@ function App() {
                 <Link to="/TrainingSession">Training</Link>  {/* Add TrainingSession link */}
                 <Link to="/TrainingCalendar">Training Calendar</Link> {/* Add Training Calendar link */}
                 <Link to="/ReviewShiftSwapping">Review shift swap</Link>  {/* Add Review Shif Swap link */}
-                <Link to="/feedback">Feedback</Link> {/* Add Feedback link */}
+                <Link to="/FeedbackList">Feedback List</Link> {/* Add Feedback link */}
               </>
             ) : (
               <></>
@@ -212,6 +213,7 @@ function App() {
             <Route path="/PayrollQueriesPage" element={<PayrollQueriesPage />} />
             <Route path="/ReviewShiftSwapping" element={<ReviewShiftSwapping />} />
             <Route path="/TrainingCalendar" element={<TrainingCalendar />} />
+            <Route path="/FeedbackList" element={<FeedbackList />} />
           </Routes>
         </main>
       </div>
