@@ -179,7 +179,7 @@ exports.getLatestLogs = async (req, res) => {
         
         res.json({ downloadUrl: url });
     } catch (error) {
-        console.log(error);
+        console.error('Error in getLatestLogs:', error); // Improved error logging
         res.status(500).json({ error: 'Error generating download URL' });
     }
 };
