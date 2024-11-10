@@ -297,7 +297,7 @@ const Admin = () => {
         const intervalId = setInterval(fetchDownloadUrl, 30000); // Update every 30 seconds
         // Clean up the interval when the component unmounts
         return () => clearInterval(intervalId);
-    }, [navigate, tokenObj]);
+    }, [navigate, tokenObj, downloadUrl]);
 
     // Fetch users based on company and role filters
 
