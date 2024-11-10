@@ -98,7 +98,7 @@ async function deleteOldLogs() {
 // Schedule the upload to run every 5 minutes (you can adjust this)
 // cron.schedule('*/30 * * * * *', */5 * * * * = 5min
 cron.schedule('*/5 * * * *', () => {
-    const logFilePath = '../logs/app.log'; // Path to your log file
+    const logFilePath = './logs/app.log'; // Path to your log file
     const timestamp = new Date().toLocaleString('en-US', {
         timeZone: 'Asia/Singapore',
         hour12: false
