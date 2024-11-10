@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-require('dotenv').config();
 
 // check if you can get server variable without require dotenv
 const ReviewShiftSwapping = () => {
