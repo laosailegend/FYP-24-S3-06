@@ -77,7 +77,7 @@ const PayrollQueriesPage = () => {
                 });
 
                 const data = await fetchResponse.json();
-                alert(data.message);
+                console.log(data.message);
                 closeModal();
             } catch (error) {
                 console.error('Error updating payroll query:', error);
