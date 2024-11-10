@@ -265,6 +265,7 @@ const Admin = () => {
         } catch (error) {
             // If error.response exists, it's a server-side error
             if (error.response) {
+                console.log("server error major: ", error);
                 console.error(`Server error: ${error.response.status} - ${error.response.statusText}`);
             } else {
                 console.error('Error fetching download URL:', error.message);
