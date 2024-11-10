@@ -25,6 +25,7 @@ import Shiftswapping from './pages/Shiftswapping';
 import Leave from './pages/Leave';
 import ViewPayroll from './pages/ViewPayroll';
 import WeeklyHours from './pages/WeeklyHours';
+import EmployeeTrainingSession from './pages/EmployeeTrainingSession';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -129,16 +130,13 @@ function App() {
             {isLoggedIn && tokenObj.role === 3 ? (
               <>
                 <Link to="/Project">Project</Link>
-                {/*<Link to="/Availability">Availability(Employee)</Link>*/}
                 <Link to="/ClockInOut">Clock In/Clock Out</Link>
                 <Link to="/Shiftswapping">Shift Swapping</Link>
-                <Link to="/Skill">Skill</Link>
-                <Link to="/TrainingSession">Training session</Link>
                 <Link to="/TimeOffRequest">Request Time Off</Link>
                 <Link to="/Leave">Leave Balance</Link>
                 <Link to="/ViewPayroll">Payroll</Link>
                 <Link to="/Feedback">Feedback</Link>
-
+                <Link to="/EmployeeTrainingSession">Employee Training</Link>
               </>
             ) : (
               <></>
@@ -207,6 +205,7 @@ function App() {
             <Route path="/Shiftswapping" element={<Shiftswapping />} />
             <Route path="/ViewPayroll" element={<ViewPayroll />} />
             <Route path="/Leave" element={<Leave />} />
+            <Route path="/EmployeeTrainingSession" element={<EmployeeTrainingSession />} />
 
           </Routes>
         </main>
