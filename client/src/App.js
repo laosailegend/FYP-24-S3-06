@@ -26,6 +26,7 @@ import Leave from './pages/Leave';
 import ViewPayroll from './pages/ViewPayroll';
 import WeeklyHours from './pages/WeeklyHours';
 import EmployeeTrainingSession from './pages/EmployeeTrainingSession';
+import PayrollQueriesPage from './pages/PayrollQueriesPage';
 
 import { AuthContext } from './auth/AuthContext';
 
@@ -206,7 +207,7 @@ function App() {
             <Route path="/ViewPayroll" element={<ViewPayroll />} />
             <Route path="/Leave" element={<Leave />} />
             <Route path="/EmployeeTrainingSession" element={<EmployeeTrainingSession />} />
-
+            <Route path="/PayrollQueriesPage" element={<PayrollQueriesPage />} />
           </Routes>
         </main>
       </div>
