@@ -14,6 +14,7 @@ const PayrollQueriesPage = () => {
 
     // Fetch all payroll queries
     useEffect(() => {
+        
         const fetchQueries = async () => {
             try {
                 const response = await fetch(`${server}payrollQueries/view`);
@@ -24,7 +25,11 @@ const PayrollQueriesPage = () => {
             }
         };
 
-        fetchQueries();
+        const fetchData = async () => {
+            await fetchQueries();
+        }
+
+        fetchData();
     }, [queries]);
 
     // Filter queries based on the selected status

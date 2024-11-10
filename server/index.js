@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const serverless = require('serverless-http');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
@@ -12,18 +13,33 @@ const fs = require('fs');
 const cron = require('node-cron');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
+const bcrypt = require('bcryptjs');
 
 const app = express();
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const upload = multer({ dest: 'uploads/' });
+// enable cors
+//app.use(cors());
+
+const corsOptions = {
+    origin: '*',  // Allow any origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow common HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow specific headers
+};
+
+// Use the cors middleware with the custom options
+app.use(cors(corsOptions));
+
+// Handle OPTIONS preflight requests explicitly (needed for Lambda URLs)
+app.options('*', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.status(204).end();  // No content for OPTIONS request
+});
 
 // parse every request as json and urlencoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// enable cors
-app.use(cors());
 
 // AWS SDK configuration
 const accessKey = process.env.AWS_ACCESS_KEY_ID;
@@ -38,7 +54,6 @@ aws.config.update({
 });
 
 const s3 = new aws.S3();
-
 
 // import controllers
 const logController = require('./controller/logController');
@@ -83,6 +98,9 @@ app.use(
 // middleware for logging IP address
 app.use(adminController.logIP);
 
+// check that api is being called
+app.get("/apiWorks", adminController.apiWorks);
+
 // define routes for logController
 app.get("/logs", logController.getLogs);
 app.get("/logsLevel", logController.getLogsLevel);
@@ -117,27 +135,27 @@ app.get("/employeeGetUser", employeeController.employeeGetUser);
 app.post("/requestLeave", employeeController.requestLeave);
 app.get("/getRequestLeave/:id", employeeController.getRequestLeaveByID);
 app.get("/leaveBalance/:userid", employeeController.getLeaveBalance);
-app.get("/assignments/:userid",employeeController.getAssignmentId);
+app.get("/assignments/:userid", employeeController.getAssignmentId);
 app.post("/clock-in", employeeController.clockIn);
 app.post("/clock-out", employeeController.clockOut);
 app.get("/clock-times/:user_id/:assignment_id", employeeController.getClockTimes);
-app.put('/update-clock-time',employeeController.updatedClocktime);
+app.put('/update-clock-time', employeeController.updatedClocktime);
 app.post("/submitSkill/:userid", employeeController.submitSkill);
 app.get('/getUserSkills/:userid', employeeController.userSkill);
 app.get('/trainingSessions', employeeController.getAllTrainingSessions);
 app.post('/expressInterest', employeeController.expressInterest);
-app.get('/trainingSessions/interest/:userId',employeeController.retriveUserInterest);
-app.delete('/deleteRequestLeave/:id',employeeController.deleteRequestLeave);
-app.post('/submitFeedback',employeeController.submitFeedback);
-app.get('/getFeedback/:userId',employeeController.getFeedback);
-app.get('/tasks',employeeController.getTask);
-app.get('/assignments/user/:userId',employeeController.getUserAssignments);
-app.get('/assignments/other/:userId',employeeController.getOtherUsersAssignments);
-app.post('/shiftSwapRequests',employeeController.submitSwapRequest);
-app.get('/users/:userId/leave_balance',employeeController.getUserLeaveBalance);
-app.get('/payrolls/user/:userId',employeeController.getUserPayrolls);
-app.post('/payrollQueries',employeeController.submitPayrollQuery);
-app.get('/payrollQueries/user/:userId',employeeController.getPayrollQueries);
+app.get('/trainingSessions/interest/:userId', employeeController.retriveUserInterest);
+app.delete('/deleteRequestLeave/:id', employeeController.deleteRequestLeave);
+app.post('/submitFeedback', employeeController.submitFeedback);
+app.get('/getFeedback/:userId', employeeController.getFeedback);
+app.get('/tasks', employeeController.getTask);
+app.get('/assignments/user/:userId', employeeController.getUserAssignments);
+app.get('/assignments/other/:userId', employeeController.getOtherUsersAssignments);
+app.post('/shiftSwapRequests', employeeController.submitSwapRequest);
+app.get('/users/:userId/leave_balance', employeeController.getUserLeaveBalance);
+app.get('/payrolls/user/:userId', employeeController.getUserPayrolls);
+app.post('/payrollQueries', employeeController.submitPayrollQuery);
+app.get('/payrollQueries/user/:userId', employeeController.getPayrollQueries);
 
 // define routes for HRController
 app.get("/HRGetUser", HRController.HRGetUser);
@@ -176,10 +194,18 @@ app.post("/autoSchedule", managerController.autoScheduling);
 app.get("/assignments", managerController.Assignments);
 app.get("/timeoff", managerController.getTimeoffRequests);
 
-
-app.get("/", (req, res) => {
+app.get("/homepage", (req, res) => {
     res.send("Homepage");
 })
 
-const PORT = process.env.PORT || 8800;
-app.listen(PORT, console.log(`server started on port ${PORT}`));
+// const PORT = process.env.PORT || 8800;
+// app.listen(PORT, console.log(`server started on port ${PORT}`));
+
+// Handling errors and CORS if necessary
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).send({ error: 'Internal Server Error' });
+});
+
+
+module.exports.handler = serverless(app);
