@@ -15,17 +15,20 @@ const bcrypt = require('bcryptjs');
 
 const app = express();
 
+// NOTE: the following cors configuration is commented out as
+// i have configured them in this backend's AWS Lambda function
+
 // enable cors
 //app.use(cors());
 
-const corsOptions = {
-    origin: '*',  // Allow any origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow common HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow specific headers
-};
+//const corsOptions = {
+//    origin: 'https://emproster.vercel.app',  // Allow any origin
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow common HTTP methods
+//    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-forwarded-for'], // Allow specific headers
+//};
 
 // Use the cors middleware with the custom options
-app.use(cors(corsOptions));
+//app.use(cors(corsOptions));
 
 // Handle OPTIONS preflight requests explicitly (needed for Lambda URLs)
 app.options('*', (req, res) => {
@@ -196,14 +199,9 @@ app.get("/homepage", (req, res) => {
     res.send("Homepage");
 })
 
+// NOTE: the following is commented out as the server will be deployed on AWS Lambda
+
 // const PORT = process.env.PORT || 8800;
 // app.listen(PORT, console.log(`server started on port ${PORT}`));
-
-// Handling errors and CORS if necessary
-app.use((err, req, res, next) => {
-    console.error(err);
-    res.status(500).send({ error: 'Internal Server Error' });
-});
-
 
 module.exports.handler = serverless(app);
