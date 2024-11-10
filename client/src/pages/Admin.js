@@ -254,20 +254,21 @@ const Admin = () => {
         }
     }
 
-    const fetchDownloadUrl = async () => { 
+    const fetchDownloadUrl = async () => {
         try {
-            const response = await fetch(`${server}logs/latest`);
+            const response = await axios.get(`${server}logs/latest`);
             
-            if (!response.ok) {
-                // If response status is not in the 200 range, throw an error
-                throw new Error(`Server error: ${response.status} - ${response.statusText}`);
-            }
-            
-            const data = await response.json();
+            // Axios automatically throws an error for response statuses outside the 2xx range
+            const data = response.data;
             setDownloadUrl(data.downloadUrl);
             console.log(downloadUrl);
         } catch (error) {
-            console.error('Error fetching download URL:', error);
+            // If error.response exists, it's a server-side error
+            if (error.response) {
+                console.error(`Server error: ${error.response.status} - ${error.response.statusText}`);
+            } else {
+                console.error('Error fetching download URL:', error.message);
+            }
         }
     };
     
@@ -298,13 +299,13 @@ const Admin = () => {
             await fetchIndustry();
 
             // Fetch the latest log download URL
-            await fetchDownloadUrl(); // Insert the fetchDownloadUrl here
+            await fetchDownloadUrl(); // fetch once on mount
         };
         fetchData();
         const intervalId = setInterval(fetchDownloadUrl, 30000); // Update every 30 seconds
         // Clean up the interval when the component unmounts
         return () => clearInterval(intervalId);
-    }, [navigate, tokenObj, downloadUrl]);
+    }, [navigate, tokenObj]);
 
     // Fetch users based on company and role filters
 
