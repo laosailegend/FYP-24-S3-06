@@ -5,7 +5,7 @@ function ClockInOut() {
   const [tokenObj, setTokenObj] = useState(() => {
     const token = localStorage.getItem("token");
     return token ? JSON.parse(atob(token.split('.')[1])) : null;
-});
+  });
   const userId = tokenObj ? tokenObj.id : null;
   const [assignmentData, setAssignmentData] = useState([]);
   const [clockInTimes, setClockInTimes] = useState({});
@@ -142,7 +142,7 @@ function ClockInOut() {
       }
 
       // Update local state to remove the assignment immediately from the UI
-      setAssignmentData(prevAssignments => 
+      setAssignmentData(prevAssignments =>
         prevAssignments.filter(assignment => assignment.assignment_id !== assignmentId) // Filter out the deleted assignment
       );
     } catch (error) {
@@ -164,12 +164,12 @@ function ClockInOut() {
                   onClick={() => handleDeleteAssignment(assignment.assignment_id)}
                   className="delete-button"
                 >
-                  X
+                  Delete
                 </button>
-                <p><strong>Assigned Date:</strong> {new Date(assignment.assigned_date).toLocaleDateString()}</p>
-                <p><strong>Start Time:</strong> {assignment.start_time}</p>
-                <p><strong>End Time:</strong> {assignment.end_time}</p>
-                <p><strong>Task Name:</strong> {assignment.taskname}</p>
+                    <p>Assigned Date:{new Date(assignment.assigned_date).toLocaleDateString()}</p>
+                    <p>Start Time: {assignment.start_time}</p>
+                    <p>End Time: {assignment.end_time}</p>
+                    <p>Task Name: {assignment.taskname}</p>
 
                 {clockInTimes[assignment.assignment_id] ? (
                   <div>

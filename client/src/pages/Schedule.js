@@ -4,6 +4,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
+import axios from 'axios';
 
 const server = process.env.REACT_APP_SERVER;
 
@@ -25,22 +26,45 @@ function Schedule() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [publicHolidays, setPublicHolidays] = useState({}); // State for public holidays
+
+  const apiKey = '8WUuhRGlcWlVOlJoTJOYApvnaiVzmQsO'; // Calendarific API key
 
   useEffect(() => {
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 4)) {
       window.alert("You are not authorized to view this page");
       navigate("/", { replace: true });
-      return () => {
-      }
+      return;
     }
 
     fetchSchedules();
     fetchTasks(); // Fetch tasks on component mount
+    fetchAllPublicHolidays(); // Fetch holidays for all defined years
   }, []);
 
   useEffect(() => {
     fetchSchedulesByDate(date);
   }, [date]);
+
+  const fetchAllPublicHolidays = async () => {
+    const yearsToFetch = [2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034];
+    const holidays = {};
+
+    for (let year = yearsToFetch[0]; year <= yearsToFetch[1]; year++) {
+      try {
+        const response = await axios.get(`https://calendarific.com/api/v2/holidays?&api_key=${apiKey}&country=SG&year=${year}`);
+        const holidaysData = response.data.response.holidays;
+        holidaysData.forEach((holiday) => {
+          const dateString = moment(holiday.date.iso).format('YYYY-MM-DD');
+          holidays[dateString] = holiday.name; // Add holiday name to date
+        });
+      } catch (error) {
+        console.error(`Error fetching public holidays for year ${year}:`, error);
+      }
+    }
+
+    setPublicHolidays(holidays); // Set state with all fetched holidays
+  };
 
   const fetchSchedules = async () => {
     try {
@@ -56,9 +80,15 @@ function Schedule() {
     try {
       const response = await fetch(`${server}tasks`);
       const data = await response.json();
-      setTasks(data);
+      if (Array.isArray(data)) {
+        setTasks(data); // Ensure that tasks is set to an array
+      } else {
+        console.error('Expected tasks to be an array but got:', data);
+        setTasks([]); // Default to empty array if data is not an array
+      }
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      setTasks([]); // In case of error, set empty array
     }
   };
 
@@ -95,7 +125,7 @@ function Schedule() {
         ))}
       </ul>
     ) : (
-      <p>No schedules for this day.</p>
+      <label>No schedules for this day</label>
     );
   };
 
@@ -182,93 +212,98 @@ function Schedule() {
     }
   };
 
+  const getHolidayName = (date) => {
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    return publicHolidays[formattedDate] || '';
+  };
+
+  const tileClassName = ({ date }) => {
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    return publicHolidays[formattedDate] ? 'holiday' : '';
+  };
+
+  const tileContent = ({ date }) => {
+    const holidayName = getHolidayName(date);
+    return holidayName ? <div className="holiday-name">{holidayName}</div> : null;
+  };
+
   return (
     <div className="schedule-container">
       <h2>Employee Schedule</h2>
-      <Calendar onChange={onChange} value={date} />
-      <div className="schedule-details">
-        <h3>Schedules for {moment(date).format('DD/MM/YYYY')}</h3>
-        {renderSchedules()}
 
-        <h3>Tasks for {moment(date).format('DD/MM/YYYY')}</h3>
-        <ul>
-          {getTasksForDate(date).map((task, index) => (
-            <li key={index}>
-              <strong>Job Scope:</strong> {task.taskname} <br />
-              <strong>Description:</strong> {task.description} <br />
-              <strong>Manpower Required:</strong> {task.manpower_required}
-            </li>
-          ))}
-          {getTasksForDate(date).length === 0 && <p>No tasks for this day.</p>}
-        </ul>
+      <div className="schedule-details-container">
+        <div className="schedule-calendar">
+          <Calendar
+            onChange={onChange}
+            value={date}
+            tileClassName={tileClassName}
+            tileContent={tileContent}
+          />
+        </div>
+
+        <div className="schedule-details">
+          <h3>Schedules for {moment(date).format('DD/MM/YYYY')}</h3>
+          {renderSchedules()}
+
+          <h3>Tasks for {moment(date).format('DD/MM/YYYY')}</h3>
+          <ul>
+            {getTasksForDate(date).map((task, index) => (
+              <li key={index}>{task.name} - {moment(task.timeslot).format('HH:mm')}</li>
+            ))}
+          </ul>
+
+          <button onClick={handleAddClick}>Add Shift</button>
+        </div>
       </div>
 
-      <button onClick={handleAddClick}>Add Shift</button>
-
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal">
+          <form onSubmit={handleSubmit}>
             <h3>{isEditing ? 'Edit Shift' : 'Add Shift'}</h3>
-            <form onSubmit={handleSubmit}>
-              <div>
-                <label>Employee ID:</label>
-                <input
-                  type="number"
-                  name="userid"
-                  value={shiftDetails.userid || ''}
-                  onChange={handleInputChange}
-                  placeholder="Enter Employee ID"
-                  required
-                />
-              </div>
-              <div>
-                <label>Shift Date:</label>
-                <input
-                  type="date"
-                  name="shift_date"
-                  value={shiftDetails.shift_date || ''}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div>
-                <label>Start Time:</label>
-                <input
-                  type="time"
-                  name="start_time"
-                  value={shiftDetails.start_time || ''}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div>
-                <label>End Time:</label>
-                <input
-                  type="time"
-                  name="end_time"
-                  value={shiftDetails.end_time || ''}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div>
-                <label>Salary per Hour:</label>
-                <input
-                  type="number"
-                  name="salary"
-                  value={shiftDetails.salary || ''}
-                  onChange={handleInputChange}
-                  placeholder="Enter salary"
-                  required
-                />
-              </div>
-              <button type="submit">{isEditing ? 'Update Shift' : 'Add Shift'}</button>
-              <button type="button" onClick={() => { setIsModalOpen(false); setIsEditing(false); setEditingId(null); }}>Cancel</button>
-            </form>
-          </div>
+            <input
+              type="text"
+              name="userid"
+              value={shiftDetails.userid}
+              onChange={handleInputChange}
+              placeholder="Employee ID"
+              required
+            />
+            <input
+              type="date"
+              name="shift_date"
+              value={shiftDetails.shift_date}
+              onChange={handleInputChange}
+              required
+            />
+            <input
+              type="time"
+              name="start_time"
+              value={shiftDetails.start_time}
+              onChange={handleInputChange}
+              required
+            />
+            <input
+              type="time"
+              name="end_time"
+              value={shiftDetails.end_time}
+              onChange={handleInputChange}
+              required
+            />
+            <input
+              type="number"
+              name="salary"
+              value={shiftDetails.salary}
+              onChange={handleInputChange}
+              placeholder="Salary"
+              required
+            />
+            <button type="submit">Save</button>
+            <button type="button" onClick={() => setIsModalOpen(false)}>Cancel</button>
+          </form>
         </div>
       )}
     </div>
+
   );
 }
 

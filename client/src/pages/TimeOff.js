@@ -6,7 +6,6 @@ const server = process.env.REACT_APP_SERVER;
 
 const TimeOff = () => {
     const [requests, setRequests] = useState([]);
-
     const [tokenObj, setTokenObj] = useState(() => {
         const token = localStorage.getItem("token");
         return token ? JSON.parse(atob(token.split('.')[1])) : null;
@@ -14,7 +13,6 @@ const TimeOff = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // prevents non-admin users from viewing the page
         if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
             window.alert("You are not authorized to view this page");
             navigate("/", { replace: true });
@@ -36,7 +34,6 @@ const TimeOff = () => {
     const handleStatusChange = async (request_Id, newStatus) => {
         try {
             await axios.put(`${server}timeoff/${request_Id}`, { status: newStatus });
-            // Remove the updated request from the list if it's no longer pending
             setRequests(requests.filter(request =>
                 request.request_id !== request_Id || newStatus === 'pending'
             ));
@@ -46,9 +43,9 @@ const TimeOff = () => {
     };
 
     return (
-        <div>
+        <div className="timeoff-container">
             <h2>Time-Off Requests</h2>
-            <table>
+            <table className="timeoff-table">
                 <thead>
                     <tr>
                         <th>Request ID</th>
@@ -76,8 +73,14 @@ const TimeOff = () => {
                             <td>
                                 {request.status === 'pending' && (
                                     <>
-                                        <button onClick={() => handleStatusChange(request.request_id, 'approved')}>Approve</button>
-                                        <button onClick={() => handleStatusChange(request.request_id, 'rejected')}>Reject</button>
+                                        <button 
+                                            className="approve-button" 
+                                            onClick={() => handleStatusChange(request.request_id, 'approved')}
+                                        >Approve</button>
+                                        <button 
+                                            className="reject-button" 
+                                            onClick={() => handleStatusChange(request.request_id, 'rejected')}
+                                        >Reject</button>
                                     </>
                                 )}
                             </td>
