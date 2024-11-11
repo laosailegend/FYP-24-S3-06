@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         return () => clearInterval(interval);
     }, []);
 
-    const login = (token) => {
+    const login = async (token) => {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         localStorage.setItem("token", token);
         setIsLoggedIn(true);
@@ -50,7 +50,32 @@ export const AuthProvider = ({ children }) => {
             id: decodedToken.id || "",
             company: decodedToken.company || "", // Include company ID
         });
-        console.log("auth header set");
+
+        // Prepare payload (if needed for the backend)
+        const payload = {
+            email: decodedToken.email,
+            password: decodedToken.password,
+        };
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_SERVER}login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                throw new Error('Login failed');
+            }
+
+            const data = await response.json();
+            console.log("Login successful:", data); // Handle response data here
+        } catch (error) {
+            console.error("Error during login:", error);
+        }
     };
 
     const logout = () => {

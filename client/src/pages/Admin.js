@@ -256,14 +256,22 @@ const Admin = () => {
 
     const fetchDownloadUrl = async () => {
         try {
-            const response = await fetch(`${server}logs/latest`);
-            const data = await response.json();
+            const response = await axios.get(`${server}logs/latest`);
+            
+            // Axios automatically throws an error for response statuses outside the 2xx range
+            const data = response.data;
             setDownloadUrl(data.downloadUrl);
             console.log(downloadUrl);
         } catch (error) {
-            console.error('Error fetching download URL:', error);
+            // If error.response exists, it's a server-side error
+            if (error.response) {
+                console.error(`Server error: ${error.response.status} - ${error.response.statusText}`);
+            } else {
+                console.error('Error fetching download URL:', error.message);
+            }
         }
     };
+    
 
     useEffect(() => {
         // prevents non-admin users from viewing the page
@@ -291,7 +299,7 @@ const Admin = () => {
             await fetchIndustry();
 
             // Fetch the latest log download URL
-            await fetchDownloadUrl(); // Insert the fetchDownloadUrl here
+            await fetchDownloadUrl(); // fetch once on mount
         };
         fetchData();
         const intervalId = setInterval(fetchDownloadUrl, 30000); // Update every 30 seconds

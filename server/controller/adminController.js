@@ -1,12 +1,12 @@
 // adminController.js
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../dbConfig');
 const logger = require('../utils/logger');
 const SECRET_KEY = process.env.JWT_SECRET;
 
-exports.helloWorld = (req, res) => {
-    res.send("Hello World if this doesn't go through am i cooked");
+exports.apiWorks = (req, res) => {
+    res.send("i am working");
 };
 
 // log IP addr
