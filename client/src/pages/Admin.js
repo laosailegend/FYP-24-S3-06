@@ -254,22 +254,35 @@ const Admin = () => {
         }
     }
 
-    const fetchDownloadUrl = async () => { 
+    const fetchDownloadUrl = async () => {
         try {
-            const response = await fetch(`${server}logs/latest`);
+            const response = await axios.get(`${server}logs/latest`);  // Ensure single slash between server and route
+    
+            // Axios handles non-2xx statuses as errors automatically
+            const data = response.data;
             
-            if (!response.ok) {
-                // If response status is not in the 200 range, throw an error
-                throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+            if (data.downloadUrl) {
+                setDownloadUrl(data.downloadUrl);
+                console.log("Fetched download URL:", data.downloadUrl);  // Log after setting state
+            } else {
+                console.warn("No download URL returned in response.");
             }
-            
-            const data = await response.json();
-            setDownloadUrl(data.downloadUrl);
-            console.log(downloadUrl);
+    
         } catch (error) {
-            console.error('Error fetching download URL:', error);
+            if (error.response) {
+                // Server responded with a status outside the 2xx range
+                console.error(`Server error: ${error.response.status} - ${error.response.statusText}`);
+                console.log("Detailed server error: ", error.response.data); // Logs additional server error info
+            } else if (error.request) {
+                // Request was made but no response received
+                console.error("Network error: No response received from server");
+            } else {
+                // Some other error during setup
+                console.error('Error setting up request:', error.message);
+            }
         }
     };
+    
     
 
     useEffect(() => {
@@ -298,13 +311,13 @@ const Admin = () => {
             await fetchIndustry();
 
             // Fetch the latest log download URL
-            await fetchDownloadUrl(); // Insert the fetchDownloadUrl here
+            await fetchDownloadUrl(); // fetch once on mount
         };
         fetchData();
         const intervalId = setInterval(fetchDownloadUrl, 30000); // Update every 30 seconds
         // Clean up the interval when the component unmounts
         return () => clearInterval(intervalId);
-    }, [navigate, tokenObj, downloadUrl]);
+    }, [navigate, tokenObj]);
 
     // Fetch users based on company and role filters
 

@@ -58,23 +58,24 @@ export const AuthProvider = ({ children }) => {
         };
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_SERVER}/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(payload),
+            const response = await fetch(`${process.env.REACT_APP_SERVER}login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error('Login failed');
+            throw new Error('Login failed: ', data.error);
             }
 
-            const data = await response.json();
             console.log("Login successful:", data); // Handle response data here
         } catch (error) {
-            console.error("Error during login:", error);
+            console.error("Error during login:", error.message);
         }
     };
 

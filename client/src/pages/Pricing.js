@@ -1,11 +1,24 @@
-//Pricing.js
-import React from 'react';
+// Pricing.js
+import React, { useState } from 'react';
 import '../style.css';
 
 const Pricing = () => {
+  const [email, setEmail] = useState('');
+
+  const handleRequestPricing = () => {
+    const userEmail = prompt("Please enter your email address for pricing information:");
+
+    if (userEmail) {
+      setEmail(userEmail);
+      alert(`Thank you! We will send pricing information to ${userEmail}.`);
+    } else {
+      alert('Email is required to request pricing.');
+    }
+  };
+
   return (
     <div className="pricing">
-            <h2 style={{ color: '#006eff93',fontSize: '3em', fontWeight: 'bold' }}>Pricing</h2>
+      <h2 style={{ color: '#006eff93', fontSize: '3em', fontWeight: 'bold' }}>Pricing</h2>
       <table className="features-table">
         <thead>
           <tr>
@@ -56,7 +69,9 @@ const Pricing = () => {
           </tr>
         </tbody>
       </table>
-      <button className="request-pricing-button">Request for Pricing</button>
+      <button className="request-pricing-button" onClick={handleRequestPricing}>
+        Request for Pricing
+      </button>
     </div>
   );
 }
