@@ -121,7 +121,8 @@ const Tasks = () => {
     try {
       const response = await axios.get(`${server}tasks`);
       console.log('Fetched tasks:', response.data);
-      setTasks(response.data);
+      const data = response.data.tasks;
+      setTasks(data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
@@ -254,7 +255,6 @@ const Tasks = () => {
       alert('Error updating task');
     }
   };
-
 
   return (
     <div className="tasks-container">
