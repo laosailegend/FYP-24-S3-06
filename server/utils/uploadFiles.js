@@ -116,4 +116,4 @@ cron.schedule('0 0 * * *', () => {
 });
 
 
-module.exports = { uploadLogFile, listLogFiles };
+module.exports = { uploadLogFile };
