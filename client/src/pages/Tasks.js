@@ -55,7 +55,8 @@ const Tasks = () => {
     try {
       const response = await axios.get(`${server}company`);
       console.log('Fetched companies:', response.data);
-      setCompany(response.data);
+      const data = await response.json();
+      setCompany(data);
     } catch (error) {
       console.error('Error fetching companies:', error);
     }
@@ -119,7 +120,8 @@ const Tasks = () => {
     try {
       const response = await axios.get(`${server}tasks`);
       console.log('Fetched tasks:', response.data);
-      setTasks(response.data);
+      const data = await response.json();
+      setTasks(data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
