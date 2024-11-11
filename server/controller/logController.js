@@ -159,10 +159,11 @@ exports.getLogsTimestamp = (req, res) => {
 };
 
 exports.getLatestLogs = async (req, res) => {
+    console.log("i am getting the latest logs but am i even running thats the question");
     try {
         // List all log files in the 'logs/' directory of your bucket
         const logs = await listLogFiles(bucket);
-
+        console.log("logs list: ", logs);
         if (logs.length === 0) {
             return res.status(404).json({ error: 'No log files found' });
         }
@@ -179,7 +180,7 @@ exports.getLatestLogs = async (req, res) => {
         
         res.json({ downloadUrl: url });
     } catch (error) {
-        console.error('Error in getLatestLogs:', error); // Improved error logging
+        console.log('Error in getLatestLogs:', error); // Improved error logging
         res.status(500).json({ error: 'Error generating download URL' });
     }
 };
