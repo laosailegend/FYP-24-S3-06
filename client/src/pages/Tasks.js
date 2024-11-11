@@ -55,8 +55,7 @@ const Tasks = () => {
     try {
       const response = await axios.get(`${server}company`);
       console.log('Fetched companies:', response.data);
-      const data = await response.json();
-      setCompany(data);
+      setCompany(response.data);
     } catch (error) {
       console.error('Error fetching companies:', error);
     }
@@ -89,15 +88,17 @@ const Tasks = () => {
   };
 
   useEffect(() => {
+
+    if (tokenObj === null) {
+      return null;  // You can replace this with a loading indicator if you prefer
+    }
+
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
       window.alert("You are not authorized to view this page");
       navigate("/", { replace: true });
       return;
     }
 
-    if (tokenObj === null) {
-      return null;  // You can replace this with a loading indicator if you prefer
-    }
 
     const fetchData = async () => {
       await fetchTasks();
@@ -120,8 +121,7 @@ const Tasks = () => {
     try {
       const response = await axios.get(`${server}tasks`);
       console.log('Fetched tasks:', response.data);
-      const data = await response.json();
-      setTasks(data);
+      setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     }
@@ -350,24 +350,31 @@ const Tasks = () => {
         <h3>Tasks</h3>
         <ul>
           {tasks && tasks.length > 0 ? (
-            tasks.map((task) => (
-              <li key={task.taskid}>
-                <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
-                <strong>Description:</strong> {task.description || 'No Description'} <br />
-                <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
-                <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
-                <strong>Weekend:</strong> {task.isWeekend || 'No'} <br />
-                <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
-                <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
-                <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
-                <strong>Company:</strong> {company.find(company => company.compid === task.compid)?.company || 'No Company Info'}
-                <button onClick={() => startEditTask(task)}>Edit</button>
-                <button onClick={() => deleteTask(task.taskid)}>Delete</button>
-              </li>
-            ))
+            tasks.map((task) => {
+              // Handle task without a company by checking if compid is null
+              const companyInfo = task.compid !== null ? company.find(company => company.compid === task.compid) : null;
+              const companyName = companyInfo ? companyInfo.company : 'No Company Info';
+
+              return (
+                <li key={task.taskid}>
+                  <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
+                  <strong>Description:</strong> {task.description || 'No Description'} <br />
+                  <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
+                  <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
+                  <strong>Weekend:</strong> {task.isWeekend || 'No'} <br />
+                  <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
+                  <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
+                  <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
+                  <strong>Company:</strong> {companyName}
+                  <button onClick={() => startEditTask(task)}>Edit</button>
+                  <button onClick={() => deleteTask(task.taskid)}>Delete</button>
+                </li>
+              );
+            })
           ) : (
             <p>No tasks available.</p>
           )}
+
         </ul>
       </div>
     </div>
