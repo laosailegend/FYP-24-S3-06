@@ -210,6 +210,9 @@ exports.getLatestLogs = async (req, res) => {
 
         console.log("LAMBDA PARAMS: ", params);
 
+        // Lambda expects the Payload to be stringified JSON
+        params.Payload = JSON.stringify(params.Payload);
+
         // Invoke the listLogFiles Lambda function
         const response = await lambda.invoke(params).promise();
         console.log("LAMBDA RESPONSE: ", response);
