@@ -19,16 +19,6 @@ const Tasks = () => {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [company, setCompany] = useState([]);
 
-  // const companyOptions = [
-  //   { compid: 0, name: 'EmpRoster' },
-  //   { compid: 1, name: 'Hello World PTE LTD' },
-  //   { compid: 5, name: 'Acme Corp' },
-  //   { compid: 6, name: 'Stellar Widgets' },
-  //   { compid: 7, name: 'Green Innovations' },
-  //   { compid: 9, name: 'Fake Company' },
-  //   // Add more companies as needed
-  // ];
-
   const fetchCompany = async () => {
     try {
       const response = await axios.get(`${server}company`);
@@ -127,14 +117,6 @@ const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [editTaskId, setEditTaskId] = useState(null); // State to track which task is being edited
 
-  useEffect(() => {
-    fetchTasks();
-  }, [navigate, tokenObj]);
-
-  useEffect(() => {
-    console.log('Tasks state updated:', tasks);
-  }, [tasks]);
-
   const fetchTasks = async () => {
     try {
       const response = await axios.get(`${server}tasks`);
@@ -206,8 +188,8 @@ const Tasks = () => {
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
         setStartTime(''); // Reset start time
         setEndTime(''); // Reset end time
-        fetchTasks();
         setSelectedCompany('');  // Reset the company dropdown
+        window.location.reload();
       } else {
         alert('Failed to add task');
         console.error("Response Status:", response.status);
@@ -221,7 +203,7 @@ const Tasks = () => {
   const deleteTask = async (id) => {
     try {
       await axios.delete(`${server}task/${id}`);
-      fetchTasks();
+      window.location.reload();
     } catch (error) {
       console.error("Error deleting task:", error);
       alert('Error deleting task');
@@ -261,8 +243,8 @@ const Tasks = () => {
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
         setStartTime(''); // Reset start time
         setEndTime(''); // Reset end time
-        fetchTasks();
         setSelectedCompany(''); // Reset the company dropdown
+        window.location.reload();
       } else {
         alert('Failed to update task');
         console.error("Response Status:", response.status);
