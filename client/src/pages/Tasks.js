@@ -18,31 +18,17 @@ const Tasks = () => {
   const [startTime, setStartTime] = useState(''); // Added state for start time
   const [selectedCompany, setSelectedCompany] = useState('');
   const [company, setCompany] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [editTaskId, setEditTaskId] = useState(null); // State to track which task is being edited
 
-  // const companyOptions = [
-  //   { compid: 0, name: 'EmpRoster' },
-  //   { compid: 1, name: 'Hello World PTE LTD' },
-  //   { compid: 5, name: 'Acme Corp' },
-  //   { compid: 6, name: 'Stellar Widgets' },
-  //   { compid: 7, name: 'Green Innovations' },
-  //   { compid: 9, name: 'Fake Company' },
-  //   // Add more companies as needed
-  // ];
-
-  const fetchCompany = async () => {
-    try {
-      const response = await axios.get(`${server}company`);
-      console.log('Fetched companies:', response.data);
-      setCompany(response.data);
-    } catch (error) {
-      console.error('Error fetching companies:', error);
-    }
-  };
-
-  // Handle company change
-  const handleCompanyChange = (e) => {
-    setSelectedCompany(e.target.value); // Store the selected company ID in the state
-  };
+  const [taskDetails, setTaskDetails] = useState({
+    taskname: '',
+    description: '',
+    manpower_required: '',
+    start_time: '',
+    end_time: '',
+    compid: null,
+  });
 
   const [selectedCountry, setSelectedCountry] = useState('SG'); // Default to Singapore
   const countryOptions = [
@@ -60,10 +46,26 @@ const Tasks = () => {
     { code: 'CN', name: 'China' },
     // Add more countries as needed
   ];
-  
+
   const [endTime, setEndTime] = useState(''); // Added state for end time
 
   const [holidays, setHolidays] = useState([]);
+
+  const fetchCompany = async () => {
+    try {
+      const response = await axios.get(`${server}company`);
+      console.log('Fetched companies:', response.data);
+      setCompany(response.data);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
+
+  // Handle company change
+  const handleCompanyChange = (e) => {
+    setSelectedCompany(e.target.value); // Store the selected company ID in the state
+  };
+
 
   const fetchPublicHolidays = useCallback(async (year) => {
     try {
@@ -79,34 +81,25 @@ const Tasks = () => {
     fetchPublicHolidays(activeYear);
   }, [fetchPublicHolidays]);
 
-  useEffect(() => {
-    updatePublicHolidays(new Date().getFullYear()); // Initialize with current year public holidays
-  }, [updatePublicHolidays]);
 
   const handleCountryChange = (e) => {
     const newCountry = e.target.value;
     setSelectedCountry(newCountry);
   };
-  
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      updatePublicHolidays(new Date().getFullYear());
-    }, 500);
-  
-    return () => clearTimeout(delayDebounceFn); // Cleanup
-  }, [selectedCountry, updatePublicHolidays]);
 
   useEffect(() => {
+
+    if (tokenObj === null) {
+      return null;  // You can replace this with a loading indicator if you prefer
+    }
+
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
       window.alert("You are not authorized to view this page");
       navigate("/", { replace: true });
       return;
     }
 
-    if (tokenObj === null) {
-      return null;  // You can replace this with a loading indicator if you prefer
-    }
-    
+
     const fetchData = async () => {
       await fetchTasks();
       await fetchCompany();
@@ -115,25 +108,14 @@ const Tasks = () => {
     fetchData();
   }, [navigate, tokenObj]);
 
-  const [taskDetails, setTaskDetails] = useState({
-    taskname: '',
-    description: '',
-    manpower_required: '',
-    start_time: '',
-    end_time: '',
-    compid: null,
-
-  });
-  const [tasks, setTasks] = useState([]);
-  const [editTaskId, setEditTaskId] = useState(null); // State to track which task is being edited
-
   useEffect(() => {
-    fetchTasks();
-  }, [navigate, tokenObj]);
+    const delayDebounceFn = setTimeout(() => {
+      updatePublicHolidays(new Date().getFullYear());
+    }, 500);
 
-  useEffect(() => {
-    console.log('Tasks state updated:', tasks);
-  }, [tasks]);
+    return () => clearTimeout(delayDebounceFn); // Cleanup
+  }, [selectedCountry, updatePublicHolidays]);
+
 
   const fetchTasks = async () => {
     try {
@@ -158,7 +140,7 @@ const Tasks = () => {
     }
     return null;
   };
-  
+
   // Adjust tileClassName to apply holiday class
   const tileClassName = ({ date }) => {
     const formattedDate = moment(date).format('YYYY-MM-DD');
@@ -188,15 +170,15 @@ const Tasks = () => {
 
     const formattedDate = formatDate(date); // Use the new formatDate utility
 
-    const newTask = { 
-        taskname: taskDetails.taskname, 
-        description: taskDetails.description, 
-        manpower_required: taskDetails.manpower_required, 
-        task_date: formattedDate, 
-        start_time: startTime, 
-        end_time: endTime, 
-        country_code: selectedCountry,
-        compid: selectedCompany,
+    const newTask = {
+      taskname: taskDetails.taskname,
+      description: taskDetails.description,
+      manpower_required: taskDetails.manpower_required,
+      task_date: formattedDate,
+      start_time: startTime,
+      end_time: endTime,
+      country_code: selectedCountry,
+      compid: selectedCompany,
     };
 
     try {
@@ -206,8 +188,8 @@ const Tasks = () => {
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
         setStartTime(''); // Reset start time
         setEndTime(''); // Reset end time
-        fetchTasks();
         setSelectedCompany('');  // Reset the company dropdown
+        window.location.reload();
       } else {
         alert('Failed to add task');
         console.error("Response Status:", response.status);
@@ -221,7 +203,7 @@ const Tasks = () => {
   const deleteTask = async (id) => {
     try {
       await axios.delete(`${server}task/${id}`);
-      fetchTasks();
+      window.location.reload();
     } catch (error) {
       console.error("Error deleting task:", error);
       alert('Error deleting task');
@@ -242,14 +224,14 @@ const Tasks = () => {
   };
   const handleUpdate = async (e) => {
     e.preventDefault();
-    
+
     const formattedDate = formatDate(date); // Use the new formatDate utility
-    const updatedTask = { 
-      taskname: taskDetails.taskname, 
-      description: taskDetails.description, 
-      manpower_required: taskDetails.manpower_required, 
+    const updatedTask = {
+      taskname: taskDetails.taskname,
+      description: taskDetails.description,
+      manpower_required: taskDetails.manpower_required,
       task_date: formattedDate, // Correctly formatted
-      start_time: startTime, 
+      start_time: startTime,
       end_time: endTime,
       compid: selectedCompany,
     };
@@ -261,8 +243,8 @@ const Tasks = () => {
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
         setStartTime(''); // Reset start time
         setEndTime(''); // Reset end time
-        fetchTasks();
         setSelectedCompany(''); // Reset the company dropdown
+        window.location.reload();
       } else {
         alert('Failed to update task');
         console.error("Response Status:", response.status);
@@ -273,7 +255,7 @@ const Tasks = () => {
     }
   };
 
-  
+
   return (
     <div className="tasks-container">
       <h1>Tasks</h1>
@@ -292,7 +274,7 @@ const Tasks = () => {
         tileClassName={tileClassName}
         onActiveStartDateChange={handleActiveStartDateChange} // Fetch holidays when month/year changes
       />
-      
+
       {/* Task Form */}
       <form onSubmit={editTaskId ? handleUpdate : handleSubmit}>
         <div>
@@ -362,14 +344,19 @@ const Tasks = () => {
         </div>
         <button type="submit">{editTaskId ? 'Update Task' : 'Add Task'}</button>
       </form>
-  
-      {/* Task List */}
+
+      {/* task list */}
       <div className="tasks-list">
         <h3>Tasks</h3>
         <ul>
-          {tasks.length > 0 ? (
-            tasks.map((task) => (
-              <li key={task.taskid}>
+          {tasks && tasks.length > 0 ? (
+            tasks.map((task) => {
+              // Handle task without a company by checking if compid is null
+              const companyInfo = task.compid !== null ? company.find(company => company.compid === task.compid) : null;
+              const companyName = companyInfo ? companyInfo.company : 'No Company Info';
+
+              return (
+                <li key={task.taskid}>
                   <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
                   <strong>Description:</strong> {task.description || 'No Description'} <br />
                   <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
@@ -378,19 +365,21 @@ const Tasks = () => {
                   <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
                   <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
                   <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
-                  <strong>Company:</strong> {company.find(company => company.compid === task.compid)?.name || 'No Company Info'}
+                  <strong>Company:</strong> {companyName}
                   <button onClick={() => startEditTask(task)}>Edit</button>
                   <button onClick={() => deleteTask(task.taskid)}>Delete</button>
-              </li>
-            ))
+                </li>
+              );
+            })
           ) : (
             <p>No tasks available.</p>
           )}
+
         </ul>
       </div>
     </div>
   );
-  
+
 }
 
 export default Tasks;

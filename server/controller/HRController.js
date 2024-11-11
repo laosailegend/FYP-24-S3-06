@@ -259,7 +259,7 @@ exports.updatePayrollQueries = async (req, res) => {
 
     try {
         // Execute the SQL query
-        const result = await db.query(query, [response, status, receiptUrl, query_id]);
+        const result = db.query(query, [response, status, receiptUrl, query_id]);
 
         // If no rows are updated, return a 404 error
         if (result.affectedRows === 0) {
@@ -386,7 +386,7 @@ exports.createTrainingSession = async (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
 
-        await db.query(query, [skill_id, description, trainer, start_date, start_time, end_date, end_time]);
+        db.query(query, [skill_id, description, trainer, start_date, start_time, end_date, end_time]);
 
         res.status(201).json({ message: 'Training session created successfully.' });
     } catch (error) {
@@ -438,7 +438,7 @@ exports.updateTrainingSession = async (req, res) => {
                 start_date = ?, start_time = ?, end_date = ?, end_time = ? 
             WHERE session_id = ?
         `;
-        const result = await db.query(query, [skill_id, description, trainer, start_date, start_time, end_date, end_time, session_id]);
+        const result = db.query(query, [skill_id, description, trainer, start_date, start_time, end_date, end_time, session_id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Training session not found.' });

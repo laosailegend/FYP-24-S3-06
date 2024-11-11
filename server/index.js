@@ -19,7 +19,7 @@ const app = express();
 // NOTE: the following cors configuration is commented out as
 // i have configured them in this backend's AWS Lambda function
 
-// enable cors
+// [COMMENT IN LOCALHOST] enable cors
 //app.use(cors());
 
 //const corsOptions = {
@@ -31,7 +31,7 @@ const app = express();
 // Use the cors middleware with the custom options
 //app.use(cors(corsOptions));
 
-// Handle OPTIONS preflight requests explicitly (needed for Lambda URLs)
+// [COMMENT OUT IN LOCALHOST] Handle OPTIONS preflight requests explicitly (needed for Lambda URLs) 
 app.options('*', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', '*');
