@@ -31,6 +31,7 @@ import PayrollQueriesPage from './pages/PayrollQueriesPage';
 import ReviewShiftSwapping from './pages/ReviewShiftSwapping';
 import TrainingCalendar from './pages/TrainingCalendar';
 import FeedbackList from './pages/FeedbackList';
+import Assignments from './pages/Assignments';
 
 import { AuthContext } from './auth/AuthContext';
 function Home() {
@@ -134,6 +135,7 @@ function App() {
                 <div className="dropdown-content">
                   <Link to="/Tasks">Tasks</Link>
                   <Link to="/timeoff">TimeOff</Link>
+                  <Link to="/Assignments">Assignments</Link>
                 </div>
               </div>
             ) : (
@@ -240,6 +242,7 @@ function App() {
             <Route path="/ReviewShiftSwapping" element={<ReviewShiftSwapping />} />
             <Route path="/TrainingCalendar" element={<TrainingCalendar />} />
             <Route path="/FeedbackList" element={<FeedbackList />} />
+            <Route path="/Assignments" element={<Assignments/>} />
           </Routes>
           <div className="theme-toggle-container">
             <button onClick={toggleTheme} className="theme-toggle">
