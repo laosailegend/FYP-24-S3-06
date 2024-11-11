@@ -2,3 +2,4 @@
 server/.env
 .env
 emproster-server
+*.zip

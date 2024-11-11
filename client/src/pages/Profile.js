@@ -5,15 +5,12 @@ import '../style.css';
 const server = process.env.REACT_APP_SERVER;
 
 const Profile = () => {
-    // to stop http requests from spamming use this usestate to store the token
     const [tokenObj, setTokenObj] = useState(() => {
         const token = localStorage.getItem("token");
         return token ? JSON.parse(atob(token.split('.')[1])) : null;
     });
 
-    // init usestate for fetching data
     const [roles, setRoles] = useState([]);
-
     const [profile, setProfile] = useState({
         fname: '',
         lname: '',
@@ -33,19 +30,18 @@ const Profile = () => {
             setError("Failed to fetch profile details");
             console.error(e);
         }
-    }
+    };
 
     useEffect(() => {
         if (!tokenObj) {
             window.alert("Invalid");
             navigate("/", { replace: true });
-            return () => {
-            }
+            return () => {};
         }
 
         const fetchData = async () => {
             await fetchProfile(tokenObj.id);
-        }
+        };
 
         fetchData();
     }, [tokenObj, navigate]);
@@ -69,50 +65,51 @@ const Profile = () => {
     };
 
     if (error) {
-        return <div>Error: {error}</div>;
+        return <div className="error-message">Error: {error}</div>;
     }
 
     if (!profile) {
-        return <div>Loading...</div>;
+        return <div className="loading-message">Loading...</div>;
     }
-    console.log(profile);
+
     return (
-        <div>
-            <h2>Edit Profile</h2>
-            <form onSubmit={handleSubmit}>
-                <label>
+        <div className="profile-container">
+            <h2 className="profile-heading">Edit Profile</h2>
+            <form className="profile-form" onSubmit={handleSubmit}>
+                <label className="form-label">
                     First Name:
                     <input
+                        className="form-input"
                         type="text"
                         name="fname"
                         value={profile.fname}
                         onChange={handleChange}
                     />
                 </label>
-                <br />
-                <label>
+                <label className="form-label">
                     Last Name:
                     <input
+                        className="form-input"
                         type="text"
                         name="lname"
                         value={profile.lname}
                         onChange={handleChange}
                     />
                 </label>
-                <br />
-                <label>
+                <label className="form-label">
                     Email:
                     <input
+                        className="form-input"
                         type="email"
                         name="email"
                         value={profile.email}
                         onChange={handleChange}
                     />
                 </label>
-                <br />
-                <label>
+                <label className="form-label">
                     Contact:
                     <input
+                        className="form-input"
                         type="text"
                         name="contact"
                         value={profile.contact}
@@ -120,28 +117,28 @@ const Profile = () => {
                         maxLength={8}
                     />
                 </label>
-                <br />
-                <label>
+                <label className="form-label">
                     Role:
-                    <input disabled
+                    <input
+                        className="form-input"
+                        disabled
                         type="text"
                         name="role"
                         value={profile.role}
                         onChange={handleChange}
                     />
                 </label>
-                <br />
-                <label>
-                    New Password <br/> (min 8 characters, at least 1 letter and 1 number):
-                    <input 
-                        type="password" 
+                <label className="form-label">
+                    New Password <br /> (min 8 characters, at least 1 letter and 1 number):
+                    <input
+                        className="form-input"
+                        type="password"
                         name="password"
-                        onChange={handleChange} 
+                        onChange={handleChange}
                         pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}"
                     />
                 </label>
-                <br />
-                <button type="submit">Update Profile</button>
+                <button className="form-button" type="submit">Update Profile</button>
             </form>
         </div>
     );

@@ -1,12 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap');
+
 /* General Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+
 
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Oswald', sans-serif;
   background-color: #f5f5f5;
   color: #333;
   line-height: 1.6;
@@ -91,6 +89,10 @@ nav .login {
 main {
   text-align: center;
   padding: 50px 20px;
+  width: 100vw; /* Full viewport width */
+  min-height: 100vh; /* Minimum height of the viewport, grows with content */
+  margin: 0;     /* Remove default margin */
+  box-sizing: border-box; /* Include padding in width and height */
 }
 
 .intro h2 {
@@ -126,7 +128,6 @@ main {
 }
 
 .review {
-  background-color: #fff;
   padding: 20px;
   border-radius: 10px;
   margin: 10px 0;
@@ -143,6 +144,8 @@ main {
   margin-top: 10px;
 }
 
+
+
 /* Footer */
 footer {
   background-color: #333;
@@ -156,7 +159,6 @@ footer {
 
 /* Login Form */
 .login-form {
-  background-color: white;
   padding: 40px;
   border-radius: 10px;
   max-width: 500px;
@@ -178,7 +180,7 @@ footer {
 }
 
 .login-form .formButton {
-  width: 100%;
+  width: 20%;
   padding: 15px;
   background-color: #006eff93;
   color: white;
@@ -192,9 +194,9 @@ footer {
   background-color: #005bcc;
 }
 
+
 /* Contact Page */
 .contact {
-  background-color: #fff;
   padding: 40px;
   border-radius: 10px;
   max-width: 800px;
@@ -212,7 +214,7 @@ footer {
 }
 
 .contact-section h3 {
-  color: #333;
+  color: skyblue;
   margin-bottom: 10px;
 }
 
@@ -237,72 +239,165 @@ footer {
   background-color: #e64a19;
 }
 
-/* Pricing Page */
+
+/* Pricing container styling */
 .pricing {
-  background-color: #fff;
-  padding: 40px;
-  border-radius: 10px;
   max-width: 800px;
-  margin: 40px auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  text-align: center;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Pricing title */
+.pricing h2 {
+  color: #006eff93;
+  font-size: 2.5em;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+.emp-roster-features {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid #ddd;
+  border-radius: 10px; 
+  width: 80%;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item img {
+  padding: 10px;
+  max-width: 600px; /* Increase image size */
+  width: 100%; 
+  height: auto; 
+}
+
+.feature-item p {
+  margin: 10px 0; 
   text-align: center;
 }
 
-.pricing h2 {
-  color: #006eff93;
-  margin-bottom: 30px;
-}
-
+/* Features table styling */
 .features-table {
   width: 100%;
   border-collapse: collapse;
+  margin: 20px 0;
 }
 
-.features-table th,
-.features-table td {
-  border: 1px solid #006eff93;
+.features-table th, .features-table td {
   padding: 15px;
-  text-align: left;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
 }
 
 .features-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
+  background-color: #006eff93;
+  color: #fff;
+  font-size: 1.2em;
 }
 
+
+/* Request pricing button */
 .request-pricing-button {
-  background-color: #ff5722;
-  color: white;
-  padding: 15px 30px;
-  border-radius: 5px;
-  cursor: pointer;
-  border: none;
   margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #ff5722;
+  color: #fff;
+  font-size: 1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .request-pricing-button:hover {
   background-color: #e64a19;
 }
 
-/*Schedule.js design */
 .schedule-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 100%; /* Adjust width as needed */
-  max-width: 500px; /* Maximum width for large screens */
-  height: 100vh; /* Adjust height as needed */
-  margin: 0 auto; /* Center container horizontally */
-  text-align: center;
+  margin: 20px auto;
+  padding: 10px;
+  width: 80%;
+  max-width: 1000px;
+  font-family: 'Oswald', sans-serif;
+  border-radius: 8px; /* Add rounded corners */
+  gap: 20px; /* Adds a gap between the calendar and schedule details */
 }
+
+.schedule-details-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 70%;  /* Adjust width to use the full container */
+  gap: 10px;  /* Adds gap between elements in the schedule details container */
+  margin-top: 20px;  /* Add a little spacing on top if needed */
+}
+
+/* Wrapper to hold calendar and shift details side by side */
+.schedule-content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start; 
+  width: 100%;
+  gap: 20px; 
+  padding: 20px;
+}
+
+/* Shift details styling */
+.shift-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Form inputs styling */
+.shift-details form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 50px;
+}
+
+.shift-details input, .shift-details button {
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.shift-details button {
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+  border: none;
+  
+}
+
 
 .schedule-details {
   margin-top: 20px;
 }
 
 .schedule-details h3 {
-  color: #333;
+  color: #006eff93;
 }
 
 .schedule-details ul {
@@ -317,94 +412,158 @@ footer {
   border-radius: 5px;
 }
 
-/* Schedule.js */
-.schedule-container {
-max-width: 800px;
-margin: 0 auto;
-padding: 20px;
-background-color: #f9f9f9;
-border-radius: 8px;
-box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-font-family: Arial, sans-serif;
+/* Modal Styling */
+.modal {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
 }
+
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal input[type="text"],
+.modal input[type="number"],
+.modal input[type="date"],
+.modal input[type="time"] {
+  width: 380px;
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal input[type="text"]:focus,
+.modal input[type="number"]:focus,
+.modal input[type="date"]:focus,
+.modal input[type="time"]:focus {
+  padding: 8px;
+  outline: none;
+  border-color: #006eff93;
+}
+
+.modal button[type="submit"] {
+  background-color: #006eff93;
+}
+
+
+.modal button[type="button"] {
+  background-color: #ff5722;
+}
+
 
 /* Title styling */
 .schedule-container h2 {
 text-align: center;
 margin-bottom: 20px;
-color: #333;
+color: #006eff93;
 }
+
 
 /* Calendar styling */
 .react-calendar {
-width: 100%;
-max-width: 400px;
-margin: 0 auto; /* Centers the calendar horizontally */
-border: none;
-background-color: #fff;
-border-radius: 8px;
-box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-}
-
-.react-calendar__tile {
-max-width: 100%;
-padding: 10px 0;
-background: none;
-text-align: center;
-border-radius: 8px;
-cursor: pointer;
-color: #333;
-}
-
-.react-calendar__tile--active {
-background-color: #006eff93;
-color: white;
-}
-
-.react-calendar__tile--now {
-background-color: #006eff93;
-color: white;
-}
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto; 
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .react-calendar__tile {
+  max-width: 100%;
+  padding: 10px 0;
+  background: none;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #333;
+  }
+  
+  .react-calendar__tile--active {
+  background-color: #006eff93;
+  color: white;
+  }
+  
+  .react-calendar__navigation__label{
+    background-color: #006eff93;
+    color: black;
+    }
+    .react-calendar__navigation {
+      background-color:  #006eff93; 
+    }
+    
+  
+  .react-calendar__tile--now {
+  background-color: #006eff93;
+  color: white;
+  }
+  
+  .react-calendar__month-view__weekdays__weekday{
+    color: black;
+  }
+  
+  
 
 /* Schedule details section */
 .schedule-details {
-margin-top: 20px;
-}
+  margin-top: 20px;
+  }
+  
+  .schedule-details h3 {
+  margin-bottom: 10px;
+  color: #006eff93;
+  }
+  
+  .schedule-details ul {
+  list-style: none;
+  padding: 0;
+  }
+  
+  .schedule-details ul li {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .schedule-details ul li button {
+  background-color: #006eff93;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 5px;
+  }
+  
+  
+  /* Button for adding a shift */
+  button {
+  background-color: #006eff93;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  }
 
-.schedule-details h3 {
-margin-bottom: 10px;
-color: #555;
-}
-
-.schedule-details ul {
-list-style: none;
-padding: 0;
-}
-
-.schedule-details ul li {
-background-color: #fff;
-margin-bottom: 10px;
-padding: 10px;
-border-radius: 5px;
-display: flex;
-justify-content: space-between;
-align-items: center;
-box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-}
-
-.schedule-details ul li button {
-background-color: #006eff93;
-border: none;
-color: white;
-padding: 5px 10px;
-border-radius: 4px;
-cursor: pointer;
-margin-left: 5px;
-}
-
-.schedule-details ul li button:hover {
-background-color: #006eff93;
-}
+  
+  
 
 /* Button for adding a shift */
 button {
@@ -420,159 +579,90 @@ margin-left: auto;
 margin-right: auto;
 }
 
-button:hover {
-background-color: #006eff93;
-}
 
 /* Modal styling */
 .modal-overlay {
-position: fixed;
-top: 0;
-left: 0;
-right: 0;
-bottom: 0;
-background: rgba(0, 0, 0, 0.5);
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-.modal-content {
-background-color: #fff;
-padding: 20px;
-border-radius: 8px;
-width: 90%;
-max-width: 500px;
-box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.modal-content h3 {
-margin-top: 0;
-color: #333;
-}
-
-.modal-content form {
-display: flex;
-flex-direction: column;
-}
-
-.modal-content form div {
-margin-bottom: 15px;
-}
-
-.modal-content form label {
-font-weight: bold;
-margin-bottom: 5px;
-color: #333;
-}
-
-.modal-content form input[type="date"],
-.modal-content form input[type="time"],
-.modal-content form input[type="text"],
-.modal-content form input[type="number"] {
-width: 100%;
-padding: 8px;
-border: 1px solid #ccc;
-border-radius: 5px;
-}
-
-.modal-content form button {
-margin-top: 10px;
-}
-
-.modal-content form button[type="submit"] {
-background-color: #006eff93;
-}
-
-.modal-content form button[type="button"] {
-background-color: #006eff93;
-margin-left: 5px;
-}
-
-.modal-content form button[type="button"]:hover {
-background-color: #006eff93;
-}
-/* Availability */
-.availability-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  }
+  
+  .modal-content {
   padding: 20px;
-  margin: 0 auto;
-  max-width: 800px;
-  text-align: center;
-  background-color: #f9f9f9;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.react-calendar {
-  margin: 20px auto;
-  max-width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  border: 1px solid #006eff93;
-}
-
-h2, h3 {
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-content h3 {
+  margin-top: 0;
   color: #006eff93;
-  margin-bottom: 15px;
-}
-
-form {
+  }
+  
+  .modal-content form {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-}
-
-form div {
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-form label {
-  margin-right: 10px;
+  }
+  
+  .modal-content form div {
+  margin-bottom: 15px;
+  }
+  
+  .modal-content form label {
   font-weight: bold;
-}
-
-form select {
+  margin-bottom: 5px;
+  color: #333;
+  }
+  
+  .modal-content form input[type="date"],
+  .modal-content form input[type="time"],
+  .modal-content form input[type="text"],
+  .modal-content form input[type="number"] {
+  width: 100%;
   padding: 8px;
-  border-radius: 5px;
   border: 1px solid #ccc;
-  width: 200px;
-}
-
-button[type="submit"] {
-  background-color: #006eff93;
-  color: white;
-  padding: 10px 20px;
-  border: none;
   border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-button[type="submit"]:hover {
-  background-color: #006eff;
-}
+  }
+  
+  .modal-content form button {
+  margin-top: 10px;
+  }
+  
+  .modal-content form button[type="submit"] {
+  background-color: #006eff93;
+  }
+  
+  .modal-content form button[type="button"] {
+  background-color: #006eff93;
+  margin-left: 5px;
+  }
+  
+  .modal-content form button[type="button"]:hover {
+  background-color: #006eff93;
+  }
+  
 
 /* Tasks Page */
 .tasks-container {
   display: flex;
-  flex-direction: column; /* Stack items vertically */
-  align-items: center;    /* Center items horizontally */
-  justify-content: center; /* Center items vertically */
-  padding: 20px;
-  margin: 0 auto;
-  max-width: 800px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+  align-items: center;
+  margin: 20px auto;
+  padding: 10px;
+  width: 80%;
+  max-width: 1000px;
+  font-family: 'Oswald', sans-serif;
+  border-radius: 8px; /* Add rounded corners */
 }
+
+
 
 .tasks-container h2 {
   color: #006eff93;
@@ -618,9 +708,7 @@ button[type="submit"]:hover {
   cursor: pointer;
 }
 
-.task-form button:hover {
-  background-color: #005bcc;
-}
+
 
 .task-list {
   width: 100%;
@@ -649,177 +737,278 @@ button[type="submit"]:hover {
 .task-list tr:nth-child(even) {
   background-color: #f9f9f9;
 }
-
-/*timeoff page*/
-.time-off-requests-container {
-  padding: 20px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-th {
-  background-color: #f4f4f4;
-}
-
-button {
-  margin: 0 5px;
-  padding: 5px 10px;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-}
-
-/*Profile Page*/
-.profile-container {
+.calendar-and-task-form {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 20px auto;
-  padding: 20px;
-  width: 50%;
-  max-width: 600px;
-  background-color: #f4f4f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  margin-bottom: 30px;
 }
 
-h2 {
-  color: #333;
+/* Calendar */
+.calendar-container {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.react-calendar {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+/* Task Form */
+.task-form-container {
+  flex: 1;
+  max-width: 400px;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.task-form-container h3 {
+  text-align: center;
   margin-bottom: 20px;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
+
+.task-form-container input[type="text"],
+.task-form-container input[type="number"],
+.task-form-container input[type="time"],
+.task-form-container select {
   width: 100%;
-}
-
-label {
-  font-size: 16px;
-  margin-bottom: 10px;
-  color: #555;
-}
-
-input {
-  padding: 10px;
+  padding: 8px;
   margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 16px;
-  width: 100%;
 }
 
-button {
-  padding: 10px 20px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
+.task-form-container input[type="time"] {
+  width: 45%;
+  display: inline-block;
+  margin-right: 10px;
 }
 
-button:hover {
-  background-color: #218838;
-}
-
-.error-message {
-  color: red;
-  margin-bottom: 15px;
-}
-
-.loading-message {
-  font-size: 18px;
-  color: #555;
-}
-
-/* Availability Form Styles */
-.availability-form-container {
-  max-width: 600px;
-  margin: 20px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-.availability-form-group {
-  margin-bottom: 15px;
-}
-
-.availability-form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.availability-form-group input, 
-.availability-form-group select {
+.task-form-container button {
   width: 100%;
   padding: 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-.availability-button {
-  background-color: #4CAF50;
+  background-color: #006eff93;
   color: white;
-  padding: 10px 15px;
   border: none;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 10px;
 }
 
-.availability-list {
-  margin-top: 20px;
+
+/* Task List */
+.tasks-list {
+  margin-top: 40px;
 }
 
-.availability-card {
-  padding: 15px;
-  margin: 10px 0;
+.tasks-list h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #006eff93;
+}
+
+.tasks-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.tasks-list li {
+  background-color: #f9f9f9;
+  padding: 10px;
+  margin-bottom: 10px;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #fff;
+  border-radius: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
 }
 
-.availability-card div {
-  flex-basis: 45%;
-  margin-bottom: 10px;
+.tasks-list li .task-name {
+  font-weight: bold;
+  font-size: 16px;
 }
 
-.status-available {
-  color: green;
+.tasks-list li .task-description {
+  color: #555;
+  margin: 5px 0;
 }
 
-.status-pending {
-  color: orange; 
+.tasks-list li .task-details {
+  display: flex;
+  flex-direction: column;
 }
 
-.status-unavailable {
-  color: red;
+.tasks-list li button {
+  background-color: #ff5722;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
 }
+
+
+.tasks-list li .task-time {
+  font-size: 14px;
+  color: #666;
+}
+/* Container for the calendar and task form */
+.calendar-form-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 800px; /* Limit maximum width */
+  margin-bottom: 20px; /* Space between form and task list */
+}
+
+/* Container for the entire Time Off Request page */
+.time-off-request-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header styling */
+.time-off-request-container h2{
+  color: #006eff93;
+}
+.request-history h3 {
+  color: #006eff93;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Calendar container */
+.calendar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-side-by-side {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.calendar {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Highlight public holidays */
+.holiday {
+  color: #ff5722;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.holiday-tile {
+  background-color: #ffe6e6;
+}
+
+/* Form inputs for Start Date, End Date, and Reason */
+form div {
+  margin-bottom: 15px;
+}
+
+
+
+form input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fafafa;
+}
+
+form textarea {
+  width: 60%;
+  padding: 30px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fafafa;
+  resize: vertical;
+}
+.react-calendar__navigation button {
+    min-width: 44px;
+    background: none;
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    padding: 0;              /* Remove any default padding */
+    border: none;            /* Remove default border if necessary */
+}
+
+
+/* Submit button */
+form button[type="submit"] {
+  display: block;
+  width: 20%;
+  padding: 10px;
+  background-color: #006eff;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+
+/* Request history section */
+.request-history {
+  margin-top: 30px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.request-history ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.request-history li {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.request-history li:last-child {
+  border-bottom: none;
+}
+
+.request-history p {
+  color: #777;
+  text-align: center;
+}
+
+/* Delete button for requests */
+.delete-button {
+  padding: 5px 10px;
+  background-color: #ff5722;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+
 
 /* Admin Page */
 .admin-form {
@@ -922,8 +1111,13 @@ button:hover {
   margin-top: 24px;
 }
 
-.filter-button:hover {
-  background-color: #0056b3;
+/* Skill options container */
+form div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
 /* Logs table styling */
@@ -952,9 +1146,7 @@ button:hover {
   padding: 20px;
   max-width: 700px;
   margin: 40px auto;
-  font-family: Arial, sans-serif;
-  color: #333;
-  background-color: #f0f4f8;
+  font-family: Oswald, sans-serif;
   border-radius: 10px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -968,7 +1160,6 @@ button:hover {
 }
 
 .assignment-item {
-  background-color: #ffffff;
   border: 1px solid #e0e6ed;
   border-radius: 10px;
   padding: 20px;
@@ -977,19 +1168,7 @@ button:hover {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.assignment-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
 
-.assignment-item p {
-  margin: 6px 0;
-  color: #555;
-}
-
-.assignment-item strong {
-  color: #333;
-}
 
 .clock-in-button,
 .clock-out-button {
@@ -1043,67 +1222,131 @@ button:hover {
 }
 
 /* Update user page styles uses similar styling to admin page above*/
-
+/* Container styling */
 .training-session-container {
   max-width: 800px;
-  margin: auto;
+  margin: 0 auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.sessions-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-}
-
-.session-card {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
-}
-
-.session-card:hover {
-  transform: translateY(-5px);
-}
-
-.session-header h3 {
-  margin: 0 0 10px;
-  color: #333;
-}
-
-.session-details p {
-  margin: 5px 0;
-  font-size: 0.95rem;
-  color: #555;
-}
-
-.session-footer {
-  margin-top: 10px;
+/* Heading styling */
+.training-session-container h2 {
+  color: #006eff93;
+  margin-bottom: 20px;
   text-align: center;
 }
 
-.interest-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
+/* Form styling */
+.training-session-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+/* Dropdown and input fields */
+.training-session-form select,
+.training-session-form input[type="text"],
+.training-session-form input[type="date"],
+.training-session-form input[type="time"],
+.training-session-form textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  width: 100%;
+}
+
+/* Textarea styling */
+.training-session-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Date and time container */
+.date-time-container {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.date-time-container div {
+  flex: 1;
+}
+
+/* Button styling */
+.submit-button {
   padding: 10px 20px;
-  border-radius: 4px;
+  background-color: #006eff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+
+.submit-button:hover {
+  background-color: #0056cc;
+}
+
+/* Sessions list */
+.sessions-list {
+  list-style: none;
+  padding: 0;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-button,
+.delete-button {
+  padding: 5px 10px;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.interest-button:hover {
-  background-color: #0056b3;
+/* Container to hold both the calendar and task form */
+.calendar-and-task-form {
+  display: flex;             
+  justify-content: space-between; 
+  gap: 100px;                 
 }
 
-.interest-confirmation {
-  color: #28a745;
-  font-weight: bold;
+/* Calendar container */
+.calendar-container {
+  flex: 5;                  
+  min-width: 300px;         
 }
+
+/* Task form container */
+.task-form-container {
+  flex: 5;                   
+  min-width: 300px;          
+}
+
+/* Optional: You can adjust max width or padding as needed */
 
 /* Styles for the request history section */
 .request-history ul {
@@ -1116,7 +1359,6 @@ button:hover {
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 5px;
-  background-color: #f9f9f9;
 }
 
 .request-history li div {
@@ -1152,7 +1394,7 @@ button:hover {
 }
 
 .feedback-container h2, .feedback-container h3 {
-  color: #333;
+  color: #006eff93;
 }
 
 .feedback-container form {
@@ -1200,7 +1442,7 @@ button:hover {
 
 /* Project.js page */
 body {
-  font-family: Arial, sans-serif;
+  font-family: Oswald, sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f4f4f4;
@@ -1209,7 +1451,7 @@ body {
 
 h1 {
   text-align: center;
-  color: #2c3e50;
+  color: #006eff93;
   margin-top: 20px;
 }
 
@@ -1227,7 +1469,7 @@ ul {
 }
 
 li {
-  background: white;
+  border: 1px solid #e0e6ed;
   border-radius: 8px;
   padding: 20px;
   margin: 10px 0;
@@ -1241,17 +1483,10 @@ li:hover {
 }
 
 h2 {
-  color: #2980b9;
+  color: #006eff93;
   margin: 0 0 10px;
 }
 
-p {
-  margin: 5px 0;
-}
-
-p:nth-of-type(1) {
-  font-weight: bold;
-}
 
 /*Shift swapping css */
 .error {
@@ -1259,15 +1494,301 @@ p:nth-of-type(1) {
   font-weight: bold;
 }
 
-.swap-window {
-  border: 1px solid #ccc;
-  padding: 20px;
-  margin-top: 20px;
-  background-color: #f9f9f9;
-}
 
 button {
-  margin-top: 10px;
-  padding: 8px 12px;
+  padding: 10px 30px;
   cursor: pointer;
 }
+
+
+/*light dark mode*/
+:root {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --header-background: #006eff93;
+  --link-color: #006eff;
+}
+
+.dark-mode {
+  --background-color: #1e1e1e;
+  --text-color: #ffffff;
+  --header-background: #333333;
+  --link-color: #79a6f6;
+}
+
+.App {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+header {
+  background-color: var(--header-background); 
+}
+
+nav a {
+  color: var(--link-color);
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--link-color);
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: 15px;
+}
+
+button.logout {
+  background-color: #ff4d4d;
+  color: #fff;
+  border: none;
+  padding: 0px 10px;
+  cursor: pointer;
+}
+
+.holiday-tile {
+  background-color: #ffeb3b; /* Light yellow for holidays */
+}
+
+.holiday {
+  font-weight: bold;
+  color: #d32f2f; /* Dark red text for holiday names */
+}
+
+
+/* Dropdown Button */
+.dropdown {
+  display: inline-block;
+  font-size: 1rem; /* Adjust to match the font size of other headings */
+  font-weight: bold; /* Matches heading style */
+  color: #333; /* Ensure this matches the color of your other headings */
+  padding: 0px 15px;
+  cursor: pointer;
+}
+
+.button dropbtn{
+  background-color:blue;
+}
+
+/* Dropdown content */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  font-size: 0.9rem; 
+}
+
+/* Show dropdown content on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Dropdown links */
+.dropdown-content a {
+  color: #333;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-family: 'Oswald'; 
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+/* Flex container for calendar and shift details */
+.payroll-flex-container {
+  display: flex;
+  gap: 20px; /* Adds space between the calendar and shift details */
+}
+/* Styling for the payroll table container */
+.payroll-table-container {
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+
+
+/* Dropdown styling for Year, Month, and Employee selection */
+select {
+  margin: 5px 10px;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.calendar-section {
+  width: 50%; /* Adjust width as needed */
+}
+
+.shift-details {
+  width: 50%; /* Adjust width as needed */
+}
+
+.shift-time-inputs {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+
+.shift-time-inputs label,
+.shift-time-inputs input {
+  margin: 0;
+}
+/* Center the Add Shift button */
+.shift-details button {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Container styling */
+.timeoff-container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 25px;
+  background-color: var(--container-bg-color);
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  font-family: Oswald, sans-serif;
+  color: var(--text-color);
+}
+
+.timeoff-container h2 {
+  color: var(--heading-color);
+  font-size: 2.5em;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Table styling */
+.timeoff-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.timeoff-table th, .timeoff-table td {
+  padding: 15px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 1em;
+}
+
+.timeoff-table th {
+  background-color: var(--table-heading-bg);
+  font-weight: bold;
+}
+
+.timeoff-table tr:nth-child(even) {
+  background-color: var(--row-bg);
+}
+
+.timeoff-table tr:hover {
+  background-color: var(--row-hover-bg);
+}
+
+/* Button styling */
+.approve-button, .reject-button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.approve-button {
+  background-color: #006eff93;
+}
+
+.reject-button {
+  background-color: #dc3545;
+}
+/* General profile container styling */
+.profile-container {
+  max-width: 500px;
+  margin: auto;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading styling */
+.profile-heading {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Form styling */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Label styling */
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Input styling */
+.form-input {
+  padding: 10px;
+  margin-top: 5px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
+/* Disabled input field styling */
+.form-input[disabled] {
+  background-color: #e9e9e9;
+  cursor: not-allowed;
+}
+
+/* Submit button styling */
+.form-button {
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background-color: #006eff93;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.form-button:hover {
+  background-color: #0056e0;
+}
+
+/* Error message styling */
+.error-message {
+  color: #ff0000;
+  text-align: center;
+  font-size: 16px;
+}
+
+/* Loading message styling */
+.loading-message {
+  text-align: center;
+  font-size: 18px;
+  color: #666;
+}
+

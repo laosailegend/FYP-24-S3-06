@@ -1,28 +1,4 @@
-require('dotenv').config();
-
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const multer = require('multer');
-const morgan = require('morgan');
-const logger = require('../utils/logger');
-const jwt = require('jsonwebtoken');
-const aws = require('aws-sdk');
-const fs = require('fs');
-const cron = require('node-cron');
-
-const app = express();
-
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-const upload = multer({ dest: 'uploads/' });
-
-// parse every request as json and urlencoded data
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// enable cors
-app.use(cors());
-
+const db = require('../dbConfig');
 
 // retrieve user details w/o password for HR only + role /HRGetUser
 exports.HRGetUser = (req, res) => {
@@ -292,7 +268,7 @@ exports.updatePayrollQueries = async (req, res) => {
         res.status(200).json({ message: 'Payroll query updated successfully.' });
     } catch (error) {
         console.error('Error updating payroll query:', error);
-        res.status(500).json({ error: 'Failed to update payroll query.' });
+        res.status(500).json({ error: `Failed to update payroll query: ${error}` });
     }
 };
 
