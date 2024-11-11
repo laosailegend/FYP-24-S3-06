@@ -5,6 +5,7 @@ import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
 import axios from 'axios';
+const server = process.env.REACT_APP_SERVER;
 
 const Tasks = () => {
   // Use state with a function to derive the initial tokenObj value
@@ -119,7 +120,7 @@ const Tasks = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get(`https://emproster-server.vercel.app/tasks`);
+      const response = await axios.get(`${server}tasks`);
       console.log('Fetched tasks:', response.data);
       setTasks(response.data);
     } catch (error) {
@@ -182,7 +183,7 @@ const Tasks = () => {
     };
 
     try {
-      const response = await axios.post(`https://emproster-server.vercel.app/createTasks`, newTask);
+      const response = await axios.post(`${server}createTasks`, newTask);
       if (response.status === 201) {
         alert('Task added successfully');
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
