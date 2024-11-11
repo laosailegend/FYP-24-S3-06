@@ -11,7 +11,6 @@ const jwt = require('jsonwebtoken');
 const aws = require('aws-sdk');
 const fs = require('fs');
 const cron = require('node-cron');
-const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const bcrypt = require('bcryptjs');
 
