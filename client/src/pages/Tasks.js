@@ -203,7 +203,7 @@ const Tasks = () => {
 
   const deleteTask = async (id) => {
     try {
-      await axios.delete(`https://emproster-server.vercel.app/task/${id}`);
+      await axios.delete(`${server}task/${id}`);
       fetchTasks();
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -238,7 +238,7 @@ const Tasks = () => {
     };
 
     try {
-      const response = await axios.put(`https://emproster-server.vercel.app/task${editTaskId}`, updatedTask);
+      const response = await axios.put(`${server}task${editTaskId}`, updatedTask);
       if (response.status === 200) {
         alert('Task updated successfully');
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
