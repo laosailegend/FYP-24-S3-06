@@ -323,18 +323,28 @@ const Tasks = () => {
   
     {/* Task List */}
     <div className="tasks-list">
-      <h3>Tasks</h3>
-      <ul>
-        {tasks.length > 0 ? (
-          tasks.map((task) => (
-            <li key={task.taskid}>
-              {/* Display task details */}
-            </li>
-          ))
-        ) : (
-          <p>No tasks available.</p>
-        )}
-      </ul>
+        <h3>Tasks</h3>
+        <ul>
+          {tasks.length > 0 ? (
+            tasks.map((task) => (
+              <li key={task.taskid}>
+                  <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
+                  <strong>Description:</strong> {task.description || 'No Description'} <br />
+                  <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
+                  <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
+                  <strong>Weekend:</strong> {task.isWeekend || 'No'} <br />
+                  <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
+                  <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
+                  <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
+                  <strong>Company:</strong> {companyOptions.find(company => company.compid === task.compid)?.name || 'No Company Info'}
+                  <button onClick={() => startEditTask(task)}>Edit</button>
+                  <button onClick={() => deleteTask(task.taskid)}>Delete</button>
+              </li>
+            ))
+          ) : (
+            <p>No tasks available.</p>
+          )}
+        </ul>
     </div>
   </div>
   
