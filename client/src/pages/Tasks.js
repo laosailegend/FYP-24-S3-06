@@ -18,21 +18,17 @@ const Tasks = () => {
   const [startTime, setStartTime] = useState(''); // Added state for start time
   const [selectedCompany, setSelectedCompany] = useState('');
   const [company, setCompany] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [editTaskId, setEditTaskId] = useState(null); // State to track which task is being edited
 
-  const fetchCompany = async () => {
-    try {
-      const response = await axios.get(`${server}company`);
-      console.log('Fetched companies:', response.data);
-      setCompany(response.data);
-    } catch (error) {
-      console.error('Error fetching companies:', error);
-    }
-  };
-
-  // Handle company change
-  const handleCompanyChange = (e) => {
-    setSelectedCompany(e.target.value); // Store the selected company ID in the state
-  };
+  const [taskDetails, setTaskDetails] = useState({
+    taskname: '',
+    description: '',
+    manpower_required: '',
+    start_time: '',
+    end_time: '',
+    compid: null,
+  });
 
   const [selectedCountry, setSelectedCountry] = useState('SG'); // Default to Singapore
   const countryOptions = [
@@ -54,6 +50,22 @@ const Tasks = () => {
   const [endTime, setEndTime] = useState(''); // Added state for end time
 
   const [holidays, setHolidays] = useState([]);
+
+  const fetchCompany = async () => {
+    try {
+      const response = await axios.get(`${server}company`);
+      console.log('Fetched companies:', response.data);
+      setCompany(response.data);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
+
+  // Handle company change
+  const handleCompanyChange = (e) => {
+    setSelectedCompany(e.target.value); // Store the selected company ID in the state
+  };
+
 
   const fetchPublicHolidays = useCallback(async (year) => {
     try {
@@ -105,17 +117,7 @@ const Tasks = () => {
     fetchData();
   }, [navigate, tokenObj]);
 
-  const [taskDetails, setTaskDetails] = useState({
-    taskname: '',
-    description: '',
-    manpower_required: '',
-    start_time: '',
-    end_time: '',
-    compid: null,
 
-  });
-  const [tasks, setTasks] = useState([]);
-  const [editTaskId, setEditTaskId] = useState(null); // State to track which task is being edited
 
   const fetchTasks = async () => {
     try {
