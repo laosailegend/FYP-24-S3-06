@@ -17,15 +17,27 @@ const Tasks = () => {
   const [date, setDate] = useState(new Date());
   const [startTime, setStartTime] = useState(''); // Added state for start time
   const [selectedCompany, setSelectedCompany] = useState('');
-  const companyOptions = [
-    { compid: 0, name: 'EmpRoster' },
-    { compid: 1, name: 'Hello World PTE LTD' },
-    { compid: 5, name: 'Acme Corp' },
-    { compid: 6, name: 'Stellar Widgets' },
-    { compid: 7, name: 'Green Innovations' },
-    { compid: 9, name: 'Fake Company' },
-    // Add more companies as needed
-  ];
+  const [company, setCompany] = useState([]);
+
+  // const companyOptions = [
+  //   { compid: 0, name: 'EmpRoster' },
+  //   { compid: 1, name: 'Hello World PTE LTD' },
+  //   { compid: 5, name: 'Acme Corp' },
+  //   { compid: 6, name: 'Stellar Widgets' },
+  //   { compid: 7, name: 'Green Innovations' },
+  //   { compid: 9, name: 'Fake Company' },
+  //   // Add more companies as needed
+  // ];
+
+  const fetchCompany = async () => {
+    try {
+      const response = await axios.get(`${server}company`);
+      console.log('Fetched companies:', response.data);
+      setCompany(response.data);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
 
   // Handle company change
   const handleCompanyChange = (e) => {
@@ -95,7 +107,12 @@ const Tasks = () => {
       return null;  // You can replace this with a loading indicator if you prefer
     }
     
-    fetchTasks();
+    const fetchData = async () => {
+      await fetchTasks();
+      await fetchCompany();
+    };
+
+    fetchData();
   }, [navigate, tokenObj]);
 
   const [taskDetails, setTaskDetails] = useState({
@@ -317,7 +334,7 @@ const Tasks = () => {
           <label>Select Company:</label>
           <select value={selectedCompany} onChange={handleCompanyChange}>
             <option value="">--Select Company--</option>
-            {companyOptions.map((company) => (
+            {company.map((company) => (
               <option key={company.compid} value={company.compid}>
                 {company.name}
               </option>
@@ -361,7 +378,7 @@ const Tasks = () => {
                   <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
                   <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
                   <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
-                  <strong>Company:</strong> {companyOptions.find(company => company.compid === task.compid)?.name || 'No Company Info'}
+                  <strong>Company:</strong> {company.find(company => company.compid === task.compid)?.name || 'No Company Info'}
                   <button onClick={() => startEditTask(task)}>Edit</button>
                   <button onClick={() => deleteTask(task.taskid)}>Delete</button>
               </li>
