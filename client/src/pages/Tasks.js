@@ -46,7 +46,7 @@ const Tasks = () => {
     { code: 'CN', name: 'China' },
     // Add more countries as needed
   ];
-  
+
   const [endTime, setEndTime] = useState(''); // Added state for end time
 
   const [holidays, setHolidays] = useState([]);
@@ -97,7 +97,7 @@ const Tasks = () => {
     if (tokenObj === null) {
       return null;  // You can replace this with a loading indicator if you prefer
     }
-    
+
     const fetchData = async () => {
       await fetchTasks();
       await fetchCompany();
@@ -105,12 +105,12 @@ const Tasks = () => {
 
     fetchData();
   }, [navigate, tokenObj]);
-  
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       updatePublicHolidays(new Date().getFullYear());
     }, 500);
-  
+
     return () => clearTimeout(delayDebounceFn); // Cleanup
   }, [selectedCountry, updatePublicHolidays]);
 
@@ -138,7 +138,7 @@ const Tasks = () => {
     }
     return null;
   };
-  
+
   // Adjust tileClassName to apply holiday class
   const tileClassName = ({ date }) => {
     const formattedDate = moment(date).format('YYYY-MM-DD');
@@ -168,15 +168,15 @@ const Tasks = () => {
 
     const formattedDate = formatDate(date); // Use the new formatDate utility
 
-    const newTask = { 
-        taskname: taskDetails.taskname, 
-        description: taskDetails.description, 
-        manpower_required: taskDetails.manpower_required, 
-        task_date: formattedDate, 
-        start_time: startTime, 
-        end_time: endTime, 
-        country_code: selectedCountry,
-        compid: selectedCompany,
+    const newTask = {
+      taskname: taskDetails.taskname,
+      description: taskDetails.description,
+      manpower_required: taskDetails.manpower_required,
+      task_date: formattedDate,
+      start_time: startTime,
+      end_time: endTime,
+      country_code: selectedCountry,
+      compid: selectedCompany,
     };
 
     try {
@@ -222,14 +222,14 @@ const Tasks = () => {
   };
   const handleUpdate = async (e) => {
     e.preventDefault();
-    
+
     const formattedDate = formatDate(date); // Use the new formatDate utility
-    const updatedTask = { 
-      taskname: taskDetails.taskname, 
-      description: taskDetails.description, 
-      manpower_required: taskDetails.manpower_required, 
+    const updatedTask = {
+      taskname: taskDetails.taskname,
+      description: taskDetails.description,
+      manpower_required: taskDetails.manpower_required,
       task_date: formattedDate, // Correctly formatted
-      start_time: startTime, 
+      start_time: startTime,
       end_time: endTime,
       compid: selectedCompany,
     };
@@ -253,7 +253,7 @@ const Tasks = () => {
     }
   };
 
-  
+
   return (
     <div className="tasks-container">
       <h1>Tasks</h1>
@@ -272,7 +272,7 @@ const Tasks = () => {
         tileClassName={tileClassName}
         onActiveStartDateChange={handleActiveStartDateChange} // Fetch holidays when month/year changes
       />
-      
+
       {/* Task Form */}
       <form onSubmit={editTaskId ? handleUpdate : handleSubmit}>
         <div>
@@ -342,25 +342,25 @@ const Tasks = () => {
         </div>
         <button type="submit">{editTaskId ? 'Update Task' : 'Add Task'}</button>
       </form>
-  
-      {/* Task List */}
+
+      {/* task list */}
       <div className="tasks-list">
         <h3>Tasks</h3>
         <ul>
-          {tasks.length > 0 ? (
+          {tasks && tasks.length > 0 ? (
             tasks.map((task) => (
               <li key={task.taskid}>
-                  <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
-                  <strong>Description:</strong> {task.description || 'No Description'} <br />
-                  <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
-                  <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
-                  <strong>Weekend:</strong> {task.isWeekend || 'No'} <br />
-                  <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
-                  <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
-                  <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
-                  <strong>Company:</strong> {company.find(company => company.compid === task.compid)?.name || 'No Company Info'}
-                  <button onClick={() => startEditTask(task)}>Edit</button>
-                  <button onClick={() => deleteTask(task.taskid)}>Delete</button>
+                <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
+                <strong>Description:</strong> {task.description || 'No Description'} <br />
+                <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
+                <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
+                <strong>Weekend:</strong> {task.isWeekend || 'No'} <br />
+                <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
+                <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
+                <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
+                <strong>Company:</strong> {company.find(company => company.compid === task.compid)?.name || 'No Company Info'}
+                <button onClick={() => startEditTask(task)}>Edit</button>
+                <button onClick={() => deleteTask(task.taskid)}>Delete</button>
               </li>
             ))
           ) : (
@@ -370,7 +370,7 @@ const Tasks = () => {
       </div>
     </div>
   );
-  
+
 }
 
 export default Tasks;
