@@ -5,7 +5,6 @@ import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import '../style.css';
 import axios from 'axios';
-const server = process.env.REACT_APP_SERVER;
 
 const Tasks = () => {
   // Use state with a function to derive the initial tokenObj value
@@ -32,34 +31,58 @@ const Tasks = () => {
     setSelectedCompany(e.target.value); // Store the selected company ID in the state
   };
 
-  const [endTime, setEndTime] = useState(''); // Added state for end time
-  const [holidays, setHolidays] = useState([]);
-  const [publicHolidays, setPublicHolidays] = useState({}); // State for public holidays
-  const apiKey = '8WUuhRGlcWlVOlJoTJOYApvnaiVzmQsO'; // Calendarific API key
-
-  const fetchAllPublicHolidays = async () => {
-    const yearsToFetch = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033];
-    const holidays = {};  // You were defining a new object here, but you're not setting it directly.
-    
-    for (let year of yearsToFetch) {
-      try {
-        const response = await axios.get(`https://calendarific.com/api/v2/holidays?&api_key=${apiKey}&country=SG&year=${year}`);
-        response.data.response.holidays.forEach((holiday) => {
-          const dateString = moment(holiday.date.iso).format('YYYY-MM-DD');
-          holidays[dateString] = holiday.name;  // Set the holiday name by date
-        });
-      } catch (error) {
-        console.error(`Error fetching public holidays for year ${year}:`, error);
-      }
-    }
+  const [selectedCountry, setSelectedCountry] = useState('SG'); // Default to Singapore
+  const countryOptions = [
+    { code: 'SG', name: 'Singapore' },
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'MX', name: 'Mexico' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'IT', name: 'Italy' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'CN', name: 'China' },
+    // Add more countries as needed
+  ];
   
-    setPublicHolidays(holidays); // Update the state after loop finishes
+  const [endTime, setEndTime] = useState(''); // Added state for end time
+
+  const [holidays, setHolidays] = useState([]);
+
+  const fetchPublicHolidays = useCallback(async (year) => {
+    try {
+      const response = await axios.get(`https://date.nager.at/api/v3/publicholidays/${year}/${selectedCountry}`);
+      setHolidays(response.data); // Store the fetched holidays in state
+      console.log("Fetched holidays:", response.data);
+    } catch (error) {
+      console.error("Error fetching public holidays:", error);
+    }
+  }, [selectedCountry]);
+
+  const updatePublicHolidays = useCallback((activeYear) => {
+    fetchPublicHolidays(activeYear);
+  }, [fetchPublicHolidays]);
+
+  useEffect(() => {
+    updatePublicHolidays(new Date().getFullYear()); // Initialize with current year public holidays
+  }, [updatePublicHolidays]);
+
+  const handleCountryChange = (e) => {
+    const newCountry = e.target.value;
+    setSelectedCountry(newCountry);
   };
   
   useEffect(() => {
-    fetchAllPublicHolidays();
-  }, []);
+    const delayDebounceFn = setTimeout(() => {
+      updatePublicHolidays(new Date().getFullYear());
+    }, 500);
   
+    return () => clearTimeout(delayDebounceFn); // Cleanup
+  }, [selectedCountry, updatePublicHolidays]);
+
   useEffect(() => {
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
       window.alert("You are not authorized to view this page");
@@ -96,7 +119,7 @@ const Tasks = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get(`${server}tasks`);
+      const response = await axios.get(`https://emproster-server.vercel.app/tasks`);
       console.log('Fetched tasks:', response.data);
       setTasks(response.data);
     } catch (error) {
@@ -111,24 +134,24 @@ const Tasks = () => {
   // Adjust tileContent to show holiday label
   const tileContent = ({ date }) => {
     const formattedDate = moment(date).format('YYYY-MM-DD');
-    const holidayName = publicHolidays[formattedDate];
-    if (holidayName) {
-      return <p className="holiday">{holidayName}</p>;
+    const holiday = holidays.find(holiday => holiday.date === formattedDate);
+    if (holiday) {
+      return <p className="holiday">{holiday.localName}</p>; // Show holiday name
     }
     return null;
   };
   
-  
+  // Adjust tileClassName to apply holiday class
   const tileClassName = ({ date }) => {
     const formattedDate = moment(date).format('YYYY-MM-DD');
-    return publicHolidays[formattedDate] ? 'holiday-tile' : null; // Apply holiday class
+    const isHoliday = holidays.some(holiday => holiday.date === formattedDate);
+    return isHoliday ? 'holiday-tile' : null;
   };
-  useEffect(() => {
-    console.log("Fetched public holidays:", publicHolidays); // Log the state to ensure it's populated
-  }, [publicHolidays]);
-  
 
-
+  const handleActiveStartDateChange = ({ activeStartDate }) => {
+    const activeYear = activeStartDate.getFullYear();
+    updatePublicHolidays(activeYear); // Fetch holidays for the active year
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -154,11 +177,12 @@ const Tasks = () => {
         task_date: formattedDate, 
         start_time: startTime, 
         end_time: endTime, 
+        country_code: selectedCountry,
         compid: selectedCompany,
     };
 
     try {
-      const response = await axios.post(`${server}createTasks`, newTask);
+      const response = await axios.post(`https://emproster-server.vercel.app/createTasks`, newTask);
       if (response.status === 201) {
         alert('Task added successfully');
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
@@ -178,7 +202,7 @@ const Tasks = () => {
 
   const deleteTask = async (id) => {
     try {
-      await axios.delete(`${server}task/${id}`);
+      await axios.delete(`https://emproster-server.vercel.app/task/${id}`);
       fetchTasks();
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -213,7 +237,7 @@ const Tasks = () => {
     };
 
     try {
-      const response = await axios.put(`${server}task${editTaskId}`, updatedTask);
+      const response = await axios.put(`https://emproster-server.vercel.app/task${editTaskId}`, updatedTask);
       if (response.status === 200) {
         alert('Task updated successfully');
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
@@ -234,95 +258,95 @@ const Tasks = () => {
   
   return (
     <div className="tasks-container">
-    <h1>Tasks</h1>
-  
-    {/* Create a container to hold both calendar and task form side by side */}
-    <div className="calendar-and-task-form">
+      <h1>Tasks</h1>
+      <select value={selectedCountry} onChange={handleCountryChange}>
+        {countryOptions.map(country => (
+          <option key={country.code} value={country.code}>
+            {country.name}
+          </option>
+        ))}
+      </select>
       {/* Calendar Component */}
-      <div className="calendar-container">
-        <Calendar
-          onChange={onChange}
-          value={date}
-          tileContent={tileContent}
-          tileClassName={tileClassName}
-        />
-      </div>
-  
+      <Calendar
+        onChange={onChange}
+        value={date}
+        tileContent={tileContent}
+        tileClassName={tileClassName}
+        onActiveStartDateChange={handleActiveStartDateChange} // Fetch holidays when month/year changes
+      />
+      
       {/* Task Form */}
-      <div className="task-form-container">
-        <form onSubmit={editTaskId ? handleUpdate : handleSubmit}>
-          <div>
-            <label>Task Name:</label>
-            <input
-              type="text"
-              name="taskname"
-              value={taskDetails.taskname}
-              onChange={handleInputChange}
-              placeholder="Enter task name"
-              required
-            />
-          </div>
-          <div>
-            <label>Description:</label>
-            <input
-              type="text"
-              name="description"
-              value={taskDetails.description}
-              onChange={handleInputChange}
-              placeholder="Enter description"
-              required
-            />
-          </div>
-          <div>
-            <label>Manpower Required:</label>
-            <input
-              type="number"
-              name="manpower_required"
-              value={taskDetails.manpower_required}
-              onChange={handleInputChange}
-              placeholder="Enter manpower required"
-              required
-            />
-          </div>
+      <form onSubmit={editTaskId ? handleUpdate : handleSubmit}>
+        <div>
+          <label>Task Name:</label>
+          <input
+            type="text"
+            name="taskname"
+            value={taskDetails.taskname}
+            onChange={handleInputChange}
+            placeholder="Enter task name"
+            required
+          />
+        </div>
+        <div>
+          <label>Description:</label>
+          <input
+            type="text"
+            name="description"
+            value={taskDetails.description}
+            onChange={handleInputChange}
+            placeholder="Enter description"
+            required
+          />
+        </div>
+        <div>
+          <label>Manpower Required:</label>
+          <input
+            type="number"
+            name="manpower_required"
+            value={taskDetails.manpower_required}
+            onChange={handleInputChange}
+            placeholder="Enter manpower required"
+            required
+          />
+        </div>
+
+        {/* Company Dropdown */}
+        <div>
+          <label>Select Company:</label>
+          <select value={selectedCompany} onChange={handleCompanyChange}>
+            <option value="">--Select Company--</option>
+            {companyOptions.map((company) => (
+              <option key={company.compid} value={company.compid}>
+                {company.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label>Start Time:</label>
+          <input
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label>End Time:</label>
+          <input
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">{editTaskId ? 'Update Task' : 'Add Task'}</button>
+      </form>
   
-          {/* Company Dropdown */}
-          <div>
-            <label>Select Company:</label>
-            <select value={selectedCompany} onChange={handleCompanyChange}>
-              <option value="">--Select Company--</option>
-              {companyOptions.map((company) => (
-                <option key={company.compid} value={company.compid}>
-                  {company.name}
-                </option>
-              ))}
-            </select>
-          </div>
-  
-          <div>
-            <label>Start Time:</label>
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label>End Time:</label>
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit">{editTaskId ? 'Update Task' : 'Add Task'}</button>
-        </form>
-      </div>
-    </div>
-  
-    {/* Task List */}
-    <div className="tasks-list">
+      {/* Task List */}
+      <div className="tasks-list">
         <h3>Tasks</h3>
         <ul>
           {tasks.length > 0 ? (
@@ -345,9 +369,8 @@ const Tasks = () => {
             <p>No tasks available.</p>
           )}
         </ul>
+      </div>
     </div>
-  </div>
-  
   );
   
 }
