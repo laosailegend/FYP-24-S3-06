@@ -358,7 +358,7 @@ const Tasks = () => {
                 <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
                 <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
                 <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
-                <strong>Company:</strong> {company.find(company => company.compid === task.compid)?.name || 'No Company Info'}
+                <strong>Company:</strong> {company.find(company => company.compid === task.compid)?.company || 'No Company Info'}
                 <button onClick={() => startEditTask(task)}>Edit</button>
                 <button onClick={() => deleteTask(task.taskid)}>Delete</button>
               </li>
