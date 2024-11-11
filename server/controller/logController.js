@@ -9,7 +9,7 @@ const accessKey = process.env.AWS_ACCESS_KEY_ID;
 const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
 const region = process.env.AWS_REGION;
 
-// AWS SDK configuration
+// AWS SDK configuration SAME AS ABOVE
 aws.config.update({
     accessKeyId: accessKey,
     secretAccessKey: secretKey,
@@ -209,6 +209,9 @@ exports.getLatestLogs = async (req, res) => {
         };
 
         console.log("LAMBDA PARAMS: ", params);
+
+        // Lambda expects the Payload to be stringified JSON
+        params.Payload = JSON.stringify(params.Payload);
 
         // Invoke the listLogFiles Lambda function
         const response = await lambda.invoke(params).promise();
