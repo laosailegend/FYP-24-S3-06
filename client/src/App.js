@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import './style.css';
 import Login from './pages/Login';
@@ -14,6 +14,7 @@ import Admin from './pages/Admin'; // Import the Admin component
 import CompAdmin from './pages/CompAdmin';
 import UpdateUser from './pages/UpdateUser'; // Import the UpdateUser component
 import TimeOff from './pages/TimeOff';
+import loginImage from './images/Login.png';
 import EmployeeDetails from './pages/EmployeeDetails';
 import Profile from './pages/Profile';
 import ClockInOut from './pages/ClockInOut';
@@ -32,12 +33,11 @@ import TrainingCalendar from './pages/TrainingCalendar';
 import FeedbackList from './pages/FeedbackList';
 
 import { AuthContext } from './auth/AuthContext';
-
 function Home() {
   return (
     <>
       <section className="intro">
-        <h2 style={{ color: '#006eff93', fontSize: '3em', fontWeight: 'bold' }}>Smart Employee Roster</h2>
+        <h2 style={{ color: '#006eff93', fontSize: '3em', fontWeight: 'bold', font: 'Oswald' }}>Smart Employee Roster</h2>
         <p>Streamline Your Scheduling with Our Smart Employee Roster System</p>
         <blockquote>
           "Smart, efficient, and hassle-free roster management for modern businesses”
@@ -45,7 +45,7 @@ function Home() {
         <img src={scheduleImage} alt="Schedule" /> {/* Use the imported image */}
       </section>
       <section className="testimonials">
-        <h2 style={{ color: '#006eff93', fontSize: '2em', fontWeight: 'bold' }}>Testimonials</h2>
+        <h2 style={{ color: '#006eff93', fontSize: '2em', fontWeight: 'bold', font: 'Oswald' }}>Testimonials</h2>
         <p>Customer Reviews: Discover how our solution has transformed their scheduling.</p>
         <div className="review">
           <div className="stars">★★★★★</div>
@@ -74,12 +74,17 @@ function Home() {
   );
 }
 
+
 function App() {
   const { isLoggedIn, logout, tokenObj, tokenExp } = useContext(AuthContext);
 
+  const [darkMode, setDarkMode] = useState(false);
+
+  const toggleTheme = () => setDarkMode(prevMode => !prevMode);
+
   return (
     <Router>
-      <div className="App">
+      <div className={`App ${darkMode ? 'dark-mode' : 'light-mode'}`}>
         {/* probably should paste tokenexp after every click on the page */}
         {
           useEffect(() => {
@@ -104,34 +109,40 @@ function App() {
 
             {/* only admin can see */}
             {isLoggedIn && tokenObj.role === 1 ? (
-              <>
-                <Link to="/admin">Admin Menu</Link>
-                <Link to="/compAdmin">Company Menu</Link>
-                <Link to="/Tasks">Tasks(Manager)</Link>
-                <Link to="/Availability">Availability(Employee)</Link>
-                <Link to="/TimeOffRequest">Request Time Off(Employee)</Link>
-                <Link to="/Payroll">Payroll(HR)</Link> {/* Add Payroll link */}
-                <Link to="/schedule">Create Schedule(HR)</Link> {/* Add Schedule link */}
-                <Link to="/timeoff">TimeOff(HR)</Link>
-                <Link to="/available">Availability(HR)</Link>
-                <Link to="/employees">View Employees(HR)</Link>
-              </>
+              <div className="dropdown">
+                <button className="dropbtn">Admin</button>
+                <div className="dropdown-content">
+
+                  <Link to="/admin">Admin Menu</Link>
+                  <Link to="/compAdmin">Company Menu</Link>
+                  <Link to="/Tasks">Tasks</Link>
+                  <Link to="/TimeOffRequest">Request Time Off</Link>
+                  <Link to="/Payroll">Payroll</Link> {/* Add Payroll link */}
+                  <Link to="/schedule">Create Schedule</Link> {/* Add Schedule link */}
+                  <Link to="/timeoff">TimeOff</Link>
+                  <Link to="/employees">View Employees</Link>
+                </div>
+              </div>
             ) : (
               <></>
             )}
 
-            {/* only manager can see */}
+            {/* Dropdown for Manager functions */}
             {isLoggedIn && tokenObj.role === 2 ? (
-              <>
-                <Link to="/Tasks">Tasks(Manager)</Link>
-                <Link to="/timeoff">TimeOff(HR)</Link>
-              </>
+              <div className="dropdown">
+                <button className="dropbtn">Manager</button>
+                <div className="dropdown-content">
+                  <Link to="/Tasks">Tasks</Link>
+                  <Link to="/timeoff">TimeOff</Link>
+                </div>
+              </div>
             ) : (
               <></>
             )}
 
-            {/* only employee can see */}
+            {/* Dropdown for Employee functions */}
             {isLoggedIn && tokenObj.role === 3 ? (
+<<<<<<< Updated upstream
               <>
                 <Link to="/Project">Project</Link>
                 <Link to="/ClockInOut">Clock In/Clock Out</Link>
@@ -142,12 +153,29 @@ function App() {
                 <Link to="/Feedback">Feedback</Link>
                 <Link to="/EmployeeTrainingSession">Employee Training</Link>
               </>
+=======
+              <div className="dropdown">
+                <button className="dropbtn">Employee</button>
+                <div className="dropdown-content">
+                  <Link to="/Project">Project</Link>
+                  <Link to="/ClockInOut">Clock In/Clock Out</Link>
+                  <Link to="/Shiftswapping">Shift Swapping</Link>
+                  <Link to="/Skill">Skill</Link>
+                  <Link to="/TrainingSession">Training session</Link>
+                  <Link to="/TimeOffRequest">Request Time Off</Link>
+                  <Link to="/Leave">Leave Balance</Link>
+                  <Link to="/ViewPayroll">Payroll</Link>
+                  <Link to="/Feedback">Feedback</Link>
+                </div>
+              </div>
+>>>>>>> Stashed changes
             ) : (
               <></>
             )}
 
-            {/* only HR can see */}
+            {/* Dropdown for HR functions */}
             {isLoggedIn && tokenObj.role === 4 ? (
+<<<<<<< Updated upstream
               <>
                 <Link to="/Payroll">Payroll</Link> {/* Add Payroll link */}
                 <Link to="/PayrollQueriesPage">Payroll Queries</Link>  {/* Add Payroll Queries link */}
@@ -158,15 +186,29 @@ function App() {
                 <Link to="/ReviewShiftSwapping">Review shift swap</Link>  {/* Add Review Shif Swap link */}
                 <Link to="/FeedbackList">Feedback List</Link> {/* Add Feedback link */}
               </>
+=======
+              <div className="dropdown">
+                <button className="dropbtn">HR</button>
+                <div className="dropdown-content">
+                  <Link to="/Payroll">Payroll(HR)</Link> {/* Add Payroll link */}
+                  <Link to="/schedule">Create Schedule(HR)</Link> {/* Add Schedule link */}
+                  <Link to="/employees">View Employees(HR)</Link>
+                  <Link to="/weeklyhours">Employee Tracker</Link>
+                </div>
+              </div>
+>>>>>>> Stashed changes
             ) : (
               <></>
             )}
 
-            {/* only compadmin can see */}
+            {/* Dropdown for compadmin functions */}
             {isLoggedIn && tokenObj.role === 5 ? (
-              <>
-                <Link to="/compAdmin">Company Menu</Link>
-              </>
+              <div className="dropdown">
+                <button className="dropbtn">HR</button>
+                <div className="dropdown-content">
+                  <Link to="/compAdmin">Company Menu</Link>
+                </div>
+              </div>
             ) : (
               <></>
             )}
@@ -178,7 +220,14 @@ function App() {
               </>
 
             ) : (
-              <Link to="/login" className="login">Login</Link>
+              <Link to="/login" className="login" style={{ display: 'flex', alignItems: 'center' }}>
+                Login
+                <img
+                  src={loginImage}
+                  alt="Login"
+                  style={{ width: '20px', height: '20px', marginLeft: '15px' }}
+                />
+              </Link>
             )}
           </nav>
         </header>
@@ -209,12 +258,20 @@ function App() {
             <Route path="/Shiftswapping" element={<Shiftswapping />} />
             <Route path="/ViewPayroll" element={<ViewPayroll />} />
             <Route path="/Leave" element={<Leave />} />
+<<<<<<< Updated upstream
             <Route path="/EmployeeTrainingSession" element={<EmployeeTrainingSession />} />
             <Route path="/PayrollQueriesPage" element={<PayrollQueriesPage />} />
             <Route path="/ReviewShiftSwapping" element={<ReviewShiftSwapping />} />
             <Route path="/TrainingCalendar" element={<TrainingCalendar />} />
             <Route path="/FeedbackList" element={<FeedbackList />} />
+=======
+>>>>>>> Stashed changes
           </Routes>
+          <div className="theme-toggle-container">
+            <button onClick={toggleTheme} className="theme-toggle">
+              {darkMode ? 'Light Mode' : 'Dark Mode'}
+            </button>
+          </div>
         </main>
       </div>
     </Router>

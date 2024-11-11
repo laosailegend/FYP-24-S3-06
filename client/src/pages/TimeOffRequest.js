@@ -9,12 +9,15 @@ import '../style.css';
 function TimeOffRequest() {
   const tokenObj = localStorage.getItem("token") ? JSON.parse(atob(localStorage.getItem("token").split('.')[1])) : null;
   const navigate = useNavigate();
-  const server=process.env.REACT_APP_SERVER;
+  const server = process.env.REACT_APP_SERVER;
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [reason, setReason] = useState('');
   const [requests, setRequests] = useState([]);
+  const [publicHolidays, setPublicHolidays] = useState({});
+
+  const apiKey = '8WUuhRGlcWlVOlJoTJOYApvnaiVzmQsO';  // Calendarific API key
 
   const handleDateChange = (date, isStartDate) => {
     if (isStartDate) {
@@ -86,26 +89,66 @@ function TimeOffRequest() {
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 3)) {
       window.alert("You are not authorized to view this page");
       navigate("/", { replace: true });
-      return () => {};
+      return () => { };
     }
 
     fetchLeave();
+    // Fetch Public Holidays from Calendarific API
+    const fetchPublicHolidays = async () => {
+      const yearsToFetch = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033]; // Fetch public holidays for these years
+      const holidays = {};
+
+      for (let year of yearsToFetch) {
+        try {
+          const response = await axios.get(`https://calendarific.com/api/v2/holidays?&api_key=${apiKey}&country=SG&year=${year}`);
+          response.data.response.holidays.forEach((holiday) => {
+            const dateString = moment(holiday.date.iso).format('YYYY-MM-DD');
+            holidays[dateString] = holiday.name;
+          });
+        } catch (error) {
+          console.error(`Error fetching public holidays for year ${year}:`, error);
+        }
+      }
+
+      setPublicHolidays(holidays);  // Store the holidays in state
+    };
+
+    fetchPublicHolidays();
   }, []);
+
 
   return (
     <div className="time-off-request-container">
       <h2>Request Time Off</h2>
       <div className="calendar-container">
-        <Calendar
-          onChange={(date) => handleDateChange(date, true)}
-          value={startDate}
-          className="calendar"
-        />
-        <Calendar
-          onChange={(date) => handleDateChange(date, false)}
-          value={endDate}
-          className="calendar"
-        />
+        <div className="calendar-side-by-side" style={{ display: 'flex', justifyContent: 'space-between', gap: '20px' }}>
+          <Calendar
+            onChange={(date) => handleDateChange(date, true)}
+            value={startDate}
+            className="calendar"
+            tileContent={({ date }) => {
+              const dateString = moment(date).format('YYYY-MM-DD');
+              return publicHolidays[dateString] ? <p className="holiday">{publicHolidays[dateString]}</p> : null;
+            }}
+            tileClassName={({ date }) => {
+              const dateString = moment(date).format('YYYY-MM-DD');
+              return publicHolidays[dateString] ? 'holiday-tile' : null;
+            }}
+          />
+          <Calendar
+            onChange={(date) => handleDateChange(date, false)}
+            value={endDate}
+            className="calendar"
+            tileContent={({ date }) => {
+              const dateString = moment(date).format('YYYY-MM-DD');
+              return publicHolidays[dateString] ? <p className="holiday">{publicHolidays[dateString]}</p> : null;
+            }}
+            tileClassName={({ date }) => {
+              const dateString = moment(date).format('YYYY-MM-DD');
+              return publicHolidays[dateString] ? 'holiday-tile' : null;
+            }}
+          />
+        </div>
       </div>
       <form onSubmit={handleSubmit}>
         <div>
@@ -135,8 +178,8 @@ function TimeOffRequest() {
           {requests.length > 0 ? (
             requests.map((request) => (
               <li key={request.request_id}>
-                From: {formatDate(request.start_date)} - To: {formatDate(request.end_date)} - 
-                Reason: {request.reason} - Status: {request.status} 
+                From: {formatDate(request.start_date)} - To: {formatDate(request.end_date)} -
+                Reason: {request.reason} - Status: {request.status}
                 <button onClick={() => handleDelete(request.request_id)} className="delete-button">
                   Delete
                 </button>
