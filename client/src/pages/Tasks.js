@@ -81,22 +81,11 @@ const Tasks = () => {
     fetchPublicHolidays(activeYear);
   }, [fetchPublicHolidays]);
 
-  useEffect(() => {
-    updatePublicHolidays(new Date().getFullYear()); // Initialize with current year public holidays
-  }, [updatePublicHolidays]);
 
   const handleCountryChange = (e) => {
     const newCountry = e.target.value;
     setSelectedCountry(newCountry);
   };
-  
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      updatePublicHolidays(new Date().getFullYear());
-    }, 500);
-  
-    return () => clearTimeout(delayDebounceFn); // Cleanup
-  }, [selectedCountry, updatePublicHolidays]);
 
   useEffect(() => {
     if (!tokenObj || (tokenObj.role !== 1 && tokenObj.role !== 2)) {
@@ -116,7 +105,14 @@ const Tasks = () => {
 
     fetchData();
   }, [navigate, tokenObj]);
-
+  
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      updatePublicHolidays(new Date().getFullYear());
+    }, 500);
+  
+    return () => clearTimeout(delayDebounceFn); // Cleanup
+  }, [selectedCountry, updatePublicHolidays]);
 
 
   const fetchTasks = async () => {
