@@ -2,6 +2,8 @@ const db = require('../dbConfig');
 // const logger = require('../utils/logger');
 const { generatePreSignedUrl } = require('../utils/s3-utils');
 const { listLogFiles } = require('../utils/uploadFiles');
+const aws = require('aws-sdk');
+const lambda = new aws.Lambda();
 const bucket = process.env.AWS_S3_BUCKET;
 
 // get logs
@@ -158,13 +160,54 @@ exports.getLogsTimestamp = (req, res) => {
     })
 };
 
+// exports.getLatestLogs = async (req, res) => {
+//     console.log("i am getting the latest logs but am i even running thats the question");
+//     try {
+//         // List all log files in the 'logs/' directory of your bucket
+//         const logs = await listLogFiles(bucket);
+//         console.log("logs list: ", logs);
+//         if (logs.length === 0) {
+//             return res.status(404).json({ error: 'No log files found' });
+//         }
+
+//         // Find the most recent log file by sorting the logs by LastModified
+//         const latestLog = logs.reduce((latest, log) => {
+//             return (new Date(log.LastModified) > new Date(latest.LastModified)) ? log : latest;
+//         });
+
+//         const fileKey = latestLog.Key;  // Use the key of the most recent log
+
+//         // Generate pre-signed URL for the most recent log file
+//         const url = await generatePreSignedUrl(bucket, fileKey);
+        
+//         res.json({ downloadUrl: url });
+//     } catch (error) {
+//         console.log('Error in getLatestLogs:', error); // Improved error logging
+//         res.status(500).json({ error: 'Error generating download URL' });
+//     }
+// };
+
 exports.getLatestLogs = async (req, res) => {
     console.log("i am getting the latest logs but am i even running thats the question");
+
     try {
-        // List all log files in the 'logs/' directory of your bucket
-        const logs = await listLogFiles(bucket);
+        // Prepare parameters to invoke the listLogFiles Lambda function
+        const params = {
+            FunctionName: 'listLogFiles',
+            InvocationType: 'RequestResponse',
+            Payload: JSON.stringify({})
+        };
+
+        // Invoke the listLogFiles Lambda function
+        const response = await lambda.invoke(params).promise();
+        
+        // Parse and extract the list of logs from the Lambda's response
+        const logs = JSON.parse(response.Payload);
+        
         console.log("logs list: ", logs);
-        if (logs.length === 0) {
+
+        // Check if there are any logs returned
+        if (!logs || logs.length === 0) {
             return res.status(404).json({ error: 'No log files found' });
         }
 
@@ -175,14 +218,18 @@ exports.getLatestLogs = async (req, res) => {
 
         const fileKey = latestLog.Key;  // Use the key of the most recent log
 
-        // Generate pre-signed URL for the most recent log file
-        const url = await generatePreSignedUrl(bucket, fileKey);
+        // Generate a pre-signed URL for the most recent log file
+        const url = await s3.getSignedUrlPromise('getObject', {
+            Bucket: bucket,
+            Key: fileKey,
+            Expires: 60 * 5 // URL expiration time (e.g., 5 minutes)
+        });
         
+        // Send the pre-signed URL in the response
         res.json({ downloadUrl: url });
     } catch (error) {
         console.log('Error in getLatestLogs:', error); // Improved error logging
         res.status(500).json({ error: 'Error generating download URL' });
     }
 };
-
 

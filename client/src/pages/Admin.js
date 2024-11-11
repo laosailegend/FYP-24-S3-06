@@ -256,22 +256,33 @@ const Admin = () => {
 
     const fetchDownloadUrl = async () => {
         try {
-            const response = await axios.get(`${server}logs/latest`);
-            
-            // Axios automatically throws an error for response statuses outside the 2xx range
+            const response = await axios.get(`${server}logs/latest`);  // Ensure single slash between server and route
+    
+            // Axios handles non-2xx statuses as errors automatically
             const data = response.data;
-            setDownloadUrl(data.downloadUrl);
-            console.log(downloadUrl);
-        } catch (error) {
-            // If error.response exists, it's a server-side error
-            if (error.response) {
-                console.log("server error major: ", error);
-                console.error(`Server error: ${error.response.status} - ${error.response.statusText}`);
+            
+            if (data.downloadUrl) {
+                setDownloadUrl(data.downloadUrl);
+                console.log("Fetched download URL:", data.downloadUrl);  // Log after setting state
             } else {
-                console.error('Error fetching download URL:', error.message);
+                console.warn("No download URL returned in response.");
+            }
+    
+        } catch (error) {
+            if (error.response) {
+                // Server responded with a status outside the 2xx range
+                console.error(`Server error: ${error.response.status} - ${error.response.statusText}`);
+                console.log("Detailed server error: ", error.response.data); // Logs additional server error info
+            } else if (error.request) {
+                // Request was made but no response received
+                console.error("Network error: No response received from server");
+            } else {
+                // Some other error during setup
+                console.error('Error setting up request:', error.message);
             }
         }
     };
+    
     
 
     useEffect(() => {

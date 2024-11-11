@@ -37,23 +37,23 @@ const uploadLogFile = async (logFilePath, fileName) => {
 }
 
 // List log files from the S3 bucket
-async function listLogFiles(bucketName) {
-    const params = {
-        Bucket: bucketName,
-        Prefix: 'logs/'  // Assuming your logs are in a 'logs/' folder in S3
-    };
+// async function listLogFiles(bucketName) {
+//     const params = {
+//         Bucket: bucketName,
+//         Prefix: 'logs/'  // Assuming your logs are in a 'logs/' folder in S3
+//     };
 
-    console.log("listing log params: ", JSON.stringify(params, null, 2));
-    try {
-        const response = await s3.listObjectsV2(params).promise();
-        console.log('List of log files:', response.Contents);
-        // console.log("params: ", params);
-        return response.Contents;  // List of objects in the bucket
-    } catch (error) {
-        console.log('Error listing log files:', error);
-        throw new Error('Failed to list log files');
-    }
-}
+//     console.log("listing log params: ", JSON.stringify(params, null, 2));
+//     try {
+//         const response = await s3.listObjectsV2(params).promise();
+//         console.log('List of log files:', response.Contents);
+//         // console.log("params: ", params);
+//         return response.Contents;  // List of objects in the bucket
+//     } catch (error) {
+//         console.log('Error listing log files:', error);
+//         throw new Error('Failed to list log files');
+//     }
+// }
 
 // Function to delete logs older than 2 days
 async function deleteOldLogs() {
