@@ -43,23 +43,30 @@ const pool = mysql.createPool({
 });
 
 // Function to clear logs from db older than 2 days
-async function clearOldLogs() {
-    try {
-        const connection = await pool.getConnection();
-        const deleteQuery = `DELETE FROM logs WHERE timestamp < CONVERT_TZ(NOW(), '+00:00', '+08:00') - INTERVAL 2 DAY;`;
-        const [result] = await connection.execute(deleteQuery);
-        console.log(`Deleted ${result.affectedRows} old log entries.`);
-        connection.release();
-    } catch (error) {
-        console.error('Error clearing old logs:', error);
-    }
+function clearOldLogs() {
+    const deleteQuery = `DELETE FROM logs WHERE timestamp < CONVERT_TZ(NOW(), '+00:00', '+08:00') - INTERVAL 2 DAY;`;
+
+    return new Promise((resolve, reject) => {
+        db.query(deleteQuery, (error, result) => {
+            if (error) {
+                console.error('Error clearing old logs:', error);
+                return reject(error); // Reject if there is an error
+            } else {
+                console.log(`Deleted ${result.affectedRows} old log entries.`);
+                resolve(result); // Resolve on success
+            }
+        });
+    });
 }
 
 // Schedule the task to run every day at midnight
 cron.schedule('0 0 * * *', () => {
-    console.log('Running scheduled task to clear old logs...');
-    clearOldLogs();
+    console.log('Running scheduled task to clear old MySQL logs...');
+    clearOldLogs()
+        .then(() => console.log('Old MySQL logs cleared successfully.'))
+        .catch((error) => console.error('Scheduled MySQL log clearing failed:', error));
 });
+
 
 // regex for logging
 // const logRegex = /"level":"(info|error|warn)","message":"(([^'"]*)"|(HTTP REQUEST) 'ADDR':'([^']*)' 'USER':'([^']*)' 'REQ':'([^']*)' 'STATUS':'([^']*)' 'SIZE':'([^']*)' 'REF':'([^']*)' 'UA':'([^']*)'"),"timestamp":"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z)?"/gm;
