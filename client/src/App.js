@@ -8,7 +8,6 @@ import TimeOffRequest from './pages/TimeOffRequest'; // Import the Contact compo
 import Tasks from './pages/Tasks'; // Import the Tasks component
 import Payroll from './pages/Payroll'; // Import the Payroll component
 import Pricing from './pages/Pricing'; // Import the Pricing component
-import Schedule from './pages/Schedule'; // Import the Schedule component
 import scheduleImage from './images/Schedule.png'; // Schedule Image
 import Admin from './pages/Admin'; // Import the Admin component
 import CompAdmin from './pages/CompAdmin';
@@ -119,7 +118,6 @@ function App() {
                   <Link to="/Tasks">Tasks</Link>
                   <Link to="/TimeOffRequest">Request Time Off</Link>
                   <Link to="/Payroll">Payroll</Link> {/* Add Payroll link */}
-                  <Link to="/schedule">Create Schedule</Link> {/* Add Schedule link */}
                   <Link to="/timeoff">TimeOff</Link>
                   <Link to="/employees">View Employees</Link>
                 </div>
@@ -219,7 +217,6 @@ function App() {
             <Route path="/Tasks" element={<Tasks />} /> {/* Add Contact route */}
             <Route path="/Payroll" element={<Payroll />} /> {/* Add Payroll route */}
             <Route path="/weeklyhours" element={<WeeklyHours />} /> {/* Add WeeklyHours route*/}
-            <Route path="/schedule" element={<Schedule />} /> {/* Add Schedule route */}
             <Route path="/TimeOffRequest" element={<TimeOffRequest />} /> {/* Add Request Time Off route */}
             <Route path="/timeoff" element={<TimeOff />} />
             <Route path="/employees" element={<EmployeeDetails />} />
