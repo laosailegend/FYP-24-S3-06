@@ -142,61 +142,38 @@ function App() {
 
             {/* Dropdown for Employee functions */}
             {isLoggedIn && tokenObj.role === 3 ? (
-<<<<<<< Updated upstream
-              <>
-                <Link to="/Project">Project</Link>
-                <Link to="/ClockInOut">Clock In/Clock Out</Link>
-                <Link to="/Shiftswapping">Shift Swapping</Link>
-                <Link to="/TimeOffRequest">Request Time Off</Link>
-                <Link to="/Leave">Leave Balance</Link>
-                <Link to="/ViewPayroll">Payroll</Link>
-                <Link to="/Feedback">Feedback</Link>
-                <Link to="/EmployeeTrainingSession">Employee Training</Link>
-              </>
-=======
               <div className="dropdown">
                 <button className="dropbtn">Employee</button>
                 <div className="dropdown-content">
                   <Link to="/Project">Project</Link>
                   <Link to="/ClockInOut">Clock In/Clock Out</Link>
                   <Link to="/Shiftswapping">Shift Swapping</Link>
-                  <Link to="/Skill">Skill</Link>
-                  <Link to="/TrainingSession">Training session</Link>
                   <Link to="/TimeOffRequest">Request Time Off</Link>
                   <Link to="/Leave">Leave Balance</Link>
                   <Link to="/ViewPayroll">Payroll</Link>
                   <Link to="/Feedback">Feedback</Link>
+                  <Link to="/EmployeeTrainingSession">Employee Training</Link>
                 </div>
               </div>
->>>>>>> Stashed changes
             ) : (
               <></>
             )}
 
             {/* Dropdown for HR functions */}
             {isLoggedIn && tokenObj.role === 4 ? (
-<<<<<<< Updated upstream
-              <>
-                <Link to="/Payroll">Payroll</Link> {/* Add Payroll link */}
-                <Link to="/PayrollQueriesPage">Payroll Queries</Link>  {/* Add Payroll Queries link */}
-                <Link to="/employees">View Employees</Link>  {/* Add Employee link */}
-                <Link to="/weeklyhours">Employee Tracker</Link>  {/* Add WeeklyHours link */}
-                <Link to="/TrainingSession">Training</Link>  {/* Add TrainingSession link */}
-                <Link to="/TrainingCalendar">Training Calendar</Link> {/* Add Training Calendar link */}
-                <Link to="/ReviewShiftSwapping">Review shift swap</Link>  {/* Add Review Shif Swap link */}
-                <Link to="/FeedbackList">Feedback List</Link> {/* Add Feedback link */}
-              </>
-=======
               <div className="dropdown">
                 <button className="dropbtn">HR</button>
                 <div className="dropdown-content">
                   <Link to="/Payroll">Payroll(HR)</Link> {/* Add Payroll link */}
-                  <Link to="/schedule">Create Schedule(HR)</Link> {/* Add Schedule link */}
+                  <Link to="/PayrollQueriesPage">Payroll Queries</Link>  {/* Add Payroll Queries link */}
                   <Link to="/employees">View Employees(HR)</Link>
                   <Link to="/weeklyhours">Employee Tracker</Link>
+                  <Link to="/TrainingSession">Training</Link>  {/* Add TrainingSession link */}
+                  <Link to="/TrainingCalendar">Training Calendar</Link> {/* Add Training Calendar link */}
+                  <Link to="/ReviewShiftSwapping">Review shift swap</Link>  {/* Add Review Shif Swap link */}
+                  <Link to="/FeedbackList">Feedback List</Link> {/* Add Feedback link */}
                 </div>
               </div>
->>>>>>> Stashed changes
             ) : (
               <></>
             )}
@@ -258,14 +235,11 @@ function App() {
             <Route path="/Shiftswapping" element={<Shiftswapping />} />
             <Route path="/ViewPayroll" element={<ViewPayroll />} />
             <Route path="/Leave" element={<Leave />} />
-<<<<<<< Updated upstream
             <Route path="/EmployeeTrainingSession" element={<EmployeeTrainingSession />} />
             <Route path="/PayrollQueriesPage" element={<PayrollQueriesPage />} />
             <Route path="/ReviewShiftSwapping" element={<ReviewShiftSwapping />} />
             <Route path="/TrainingCalendar" element={<TrainingCalendar />} />
             <Route path="/FeedbackList" element={<FeedbackList />} />
-=======
->>>>>>> Stashed changes
           </Routes>
           <div className="theme-toggle-container">
             <button onClick={toggleTheme} className="theme-toggle">
