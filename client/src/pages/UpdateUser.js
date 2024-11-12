@@ -65,16 +65,22 @@ const UpdateUser = () => {
     };
 
     const handleClick = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (userInfo[e.target.name] === e.target.value && userInfo[e.target.name] !== "password") {
-            window.alert(`${e.target.placeholder} is the same as the current user's info`);
-            return;
+
+        // Check if any input field is the same as the current user's info
+        for (const key in user) {
+            if (user[key] === userInfo[key] && key !== "password" && user[key] !== "") {
+                window.alert(`${key} is the same as the current user's info`);
+                return;
+            }
         }
+
         if (!passwordPattern.test(user.password) && user.password !== "") {
             window.alert("Password must be at least 8 characters long and contain both letters and numbers.");
             return;
         }
+
         try {
             await axios.put(`${server}user/${userid}`, user);
             window.alert("User updated successfully");
