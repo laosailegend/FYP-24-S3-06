@@ -143,3 +143,25 @@ exports.addCompany = (req, res) => {
         return res.json(data);
     })
 };
+
+// update company info
+exports.updateCompany = (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const { company, address, contact, email, website, industryid, size, statusid, est_date } = req.body;
+    const compid = req.params.id;
+
+    const updates = [];
+    const values = [];
+
+    const q = `UPDATE company SET company = ?, address = ?, contact_num = ?, email = ?, website = ?, industryid = ?, size = ?, statusid = ?, est_date = ? WHERE compid = ?`;
+
+    db.query(q, [company, address, contact, email, website, industryid, size, statusid, est_date, compid], (err, data) => {
+        if (err) {
+            console.log(err);
+            return res.json(err)
+        }
+        return res.json(data);
+    })
+};
