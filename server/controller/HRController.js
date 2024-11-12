@@ -67,6 +67,8 @@ exports.createPayroll = async (req, res) => {
 
 
 
+
+
 // Calculating payroll for a specific user based on hours worked and conditions
 exports.calculatePayroll = (req, res) => {
     const userid = req.params.userid;
@@ -239,25 +241,19 @@ exports.getPayrollQueries = (req, res) => {
 exports.updatePayrollQueries = async (req, res) => {
     const { query_id } = req.params;
     const { response, status } = req.body;
-    let receiptUrl = null;
 
-    if (req.file) {
-        // Normalize the file path to use forward slashes
-        receiptUrl = req.file.path.replace(/\\/g, '/');  // Replaces backslashes with forward slashes
-    }
-
-    console.log('Update request for payroll query:', { query_id, response, status, receiptUrl });
+    console.log('Update request for payroll query:', { query_id, response, status });
 
     // SQL query for updating the payroll query
     const query = `
         UPDATE payroll_queries
-        SET response = ?, status = ?, receipt_url = ?
+        SET response = ?, status = ?
         WHERE query_id = ?
     `;
 
     try {
-        // Execute the SQL query
-        const result = db.query(query, [response, status, receiptUrl, query_id]);
+        // Use async/await to wait for the query to complete
+        const [result] = db.query(query, [response, status, query_id]);
 
         // If no rows are updated, return a 404 error
         if (result.affectedRows === 0) {
@@ -268,13 +264,9 @@ exports.updatePayrollQueries = async (req, res) => {
         res.status(200).json({ message: 'Payroll query updated successfully.' });
     } catch (error) {
         console.error('Error updating payroll query:', error);
-        res.status(500).json({ error: `Failed to update payroll query: ${error}` });
+        res.status(500).json({ error: `Failed to update payroll query: ${error.message}` });
     }
 };
-
-
-
-
 
 
 // Assuming you have a positions table in your database

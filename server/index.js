@@ -176,7 +176,7 @@ app.get("/feedback", HRController.getFeedback);
 app.get('/shiftSwapRequests/pending', HRController.getPendingShiftSwapRequests);
 app.post('/shiftSwapRequests/handle', HRController.handleShiftSwapRequest);
 app.get('/payrollQueries/view', HRController.getPayrollQueries);
-app.put('/payrollQueries/respond/:query_id', upload.single('receipt'), HRController.updatePayrollQueries);
+app.put('/payrollQueries/respond/:query_id', HRController.updatePayrollQueries);
 
 // define routes for managerController
 app.get("/managerGetUsers", managerController.managerGetUsers);
