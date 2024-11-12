@@ -122,6 +122,7 @@ app.put("/user/:id", adminController.updateUser);
 app.get("/profile/:id", adminController.getProfile);
 app.put("/profile", adminController.updateProfile);
 app.get("/searchUser", adminController.searchUser);
+app.delete("/user/:id", adminController.deleteUser);
 
 // define routes for companyController
 app.get("/company", companyController.getCompany);

@@ -78,6 +78,7 @@ const Admin = () => {
     const handleUserDelete = async (id) => {
         try {
             await axios.delete(`${server}user/${id}`);
+            window.alert(`User with UID ${id} has been deleted.`);
             window.location.reload();
         } catch (error) {
             console.log(error);
