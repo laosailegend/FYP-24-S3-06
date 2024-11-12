@@ -61,7 +61,11 @@ const UpdateUser = () => {
     };
 
     const handleChange = (e) => {
-        setUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        if (userInfo[e.target.name] === e.target.value) {
+            window.alert(`${e.target.placeholder} is the same as the current user's info`);
+        } else {
+            setUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        }
     };
 
     const handleClick = async (e) => {
