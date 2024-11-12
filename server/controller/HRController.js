@@ -627,11 +627,30 @@ exports.handleShiftSwapRequest = (req, res) => {
 // Fetch all pending shift swap requests with user names and user IDs
 exports.getPendingShiftSwapRequests = async (req, res) => {
     const query = `
-        SELECT ssr.swap_id, ssr.userid, ssr.requestor_assignment_id, ssr.target_assignment_id, ssr.status, 
-        u.fname AS requestor_fname, u.lname AS requestor_lname
-        FROM shift_swap_requests ssr
-        JOIN users u ON ssr.userid = u.userid
-        WHERE ssr.status = 'pending'
+        SELECT 
+            ssr.swap_id, 
+            ssr.userid, 
+            ssr.requestor_assignment_id, 
+            req_task.taskname AS requestor_taskname,
+            ssr.target_assignment_id, 
+            tgt_task.taskname AS target_taskname,
+            ssr.status, 
+            u.fname AS requestor_fname, 
+            u.lname AS requestor_lname
+        FROM 
+            shift_swap_requests ssr
+        JOIN 
+            users u ON ssr.userid = u.userid
+        JOIN 
+            assignments req_assign ON ssr.requestor_assignment_id = req_assign.assignment_id
+        JOIN 
+            tasks req_task ON req_assign.taskid = req_task.taskid
+        JOIN 
+            assignments tgt_assign ON ssr.target_assignment_id = tgt_assign.assignment_id
+        JOIN 
+            tasks tgt_task ON tgt_assign.taskid = tgt_task.taskid
+        WHERE 
+            ssr.status = 'pending'
     `;
 
     db.query(query, (err, results) => {
