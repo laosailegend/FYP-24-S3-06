@@ -61,16 +61,16 @@ const UpdateUser = () => {
     };
 
     const handleChange = (e) => {
-        if (userInfo[e.target.name] === e.target.value) {
-            window.alert(`${e.target.placeholder} is the same as the current user's info`);
-        } else {
-            setUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-        }
+        setUser((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     const handleClick = async (e) => {
         e.preventDefault()
         const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (userInfo[e.target.name] === e.target.value && userInfo[e.target.name] !== "password") {
+            window.alert(`${e.target.placeholder} is the same as the current user's info`);
+            return;
+        }
         if (!passwordPattern.test(user.password) && user.password !== "") {
             window.alert("Password must be at least 8 characters long and contain both letters and numbers.");
             return;
