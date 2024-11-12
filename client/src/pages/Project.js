@@ -51,7 +51,7 @@ const Project = () => {
             <h2>{task.taskname}</h2>
             <p>{task.description}</p>
             <p>Manpower Required: {task.manpower_required}</p>
-            <p>Task Date: {task.task_date}</p>
+            <p>Task Date: {new Date(task.task_date).toLocaleDateString()}</p>
             <p>Start Time: {task.start_time}</p>
             <p>End Time: {task.end_time}</p>
             {/* Add additional task details as needed */}
