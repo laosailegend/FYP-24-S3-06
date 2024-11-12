@@ -64,13 +64,13 @@ exports.getLogs = (req, res) => {
 
     // Handle timestamp filtering
     if (startTime) {
-        const startTimestamp = startTime.includes("T") ? startTime.replace("T", " ") : `${startTime} 00:00:00.000`;
+        const startTimestamp = startTime.includes("T") ? startTime.replace("T", " ") : `${startTime} 00:00:00`;
         q += " AND timestamp >= ?";
         filters.push(startTimestamp);
     }
 
     if (endTime) {
-        const endTimestamp = endTime.includes("T") ? endTime.replace("T", " ") : `${endTime} 23:59:59.999`;
+        const endTimestamp = endTime.includes("T") ? endTime.replace("T", " ") : `${endTime} 23:59:59`;
         q += " AND timestamp <= ?";
         filters.push(endTimestamp);
     }

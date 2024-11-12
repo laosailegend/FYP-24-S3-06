@@ -182,7 +182,7 @@ function App() {
             {/* Dropdown for compadmin functions */}
             {isLoggedIn && tokenObj.role === 5 ? (
               <div className="dropdown">
-                <button className="dropbtn">HR</button>
+                <button className="dropbtn">Company Admin</button>
                 <div className="dropdown-content">
                   <Link to="/compAdmin">Company Menu</Link>
                 </div>
