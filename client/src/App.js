@@ -172,6 +172,7 @@ function App() {
                   <Link to="/TrainingCalendar">Training Calendar</Link> {/* Add Training Calendar link */}
                   <Link to="/ReviewShiftSwapping">Review shift swap</Link>  {/* Add Review Shif Swap link */}
                   <Link to="/FeedbackList">Feedback List</Link> {/* Add Feedback link */}
+                  <Link to="/Project">Project</Link>
                 </div>
               </div>
             ) : (
