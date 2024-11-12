@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import '../style.css'; // Import your CSS for styling
 const server = process.env.REACT_APP_SERVER; // Retrieve server URL from environment variables
+
 const TrainingCalendar = ({ userid }) => {
     const [sessions, setSessions] = useState([]);
 
@@ -55,6 +55,7 @@ const TrainingCalendar = ({ userid }) => {
             session_id: session.session_id,
             userid: session.userid,
             status: session.status, // Include status for conditional rendering
+            interest_id: session.interest_id, // Pass interest_id here
         },
     }));
 
@@ -79,7 +80,7 @@ const TrainingCalendar = ({ userid }) => {
                                     fontSize: '10px',
                                     cursor: 'pointer',
                                 }}
-                                onClick={() => handleCompleteTraining(eventInfo.event.extendedProps.session_id)}
+                                onClick={() => handleCompleteTraining(eventInfo.event.extendedProps.interest_id)} // Use interest_id here
                             >
                                 Complete
                             </button>

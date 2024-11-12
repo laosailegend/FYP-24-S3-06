@@ -36,7 +36,6 @@ function WeeklyHours() {
       const data = await response.json();
       const groupedAndSorted = groupAndSortSchedulesByWeek(data);
       setWeeklySchedules(groupedAndSorted);
-      // Set the selected week to the first one available
       const firstWeek = Object.keys(groupedAndSorted)[0] || '';
       setSelectedWeek(firstWeek);
     } catch (error) {
@@ -142,6 +141,11 @@ function WeeklyHours() {
     }
   }, []);
 
+  // Function to determine if total hours exceed 40 hours
+  const getTotalHoursClass = (totalHours) => {
+    return totalHours >= 40 ? "highlight-red" : "";
+  };
+
   return (
     <div className="weekly-hours-container">
       <h2>Weekly Hours Tracker</h2>
@@ -189,7 +193,9 @@ function WeeklyHours() {
               </ul>
               {calculateWeeklyHours(weeklySchedules[selectedWeek]) && (
                 <div>
-                  <p>Total Hours: {calculateWeeklyHours(weeklySchedules[selectedWeek]).totalHours.toFixed(2)}</p>
+                  <p className={getTotalHoursClass(calculateWeeklyHours(weeklySchedules[selectedWeek]).totalHours)}>
+                    Total Hours: {calculateWeeklyHours(weeklySchedules[selectedWeek]).totalHours.toFixed(2)}
+                  </p>
                   <p>Overtime Hours: {calculateWeeklyHours(weeklySchedules[selectedWeek]).overtimeHours.toFixed(2)}</p>
                 </div>
               )}
