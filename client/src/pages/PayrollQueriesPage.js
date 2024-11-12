@@ -10,11 +10,9 @@ const PayrollQueriesPage = () => {
     const [response, setResponse] = useState('');
     const [status, setStatus] = useState('In Progress');
     const [filterStatus, setFilterStatus] = useState('all');
-    const [receipt, setReceipt] = useState(null);  // State for file upload
 
     // Fetch all payroll queries
     useEffect(() => {
-        
         const fetchQueries = async () => {
             try {
                 const response = await fetch(`${server}payrollQueries/view`);
@@ -27,7 +25,7 @@ const PayrollQueriesPage = () => {
 
         const fetchData = async () => {
             await fetchQueries();
-        }
+        };
 
         fetchData();
     }, [queries]);
@@ -44,7 +42,6 @@ const PayrollQueriesPage = () => {
         setResponse(query.response || '');
         setStatus('In Progress');
         setShowModal(true);
-        setReceipt(null);  // Reset the file input when opening the modal
     };
 
     // Close the modal
@@ -52,28 +49,20 @@ const PayrollQueriesPage = () => {
         setShowModal(false);
         setSelectedQuery(null);
         setResponse('');
-        setReceipt(null);  // Reset the state on close
     };
 
-    // Handle file change (file upload)
-    const handleFileChange = (event) => {
-        setReceipt(event.target.files[0]);
-    };
-
-    // Submit the response and file to the backend
+    // Submit the response to the backend
     const updateQuery = async () => {
         if (selectedQuery) {
-            const formData = new FormData();
-            formData.append('response', response);
-            formData.append('status', status);
-            if (receipt) {
-                formData.append('receipt', receipt);  // Add the file to the form data
-            }
+            const queryData = { response, status };
 
             try {
                 const fetchResponse = await fetch(`${server}payrollQueries/respond/${selectedQuery.query_id}`, {
                     method: 'PUT',
-                    body: formData,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(queryData)
                 });
 
                 const data = await fetchResponse.json();
@@ -138,12 +127,6 @@ const PayrollQueriesPage = () => {
                             <option value="In Progress">In Progress</option>
                             <option value="Resolved">Resolved</option>
                         </select>
-
-                        {/* File input for receipt */}
-                        <div className="file-upload">
-                            <label htmlFor="receipt">Upload Receipt:</label>
-                            <input type="file" id="receipt" onChange={handleFileChange} />
-                        </div>
 
                         <button onClick={updateQuery} className="update-btn">Update</button>
                         <button onClick={closeModal} className="close-button">Close</button>
