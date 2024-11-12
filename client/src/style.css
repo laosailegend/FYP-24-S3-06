@@ -599,6 +599,7 @@ margin-right: auto;
   width: 90%;
   max-width: 500px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: skyblue;
   }
   
   .modal-content h3 {
@@ -931,7 +932,7 @@ form input[type="text"] {
 }
 
 form textarea {
-  width: 60%;
+  width: 30%;
   padding: 30px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -1014,30 +1015,25 @@ form button[type="submit"] {
 .admin-form {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* Align forms to the top */
   flex-wrap: wrap;
-  gap: 20px; /* Optional: Adds space between the forms */
+  gap: 20px; /* Space between the forms */
 }
 
-.add-form {
-  width: 100%;
-  max-width: 400px; /* Adjust the max-width as needed */
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+
+.admin-form {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align forms to the top */
+  flex-wrap: wrap;
+  gap: 500px; /* Space between the forms */
 }
 
-.add-form, .update-form {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 500px;
-  margin: 40px auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
 
 .add-form input, .add-form select, .update-form input, .update-form select {
+  display: flex;
+  flex-direction: row;
   width: 90%;
   padding: 10px;
   margin-bottom: 10px;
@@ -1071,14 +1067,18 @@ form button[type="submit"] {
 .filter-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  justify-content: center; /* Center the boxes */
+
+  gap: 10px; /* Reduces space between the boxes */
   margin-bottom: 20px;
 }
+
 
 /* Style for each filter item */
 .filter-item {
   display: flex;
   flex-direction: column;
+  margin: auto;
 }
 
 /* Search input and filter dropdowns */
@@ -1229,6 +1229,7 @@ form div {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ccc;
 }
 
 /* Heading styling */
@@ -1307,7 +1308,6 @@ form div {
   border: 1px solid #ccc;
   border-radius: 5px;
   margin-bottom: 10px;
-  background-color: #fff;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -1393,8 +1393,45 @@ form div {
   padding: 20px;
 }
 
+.feedback-card{
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  margin: auto;
+  width: 30%;
+  text-align: center;
+}
 .feedback-container h2, .feedback-container h3 {
   color: #006eff93;
+}
+
+h5{
+  font-family: Oswald, sans-serif;
+  font-size: larger;
+}
+
+/* General table styling */
+table {
+  font-family: Oswald, sans-serif;
+  margin: auto;
+  border-collapse: separate;
+  border-spacing: 20px;
+  width: auto;
+}
+
+/* Table header styling */
+table th {
+  font-weight: bold;
+  text-align: center;
+  padding: 10px 20px;
+  border-bottom: 2px solid #006eff93;
+}
+
+/* Table row styling */
+table td {
+  padding: 10px 20px;
+  border-bottom: 3px solid #ddd;
 }
 
 .feedback-container form {
@@ -1439,7 +1476,13 @@ form div {
   border: 1px solid #ddd;
   margin-bottom: 10px;
 }
-
+div.container{
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin: auto;
+}
 /* Project.js page */
 body {
   font-family: Oswald, sans-serif;
@@ -1613,7 +1656,6 @@ button.logout {
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background-color: #fff;
 }
 
 

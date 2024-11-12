@@ -1,10 +1,20 @@
 const db = require('../dbConfig');
-// const logger = require('../utils/logger');
-const { generatePreSignedUrl } = require('../utils/s3-utils');
-const { listLogFiles } = require('../utils/uploadFiles');
 const aws = require('aws-sdk');
+const s3 = new aws.S3();
 const lambda = new aws.Lambda();
 const bucket = process.env.AWS_S3_BUCKET;
+
+// COMMENT OUT IN LAMBDA, MUST USE IN LOCALHOST
+const accessKey = process.env.AWS_ACCESS_KEY_ID;
+const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
+const region = process.env.AWS_REGION;
+
+// AWS SDK configuration SAME AS ABOVE
+aws.config.update({
+    accessKeyId: accessKey,
+    secretAccessKey: secretKey,
+    region: region
+});
 
 // get logs
 exports.getLogs = (req, res) => {
@@ -58,7 +68,7 @@ exports.getLogs = (req, res) => {
         q += " AND timestamp >= ?";
         filters.push(startTimestamp);
     }
-    
+
     if (endTime) {
         const endTimestamp = endTime.includes("T") ? endTime.replace("T", " ") : `${endTime} 23:59:59.999`;
         q += " AND timestamp <= ?";
@@ -68,8 +78,8 @@ exports.getLogs = (req, res) => {
     // Add search term (if present) to check across multiple columns
     if (search) {
         q += " AND (logid LIKE ? OR level LIKE ? OR message LIKE ? OR address LIKE ? OR user LIKE ? OR request LIKE ? OR status LIKE ? OR size LIKE ? OR referrer LIKE ? OR user_agent LIKE ? OR timestamp LIKE ?)";
-        filters.push(`%${search}%`, `%${search}%`, `%${search}%`, 
-            `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, 
+        filters.push(`%${search}%`, `%${search}%`, `%${search}%`,
+            `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`,
             `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
     }
 
@@ -179,7 +189,7 @@ exports.getLogsTimestamp = (req, res) => {
 
 //         // Generate pre-signed URL for the most recent log file
 //         const url = await generatePreSignedUrl(bucket, fileKey);
-        
+
 //         res.json({ downloadUrl: url });
 //     } catch (error) {
 //         console.log('Error in getLatestLogs:', error); // Improved error logging
@@ -194,42 +204,55 @@ exports.getLatestLogs = async (req, res) => {
         // Prepare parameters to invoke the listLogFiles Lambda function
         const params = {
             FunctionName: 'listLogFiles',
-            InvocationType: 'RequestResponse',
-            Payload: JSON.stringify({})
+            InvocationType: 'RequestResponse', // Synchronous invocation
+            Payload: JSON.stringify({}),
         };
+
+        console.log("LAMBDA PARAMS: ", params);
+
+        // Lambda expects the Payload to be stringified JSON
+        params.Payload = JSON.stringify(params.Payload);
 
         // Invoke the listLogFiles Lambda function
         const response = await lambda.invoke(params).promise();
-        
-        // Parse and extract the list of logs from the Lambda's response
-        const logs = JSON.parse(response.Payload);
-        
+        console.log("LAMBDA RESPONSE: ", response);
+
+        // Parse and handle the Lambda response
+        const lambdaPayload = JSON.parse(response.Payload);
+
+        if (lambdaPayload.statusCode !== 200) {
+            console.log('Lambda function error:', lambdaPayload.body);
+            return res.status(500).json({ error: 'Failed to retrieve log files from Lambda function' });
+        }
+
+        const logs = JSON.parse(lambdaPayload.body);
         console.log("logs list: ", logs);
 
-        // Check if there are any logs returned
+        // Ensure there are logs
         if (!logs || logs.length === 0) {
             return res.status(404).json({ error: 'No log files found' });
         }
 
-        // Find the most recent log file by sorting the logs by LastModified
+        // Find the most recent log file by LastModified
         const latestLog = logs.reduce((latest, log) => {
             return (new Date(log.LastModified) > new Date(latest.LastModified)) ? log : latest;
         });
 
-        const fileKey = latestLog.Key;  // Use the key of the most recent log
+        const fileKey = latestLog.Key;
 
-        // Generate a pre-signed URL for the most recent log file
+        // Generate the pre-signed URL for the log file
         const url = await s3.getSignedUrlPromise('getObject', {
             Bucket: bucket,
             Key: fileKey,
-            Expires: 60 * 5 // URL expiration time (e.g., 5 minutes)
+            Expires: 60 * 5 // URL expiration time (5 minutes)
         });
-        
-        // Send the pre-signed URL in the response
+
+        // Return the download URL
         res.json({ downloadUrl: url });
     } catch (error) {
-        console.log('Error in getLatestLogs:', error); // Improved error logging
-        res.status(500).json({ error: 'Error generating download URL' });
+        console.log('Error in getLatestLogs:', error);
+        res.status(500).json({ error: `Error generating download URL: ${error}, ${error.message}` });
     }
 };
+
 

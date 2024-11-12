@@ -18,8 +18,8 @@ const app = express();
 // NOTE: the following cors configuration is commented out as
 // i have configured them in this backend's AWS Lambda function
 
-// enable cors
-//app.use(cors());
+// [COMMENT IN LOCALHOST] enable cors
+app.use(cors());
 
 //const corsOptions = {
 //    origin: 'https://emproster.vercel.app',  // Allow any origin
@@ -30,13 +30,13 @@ const app = express();
 // Use the cors middleware with the custom options
 //app.use(cors(corsOptions));
 
-// Handle OPTIONS preflight requests explicitly (needed for Lambda URLs)
-app.options('*', (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', '*');
-    res.setHeader('Access-Control-Allow-Headers', '*');
-    res.status(204).end();  // No content for OPTIONS request
-});
+// [COMMENT OUT IN LOCALHOST] Handle OPTIONS preflight requests explicitly (needed for Lambda URLs) 
+// app.options('*', (req, res) => {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', '*');
+//     res.setHeader('Access-Control-Allow-Headers', '*');
+//     res.status(204).end();  // No content for OPTIONS request
+// });
 
 // parse every request as json and urlencoded data
 app.use(express.json());
@@ -201,7 +201,7 @@ app.get("/homepage", (req, res) => {
 
 // NOTE: the following is commented out as the server will be deployed on AWS Lambda
 
-// const PORT = process.env.PORT || 8800;
-// app.listen(PORT, console.log(`server started on port ${PORT}`));
+const PORT = process.env.PORT || 8800;
+app.listen(PORT, console.log(`server started on port ${PORT}`));
 
 module.exports.handler = serverless(app);
