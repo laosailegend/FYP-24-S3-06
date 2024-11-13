@@ -405,7 +405,11 @@ const autoScheduling = async () => {
         // Fetch all future open tasks
         const tasks = await new Promise((resolve, reject) => {
             db.query("SELECT * FROM tasks WHERE task_date >= CURDATE() AND task_status = 'open'", (err, tasks) => {
-                if (err) return reject(err);
+                if (err) {
+                    console.log('TASKS ERROR:', err);
+                    return reject(err);
+                };
+                console.log('tasks:', tasks);
                 resolve(tasks);
             });
         });
@@ -548,8 +552,8 @@ async function autoSchedule(tasks, users) {
 
                     if (existingAssignment.length === 0) {
                         const insertAssignmentQuery = `
-                            INSERT INTO assignments (taskid, userid, assigned_date, start_time, end_time, public_holiday, weekends, status, country_code) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, 'assigned', ?)`;
+                            INSERT INTO assignments (taskid, userid, assigned_date, start_time, end_time, public_holiday, weekends, country_code) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
                         await new Promise((resolve, reject) => {
                             db.query(
