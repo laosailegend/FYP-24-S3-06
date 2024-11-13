@@ -18,6 +18,15 @@ const Admin = () => {
     const [companyFilter, setCompanyFilter] = useState("");
     const [roleFilter, setRoleFilter] = useState("");
 
+    // filter stuff for company menu
+    const [compSearch, setCompSearch] = useState("");
+    const [typeTimeout, setTypeTimeout] = useState(null);
+    const [industryFilter, setIndustryFilter] = useState("");
+    const [sizeFilter, setSizeFilter] = useState("");
+    const [statusFilter, setStatusFilter] = useState(null);
+    const [startDate, setStartDateFilter] = useState("");
+    const [endDate, setEndDateFilter] = useState("");
+
     // Function to toggle menus
     const handleMenuChange = (menu) => {
         setSelectedMenu(menu);
@@ -30,6 +39,9 @@ const Admin = () => {
     const [company, setCompany] = useState([]);
     const [industry, setIndustry] = useState([]);
     const [status, setStatus] = useState([]);
+
+    // this is for the search function in the companies menu
+    const [companies, getCompanies] = useState([]);
 
     // init company usestate
     const [newCompany, addCompany] = useState({
@@ -184,6 +196,16 @@ const Admin = () => {
         }
     }
 
+    const fetchAllCompanies = async (filters = {}) => {
+        try {
+            const queryString = new URLSearchParams(filters).toString();
+            const res = await axios.get(`${server}searchCompany?${queryString}`);
+            getCompanies(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     const fetchLogs = async (filters = {}) => {
         try {
             // Create a query string from the filters
@@ -304,8 +326,6 @@ const Admin = () => {
         }
     };
 
-
-
     useEffect(() => {
         // prevents non-admin users from viewing the page
         if (!tokenObj || tokenObj.role !== 1) {
@@ -321,6 +341,7 @@ const Admin = () => {
 
         const fetchData = async () => {
             await fetchAllUsers();
+            await fetchAllCompanies();
             await fetchRoles();
             await fetchLogs();
             await fetchLogsLevel();
@@ -350,12 +371,25 @@ const Admin = () => {
             ...(roleFilter && { role: roleFilter }),
         };
 
+        const companySearch = {
+            ...(compSearch.trim() && { search: compSearch.trim() }),
+            ...(industryFilter && { industry: industryFilter }),
+            ...(sizeFilter && { size: sizeFilter }),
+            ...(statusFilter && { status: statusFilter }),
+            ...(startDate && { startDate: startDate }),
+            ...(endDate && { endDate: endDate }),
+        }
+
         // Debounce search functionality
         if (typingTimeout) clearTimeout(typingTimeout);
         const timeoutId = setTimeout(() => fetchAllUsers(filters), 120);
         setTypingTimeout(timeoutId);
 
-    }, [search, companyFilter, roleFilter]);
+        if (typeTimeout) clearTimeout(typeTimeout);
+        const typeTimeoutID = setTimeout(() => fetchAllCompanies(companySearch), 120);
+        setTypeTimeout(typeTimeoutID);
+
+    }, [search, companyFilter, roleFilter, compSearch, industryFilter, sizeFilter, statusFilter, startDate, endDate]);
 
     // log filtering functions
     const applyFilters = async () => {
@@ -397,7 +431,6 @@ const Admin = () => {
         // Fetch logs with applied filters
         await fetchLogs(params);
     };
-
     // Render the admin content if authorized
     return (
         <>
@@ -591,39 +624,61 @@ const Admin = () => {
                     </div>
 
                     <div className="">
-                        <h1>User List</h1>
-                        <div className="user-list">
+                        <h1>Company List</h1>
+                        <div className="company-list">
                             <div className="filter-container">
                                 {/* filters by company, role*/}
                                 <div className="filter-item">
-                                    <label htmlFor="search">Search Users:</label>
+                                    <label htmlFor="search">Search Company:</label>
                                     <input
                                         type="text"
-                                        id="search-user"
-                                        placeholder="Search users..."
-                                        onChange={(e) => setSearch(e.target.value)}
+                                        id="search-company"
+                                        placeholder="Search companies..."
+                                        onChange={(e) => setCompSearch(e.target.value)}
                                     />
                                 </div>
 
                                 <div className="filter-item">
-                                    <label htmlFor="filterCompany">Filter by Company:</label>
-                                    <select id="filterCompany" onChange={(e) => setCompanyFilter(e.target.value)}>
-                                        <option value="" >All Companies</option>
-                                        {company.map((comp) => (
-                                            <option key={comp.compid} value={comp.compid}>
-                                                {comp.company}
+                                    <label htmlFor="filterIndustry">Filter by Industry:</label>
+                                    <select id="filterIndustry" onChange={(e) => setIndustryFilter(e.target.value)}>
+                                        <option value="" >All Industries</option>
+                                        {industry.map((i) => (
+                                            <option key={i.industryid} value={i.industryid}>
+                                                {i.industry}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
 
                                 <div className="filter-item">
-                                    <label htmlFor="filterRole">Filter by Role:</label>
-                                    <select id="filterRole" onChange={(e) => setRoleFilter(e.target.value)}>
-                                        <option value="">All Roles</option>
-                                        {roles.map((role) => (
-                                            <option key={role.roleid} value={role.roleid}>
-                                                {role.role}
+                                    <label for="filterSize">Filter by Size:</label>
+                                    <select id="filterSize" onChange={(e) => setSizeFilter(e.target.value)}>
+                                        <option value="">All Sizes</option>
+                                        <option value="0-50">0-50</option>
+                                        <option value="51-100">51-100</option>
+                                        <option value="101-500">101-500</option>
+                                        <option value="501-10000">501-10000</option>
+                                        <option value="10001-10000">10001-10000</option>
+                                    </select>
+
+                                    {/* Filter by timestamp range */}
+                                    <div class="filter-item">
+                                        <label for="startDate">Start Date:</label>
+                                        <input type="date" id="startDate" name="startDate" onChange={(e) => setStartDateFilter(e.target.value)}/>
+                                    </div>
+                                    <div class="filter-item">
+                                        <label for="endDate">End Date:</label>
+                                        <input type="date" id="endDate" name="endDate" onChange={(e) => setEndDateFilter(e.target.value)} />
+                                    </div>
+                                </div>
+
+                                <div className="filter-item">
+                                    <label htmlFor="filterStatus">Filter by Status:</label>
+                                    <select id="filterStatus" onChange={(e) => setStatusFilter(e.target.value)}>
+                                        <option value="">All Status</option>
+                                        {status.map((s) => (
+                                            <option key={s.statusid} value={s.statusid}>
+                                                {s.status}
                                             </option>
                                         ))}
                                     </select>
@@ -646,7 +701,7 @@ const Admin = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {company.map(c => (
+                                    {companies.map(c => (
                                         <tr key={c.compid}>
                                             <td>{c.compid}</td>
                                             <td>{c.company}</td>

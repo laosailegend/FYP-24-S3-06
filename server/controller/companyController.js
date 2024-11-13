@@ -248,3 +248,75 @@ exports.deleteCompany = (req, res) => {
         });
     });
 };
+
+// filtering system for company search GET
+exports.searchCompany = (req, res) => {
+    const { industry, size, status, startDate, endDate, search } = req.query;
+    const filters = [];
+
+    // Base query with joins
+    let q = `
+    SELECT company.*, industry.industry, status.status 
+    FROM company
+    INNER JOIN industry ON company.industryid = industry.industryid 
+    INNER JOIN status ON company.statusid = status.statusid
+    WHERE 1=1
+    `;
+
+    // Apply company filter if provided
+    if (industry) {
+        q += " AND company.industryid = ?";
+        filters.push(industry);
+    }
+
+    if (size) {
+        q += " AND company.size = ?";
+        filters.push(size);
+    }
+
+    if (startDate) {
+        q += " AND company.est_date >= ?";
+        filters.push(startDate);
+    }
+
+    if (endDate) {
+        q += " AND company.est_date <= ?";
+        filters.push(endDate);
+    }
+
+    // Apply role filter if provided
+    if (status) {
+        q += " AND company.statusid = ?";
+        filters.push(status);
+    }
+
+    // Apply search term across multiple fields if provided
+    if (search) {
+        q += ` AND (
+            company.compid LIKE ? OR
+            company.company LIKE ? OR 
+            company.address LIKE ? OR 
+            company.contact_num LIKE ? OR 
+            company.email LIKE ? OR 
+            company.website LIKE ? OR 
+            company.est_date LIKE ? 
+        )`;
+
+        // Adding the search term multiple times for each LIKE condition
+        const searchPattern = `%${search}%`;
+        filters.push(
+            searchPattern, searchPattern, searchPattern,
+            searchPattern, searchPattern, searchPattern,
+            searchPattern
+        );
+    }
+
+    // Execute the query with filters
+    db.query(q, filters, (error, results) => {
+        if (error) {
+            console.error(error);
+            return res.status(500).json({ error: "Database query failed." });
+        }
+        res.json(results);
+    });
+};
