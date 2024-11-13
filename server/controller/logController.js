@@ -211,7 +211,7 @@ exports.getLatestLogs = async (req, res) => {
         console.log("LAMBDA PARAMS: ", params);
 
         // Lambda expects the Payload to be stringified JSON
-        params.Payload = JSON.stringify(params.Payload);
+        //params.Payload = JSON.stringify(params.Payload);
 
         // Invoke the listLogFiles Lambda function
         const response = await lambda.invoke(params).promise();
@@ -254,5 +254,3 @@ exports.getLatestLogs = async (req, res) => {
         res.status(500).json({ error: `Error generating download URL: ${error}, ${error.message}` });
     }
 };
-
-

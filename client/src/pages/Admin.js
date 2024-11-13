@@ -25,10 +25,11 @@ const Admin = () => {
     // console.log(tokenObj);
     const navigate = useNavigate();
 
-    // get roles, company info
+    // get roles, company info, industry, status
     const [roles, setRoles] = useState([]);
     const [company, setCompany] = useState([]);
     const [industry, setIndustry] = useState([]);
+    const [status, setStatus] = useState([]);
 
     // init company usestate
     const [newCompany, addCompany] = useState({
@@ -79,6 +80,16 @@ const Admin = () => {
         try {
             await axios.delete(`${server}user/${id}`);
             window.alert(`User with UID ${id} has been deleted.`);
+            window.location.reload();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleCompanyDelete = async (id) => {
+        try {
+            await axios.delete(`${server}company/${id}`);
+            window.alert(`Company with company ${id} has been deleted.`);
             window.location.reload();
         } catch (error) {
             console.log(error);
@@ -255,20 +266,29 @@ const Admin = () => {
         }
     }
 
+    const fetchStatus = async () => {
+        try {
+            const res = await axios.get(`${server}status`);
+            setStatus(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     const fetchDownloadUrl = async () => {
         try {
-            const response = await axios.get(`${server}logs/latest`);  // Ensure single slash between server and route
-    
+            const response = await axios.get(`${server}logsUrl`);  // Ensure single slash between server and route
+
             // Axios handles non-2xx statuses as errors automatically
             const data = response.data;
-            
+
             if (data.downloadUrl) {
                 setDownloadUrl(data.downloadUrl);
                 console.log("Fetched download URL:", data.downloadUrl);  // Log after setting state
             } else {
                 console.warn("No download URL returned in response.");
             }
-    
+
         } catch (error) {
             if (error.response) {
                 // Server responded with a status outside the 2xx range
@@ -283,8 +303,8 @@ const Admin = () => {
             }
         }
     };
-    
-    
+
+
 
     useEffect(() => {
         // prevents non-admin users from viewing the page
@@ -310,6 +330,7 @@ const Admin = () => {
             await fetchLogsReferrer();
             await fetchCompany();
             await fetchIndustry();
+            await fetchStatus();
 
             // Fetch the latest log download URL
             await fetchDownloadUrl(); // fetch once on mount
@@ -385,6 +406,7 @@ const Admin = () => {
             {/* Menu buttons */}
             <div className="menu-buttons">
                 <button onClick={() => handleMenuChange('users')}>Manage Users</button>
+                <button onClick={() => handleMenuChange('companies')}>Manage Companies</button>
                 <button onClick={() => handleMenuChange('logs')}>Logs</button>
             </div>
 
@@ -430,7 +452,94 @@ const Admin = () => {
                             </select>
                             <button onClick={handleClick}>Add</button>
                         </div>
+                    </div>
 
+                    <div className="">
+                        <h1>User List</h1>
+                        <div className="user-list">
+                            <div className="filter-container">
+                                {/* filters by company, role*/}
+                                <div className="filter-item">
+                                    <label htmlFor="search">Search Users:</label>
+                                    <input
+                                        type="text"
+                                        id="search-user"
+                                        placeholder="Search users..."
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="filter-item">
+                                    <label htmlFor="filterCompany">Filter by Company:</label>
+                                    <select id="filterCompany" onChange={(e) => setCompanyFilter(e.target.value)}>
+                                        <option value="" >All Companies</option>
+                                        {company.map((comp) => (
+                                            <option key={comp.compid} value={comp.compid}>
+                                                {comp.company}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="filter-item">
+                                    <label htmlFor="filterRole">Filter by Role:</label>
+                                    <select id="filterRole" onChange={(e) => setRoleFilter(e.target.value)}>
+                                        <option value="">All Roles</option>
+                                        {roles.map((role) => (
+                                            <option key={role.roleid} value={role.roleid}>
+                                                {role.role}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <table className="user-table">
+                                <thead>
+                                    <tr>
+                                        <th>User ID</th>
+                                        <th>NRIC</th>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Company</th>
+                                        <th>Role</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Password</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.map(user => (
+                                        <tr key={user.userid}>
+                                            <td>{user.userid}</td>
+                                            <td>{user.nric}</td>
+                                            <td>{user.fname}</td>
+                                            <td>{user.lname}</td>
+                                            <td>{user.company}</td>
+                                            <td>{user.role}</td>
+                                            <td>{user.email}</td>
+                                            <td>{user.contact}</td>
+                                            <td>{user.password}</td>
+                                            <td>
+                                                <button className="update">
+                                                    <Link to={`/update/${user.userid}`}>Update</Link>
+                                                </button>
+                                                <button className="delete" onClick={() => handleUserDelete(user.userid)}>Delete</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {selectedMenu === 'companies' && (
+                <>
+                    <div className="admin-form">
                         {/* fields: company, addr, contact, emaill, website, industry[dynamic], est_size, status[static], est. date*/}
                         <div className="add-form">
                             <h1>Add new company</h1>
@@ -524,35 +633,37 @@ const Admin = () => {
                             <table className="user-table">
                                 <thead>
                                     <tr>
-                                        <th>User ID</th>
-                                        <th>NRIC</th>
-                                        <th>First Name</th>
-                                        <th>Last Name</th>
-                                        <th>Company</th>
-                                        <th>Role</th>
-                                        <th>Email</th>
+                                        <th>Company ID</th>
+                                        <th>Company Name</th>
+                                        <th>Address</th>
                                         <th>Contact</th>
-                                        <th>Password</th>
-                                        <th>Actions</th>
+                                        <th>Email</th>
+                                        <th>Website</th>
+                                        <th>Industry</th>
+                                        <th>Size</th>
+                                        <th>Status</th>
+                                        <th>Est. Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {users.map(user => (
-                                        <tr key={user.userid}>
-                                            <td>{user.userid}</td>
-                                            <td>{user.nric}</td>
-                                            <td>{user.fname}</td>
-                                            <td>{user.lname}</td>
-                                            <td>{user.company}</td>
-                                            <td>{user.role}</td>
-                                            <td>{user.email}</td>
-                                            <td>{user.contact}</td>
-                                            <td>{user.password}</td>
+                                    {company.map(c => (
+                                        <tr key={c.compid}>
+                                            <td>{c.compid}</td>
+                                            <td>{c.company}</td>
+                                            <td>{c.address}</td>
+                                            <td>{c.contact_num}</td>
+                                            <td>{c.email}</td>
+                                            <td>{c.website}</td>
+                                            {/* list industry where industry.industry === c.industryid */}
+                                            <td>{industry.find(ind => ind.industryid === c.industryid)?.industry}</td>
+                                            <td>{c.size}</td>
+                                            <td>{status.find(stat => stat.statusid === c.statusid)?.status}</td>
+                                            <td>{c.est_date.split('T')[0]}</td>
                                             <td>
                                                 <button className="update">
-                                                    <Link to={`/update/${user.userid}`}>Update</Link>
+                                                    <Link to={`/company/${c.compid}`}>Update</Link>
                                                 </button>
-                                                <button className="delete" onClick={() => handleUserDelete(user.userid)}>Delete</button>
+                                                <button className="delete" onClick={() => handleCompanyDelete(c.compid)}>Delete</button>
                                             </td>
                                         </tr>
                                     ))}

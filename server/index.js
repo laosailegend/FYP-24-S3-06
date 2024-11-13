@@ -131,6 +131,10 @@ app.get("/searchCompUser", companyController.searchCompUser);
 app.get("/industry", companyController.getIndustry);
 app.post("/addCompany", companyController.addCompany);
 app.get("/positions", companyController.getPositions);
+app.get("/status", companyController.getStatus);
+app.get("/company/:id", companyController.getCompByID);
+app.put("/company/:id", companyController.updateCompany);
+app.delete("/company/:id", companyController.deleteCompany);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);

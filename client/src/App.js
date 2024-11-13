@@ -31,6 +31,7 @@ import ReviewShiftSwapping from './pages/ReviewShiftSwapping';
 import TrainingCalendar from './pages/TrainingCalendar';
 import FeedbackList from './pages/FeedbackList';
 import Assignments from './pages/Assignments';
+import UpdateCompany from './pages/UpdateCompany';
 
 import { AuthContext } from './auth/AuthContext';
 function Home() {
@@ -227,6 +228,7 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path='/compAdmin' element={<CompAdmin />} />
             <Route path='/update/:id' element={<UpdateUser />} />
+            <Route path='/company/:id' element={<UpdateCompany/>}/>
             <Route path="/ClockInOut" element={<ClockInOut />} />
             <Route path="/Skill" element={<Skill />} />
             <Route path="/TrainingSession" element={<TrainingSession />} />
