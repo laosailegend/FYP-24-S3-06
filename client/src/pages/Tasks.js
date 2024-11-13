@@ -318,7 +318,7 @@ const Tasks = () => {
             <option value="">--Select Company--</option>
             {company.map((company) => (
               <option key={company.compid} value={company.compid}>
-                {company.name}
+                {company.company}
               </option>
             ))}
           </select>
