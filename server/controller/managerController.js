@@ -797,14 +797,14 @@ exports.getTimeoffRequests = (req, res) => {
 
 //update time-off request status /timeoff/:request_id
 exports.updateTimeoffStatus = (req, res) => {
-    const { request_id } = req.params;
+    const request_id = req.params.id;
     const { status } = req.body;
 
     const query = 'UPDATE requestleave SET status = ? WHERE request_id = ?';
 
     db.query(query, [status, request_id], (err, results) => {
         if (err) {
-            console.error('Error updating request status:', err);
+            console.log('Error updating request status:', err);
             return res.status(500).json({ error: 'Failed to update request status' });
         }
         res.status(200).json({ message: 'Request status updated successfully' });
