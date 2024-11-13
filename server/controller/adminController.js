@@ -338,7 +338,7 @@ exports.updateProfile = (req, res) => {
 
             // Process other fields
             for (const [key, value] of Object.entries(req.body)) {
-                if (value && key !== 'password' && key !== 'role') { // Skip the password field as it’s handled separately
+                if (value && key !== 'password' && key !== 'role' && key !== 'userid' && key !== 'nric' && key !== 'roleid' && key !== 'leave_balance') { // Skip the password field as it’s handled separately
                     updates.push(`${key} = ?`);
                     values.push(value);
                 }
@@ -363,7 +363,7 @@ exports.updateProfile = (req, res) => {
     } else {
         // No password update, handle as usual
         for (const [key, value] of Object.entries(req.body)) {
-            if (value) { // Only add non-empty fields
+            if (value && key !== 'password' && key !== 'role' && key !== 'userid' && key !== 'nric' && key !== 'roleid' && key !== 'leave_balance') { // Skip the password field as it’s handled separately
                 updates.push(`${key} = ?`);
                 values.push(value);
             }
@@ -383,8 +383,8 @@ exports.updateProfile = (req, res) => {
         // Execute the query
         db.query(q, values, (err, data) => {
             if (err) {
-                // console.log(err);
                 logger.error(`Failed to update user info at userid: ${userid}`);
+                console.log(err);
                 return res.json(err)
             };
             logger.info(`Updated own user info at userid: ${userid}`);

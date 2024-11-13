@@ -10,7 +10,6 @@ const Profile = () => {
         return token ? JSON.parse(atob(token.split('.')[1])) : null;
     });
 
-    const [roles, setRoles] = useState([]);
     const [profile, setProfile] = useState({
         fname: '',
         lname: '',

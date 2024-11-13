@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-// check if you can get server variable without require dotenv
 const ReviewShiftSwapping = () => {
   const [swapRequests, setSwapRequests] = useState([]);
   const [error, setError] = useState(null);
@@ -67,8 +66,8 @@ const ReviewShiftSwapping = () => {
             <li key={request.swap_id}>
               <p><strong>Requestor UserID:</strong> {request.userid}</p>
               <p><strong>Requestor Name:</strong> {request.requestor_fname} {request.requestor_lname}</p>
-              <p><strong>Requestor Assignment ID:</strong> {request.requestor_assignment_id}</p>
-              <p><strong>Target Assignment ID:</strong> {request.target_assignment_id}</p>
+              <p><strong>Requestor Task:</strong> {request.requestor_taskname}</p>
+              <p><strong>Target Task:</strong> {request.target_taskname}</p>
               <p><strong>Status:</strong> {request.status}</p>
               <button onClick={() => handleAction(request.swap_id, 'approved')}>Approve</button>
               <button onClick={() => handleAction(request.swap_id, 'rejected')}>Reject</button>
