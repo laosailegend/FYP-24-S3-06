@@ -89,12 +89,12 @@ nav .login {
 main {
   text-align: center;
   padding: 50px 20px;
+  max-width: 100%; /* Ensures main doesn't extend beyond viewport */
   width: 100vw; /* Full viewport width */
   min-height: 100vh; /* Minimum height of the viewport, grows with content */
-  margin: 0;     /* Remove default margin */
-  box-sizing: border-box; /* Include padding in width and height */
+  margin: 0 auto; /* Center content */
+  box-sizing: border-box; /* Include padding in width */
 }
-
 .intro h2 {
   color: #006eff93;
   font-size: 2.5rem;
@@ -815,47 +815,57 @@ margin-right: auto;
   list-style-type: none;
   padding: 0;
 }
-
 .tasks-list li {
-  background-color: #f9f9f9;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 20px;
+  margin-bottom: 15px;
   border: 1px solid #ddd;
   border-radius: 4px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tasks-list li .task-name {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.tasks-list li .task-description {
-  color: #555;
-  margin: 5px 0;
+  flex-wrap: wrap; /* Allows items to wrap onto new lines */
+  gap: 10px; /* Adds space between wrapped items */
+  align-items: flex-start;
+  line-height: 1.6;
+  word-spacing: 3px;
+  letter-spacing: 0.5px;
+  max-width: 100%; 
 }
 
 .tasks-list li .task-details {
   display: flex;
   flex-direction: column;
+  gap: 8px; /* Adds space between elements in task details */
+  max-width: 100%; /* Ensures it takes full width when wrapped */
 }
 
-.tasks-list li button {
-  background-color: #ff5722;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
+.tasks-list li .task-name {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+  flex-basis: 100%; /* Ensures task name takes up full width on a new line if needed */
 }
 
+.tasks-list li .task-description {
+  color: #555;
+  margin: 5px 0;
+  overflow-wrap: break-word; /* Breaks long text within description */
+}
 
 .tasks-list li .task-time {
   font-size: 14px;
   color: #666;
 }
+
+.tasks-list li button {
+  background-color: #0666ef93;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 30px;
+  align-items: bottom; /* Aligns button to the top for better spacing */
+}
+
 /* Container for the calendar and task form */
 .calendar-form-container {
   display: flex;
@@ -1490,6 +1500,8 @@ body {
   padding: 0;
   background-color: #f4f4f4;
   color: #333;
+  margin: 0;
+  overflow-x: hidden; /* Prevents horizontal scrolling */
 }
 
 h1 {
