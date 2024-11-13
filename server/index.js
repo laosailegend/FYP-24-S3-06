@@ -19,7 +19,7 @@ const app = express();
 // i have configured them in this backend's AWS Lambda function
 
 // [COMMENT IN LOCALHOST] enable cors
-// app.use(cors());
+app.use(cors());
 
 //const corsOptions = {
 //    origin: 'https://emproster.vercel.app',  // Allow any origin
@@ -111,7 +111,7 @@ app.get("/logsRequest", logController.getLogsRequest);
 app.get("/logsStatus", logController.getLogsStatus);
 app.get("/logsReferrer", logController.getLogsReferrers);
 app.get("/logsTimestamp", logController.getLogsTimestamp);
-app.get("/logs/latest", logController.getLatestLogs);
+app.get("/logsUrl", logController.getLatestLogs);
 
 // define routes for adminController
 app.post("/login", adminController.login);
@@ -131,6 +131,10 @@ app.get("/searchCompUser", companyController.searchCompUser);
 app.get("/industry", companyController.getIndustry);
 app.post("/addCompany", companyController.addCompany);
 app.get("/positions", companyController.getPositions);
+app.get("/status", companyController.getStatus);
+app.get("/company/:id", companyController.getCompByID);
+app.put("/company/:id", companyController.updateCompany);
+app.delete("/company/:id", companyController.deleteCompany);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);
@@ -202,7 +206,7 @@ app.get("/homepage", (req, res) => {
 
 // NOTE: the following is commented out as the server will be deployed on AWS Lambda
 
-// const PORT = process.env.PORT || 8800;
-// app.listen(PORT, console.log(`server started on port ${PORT}`));
+const PORT = process.env.PORT || 8800;
+app.listen(PORT, console.log(`server started on port ${PORT}`));
 
 module.exports.handler = serverless(app);
