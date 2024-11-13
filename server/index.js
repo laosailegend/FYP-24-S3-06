@@ -135,6 +135,7 @@ app.get("/status", companyController.getStatus);
 app.get("/company/:id", companyController.getCompByID);
 app.put("/company/:id", companyController.updateCompany);
 app.delete("/company/:id", companyController.deleteCompany);
+app.get("/searchCompany", companyController.searchCompany);
 
 // define routes for employeeController
 app.get("/employeeGetUser", employeeController.employeeGetUser);
