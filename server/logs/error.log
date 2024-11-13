@@ -26,14 +26,5 @@
 {"level":"error","message":"Unsuccessful login attempt for: ::1, test@gmail.com","timestamp":"2024-11-10 05:28:27"}
 {"level":"error","message":"Unsuccessful login attempt for: ::1, test@gmail.com","timestamp":"2024-11-10 05:28:35"}
 {"level":"error","message":"Failed login attempt with missing credentials from ::1","timestamp":"2024-11-12 01:26:42"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, harrylizard@gmail.com","timestamp":"2024-11-13 22:30:02"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, unpaidovertime@gmail.com","timestamp":"2024-11-13 22:30:10"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, unpaidovertime@gmail.com","timestamp":"2024-11-13 22:31:10"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, unpaidovertime@gmail.com","timestamp":"2024-11-13 22:31:34"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, unpaidovertime@gmail.com","timestamp":"2024-11-13 22:33:44"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, unpaidovertime@gmail.com","timestamp":"2024-11-13 22:33:46"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, unpaidovertime@gmail.com","timestamp":"2024-11-13 22:33:55"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, harrylizard@gmail.com","timestamp":"2024-11-13 22:36:54"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, harrylizard@gmail.com","timestamp":"2024-11-13 22:40:16"}
-{"level":"error","message":"Unsuccessful login attempt for: ::1, unpaidovertime@gmail.com","timestamp":"2024-11-13 22:40:29"}
-{"level":"error","message":"Failed login attempt with missing credentials from ::1","timestamp":"2024-11-13 22:41:32"}
+{"level":"error","message":"Failed login attempt with missing credentials from ::1","timestamp":"2024-11-13 21:26:20"}
+{"level":"error","message":"Failed login attempt with missing credentials from ::1","timestamp":"2024-11-13 23:46:25"}

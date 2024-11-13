@@ -18,6 +18,15 @@ const Admin = () => {
     const [companyFilter, setCompanyFilter] = useState("");
     const [roleFilter, setRoleFilter] = useState("");
 
+    // filter stuff for company menu
+    const [compSearch, setCompSearch] = useState("");
+    const [typeTimeout, setTypeTimeout] = useState(null);
+    const [industryFilter, setIndustryFilter] = useState("");
+    const [sizeFilter, setSizeFilter] = useState("");
+    const [statusFilter, setStatusFilter] = useState(null);
+    const [startDate, setStartDateFilter] = useState("");
+    const [endDate, setEndDateFilter] = useState("");
+
     // Function to toggle menus
     const handleMenuChange = (menu) => {
         setSelectedMenu(menu);
@@ -25,10 +34,14 @@ const Admin = () => {
     // console.log(tokenObj);
     const navigate = useNavigate();
 
-    // get roles, company info
+    // get roles, company info, industry, status
     const [roles, setRoles] = useState([]);
     const [company, setCompany] = useState([]);
     const [industry, setIndustry] = useState([]);
+    const [status, setStatus] = useState([]);
+
+    // this is for the search function in the companies menu
+    const [companies, getCompanies] = useState([]);
 
     // init company usestate
     const [newCompany, addCompany] = useState({
@@ -79,6 +92,16 @@ const Admin = () => {
         try {
             await axios.delete(`${server}user/${id}`);
             window.alert(`User with UID ${id} has been deleted.`);
+            window.location.reload();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleCompanyDelete = async (id) => {
+        try {
+            await axios.delete(`${server}company/${id}`);
+            window.alert(`Company with company ${id} has been deleted.`);
             window.location.reload();
         } catch (error) {
             console.log(error);
@@ -173,6 +196,16 @@ const Admin = () => {
         }
     }
 
+    const fetchAllCompanies = async (filters = {}) => {
+        try {
+            const queryString = new URLSearchParams(filters).toString();
+            const res = await axios.get(`${server}searchCompany?${queryString}`);
+            getCompanies(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     const fetchLogs = async (filters = {}) => {
         try {
             // Create a query string from the filters
@@ -255,20 +288,29 @@ const Admin = () => {
         }
     }
 
+    const fetchStatus = async () => {
+        try {
+            const res = await axios.get(`${server}status`);
+            setStatus(res.data);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     const fetchDownloadUrl = async () => {
         try {
-            const response = await axios.get(`${server}logs/latest`);  // Ensure single slash between server and route
-    
+            const response = await axios.get(`${server}logsUrl`);  // Ensure single slash between server and route
+
             // Axios handles non-2xx statuses as errors automatically
             const data = response.data;
-            
+
             if (data.downloadUrl) {
                 setDownloadUrl(data.downloadUrl);
                 console.log("Fetched download URL:", data.downloadUrl);  // Log after setting state
             } else {
                 console.warn("No download URL returned in response.");
             }
-    
+
         } catch (error) {
             if (error.response) {
                 // Server responded with a status outside the 2xx range
@@ -283,8 +325,6 @@ const Admin = () => {
             }
         }
     };
-    
-    
 
     useEffect(() => {
         // prevents non-admin users from viewing the page
@@ -301,6 +341,7 @@ const Admin = () => {
 
         const fetchData = async () => {
             await fetchAllUsers();
+            await fetchAllCompanies();
             await fetchRoles();
             await fetchLogs();
             await fetchLogsLevel();
@@ -310,6 +351,7 @@ const Admin = () => {
             await fetchLogsReferrer();
             await fetchCompany();
             await fetchIndustry();
+            await fetchStatus();
 
             // Fetch the latest log download URL
             await fetchDownloadUrl(); // fetch once on mount
@@ -329,12 +371,25 @@ const Admin = () => {
             ...(roleFilter && { role: roleFilter }),
         };
 
+        const companySearch = {
+            ...(compSearch.trim() && { search: compSearch.trim() }),
+            ...(industryFilter && { industry: industryFilter }),
+            ...(sizeFilter && { size: sizeFilter }),
+            ...(statusFilter && { status: statusFilter }),
+            ...(startDate && { startDate: startDate }),
+            ...(endDate && { endDate: endDate }),
+        }
+
         // Debounce search functionality
         if (typingTimeout) clearTimeout(typingTimeout);
         const timeoutId = setTimeout(() => fetchAllUsers(filters), 120);
         setTypingTimeout(timeoutId);
 
-    }, [search, companyFilter, roleFilter]);
+        if (typeTimeout) clearTimeout(typeTimeout);
+        const typeTimeoutID = setTimeout(() => fetchAllCompanies(companySearch), 120);
+        setTypeTimeout(typeTimeoutID);
+
+    }, [search, companyFilter, roleFilter, compSearch, industryFilter, sizeFilter, statusFilter, startDate, endDate]);
 
     // log filtering functions
     const applyFilters = async () => {
@@ -376,7 +431,6 @@ const Admin = () => {
         // Fetch logs with applied filters
         await fetchLogs(params);
     };
-
     // Render the admin content if authorized
     return (
         <>
@@ -385,6 +439,7 @@ const Admin = () => {
             {/* Menu buttons */}
             <div className="menu-buttons">
                 <button onClick={() => handleMenuChange('users')}>Manage Users</button>
+                <button onClick={() => handleMenuChange('companies')}>Manage Companies</button>
                 <button onClick={() => handleMenuChange('logs')}>Logs</button>
             </div>
 
@@ -429,55 +484,6 @@ const Admin = () => {
                                 ))}
                             </select>
                             <button onClick={handleClick}>Add</button>
-                        </div>
-
-                        {/* fields: company, addr, contact, emaill, website, industry[dynamic], est_size, status[static], est. date*/}
-                        <div className="add-form">
-                            <h1>Add new company</h1>
-                            <br />
-                            <ul>
-                                <li>
-                                    <input type="text" placeholder='company' onChange={handleCompanyChange} name='company' />
-                                </li>
-                                <li>
-                                    <input type="text" placeholder='address' onChange={handleCompanyChange} name='address' />
-                                </li>
-                                <li>
-                                    <input type="text" placeholder='contact' onChange={handleCompanyChange} name='contact' maxLength={8} />
-                                </li>
-                                <li>
-                                    <input type="email" placeholder='email' onChange={handleCompanyChange} name='email' />
-                                </li>
-                                <li>
-                                    <input type="text" placeholder="website" onChange={handleCompanyChange} name='website' />
-                                </li>
-                                {/* add industry, size, status */}
-                                <li>
-                                    <select name="industryid" onChange={handleCompanyChange} defaultValue="">
-                                        <option disabled value="">Select industry</option>
-                                        {industry.map(ind => (
-                                            <option key={ind.industryid} value={ind.industryid}>{ind.industry}</option>
-                                        ))}
-                                    </select>
-                                </li>
-                                <li>
-                                    {/* cannot be negative */}
-                                    <li>Estimated size</li>
-                                    <input type="number" placeholder="size" onChange={handleCompanyChange} name='size' min={1} />
-                                </li>
-                                <li>
-                                    <select name="statusid" onChange={handleCompanyChange} defaultValue="">
-                                        <option disabled value="">Select status</option>
-                                        <option value="1">Active</option>
-                                        <option value="2">Inactive</option>
-                                    </select>
-                                </li>
-                                <li>
-                                    <li>Established date</li>
-                                    <input type="date" placeholder="established date" onChange={handleCompanyChange} name='est_date' />
-                                </li>
-                            </ul>
-                            <button onClick={handleCompanyClick}>Add</button>
                         </div>
                     </div>
 
@@ -553,6 +559,166 @@ const Admin = () => {
                                                     <Link to={`/update/${user.userid}`}>Update</Link>
                                                 </button>
                                                 <button className="delete" onClick={() => handleUserDelete(user.userid)}>Delete</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {selectedMenu === 'companies' && (
+                <>
+                    <div className="admin-form">
+                        {/* fields: company, addr, contact, emaill, website, industry[dynamic], est_size, status[static], est. date*/}
+                        <div className="add-form">
+                            <h1>Add new company</h1>
+                            <br />
+                            <ul>
+                                <li>
+                                    <input type="text" placeholder='company' onChange={handleCompanyChange} name='company' />
+                                </li>
+                                <li>
+                                    <input type="text" placeholder='address' onChange={handleCompanyChange} name='address' />
+                                </li>
+                                <li>
+                                    <input type="text" placeholder='contact' onChange={handleCompanyChange} name='contact' maxLength={8} />
+                                </li>
+                                <li>
+                                    <input type="email" placeholder='email' onChange={handleCompanyChange} name='email' />
+                                </li>
+                                <li>
+                                    <input type="text" placeholder="website" onChange={handleCompanyChange} name='website' />
+                                </li>
+                                {/* add industry, size, status */}
+                                <li>
+                                    <select name="industryid" onChange={handleCompanyChange} defaultValue="">
+                                        <option disabled value="">Select industry</option>
+                                        {industry.map(ind => (
+                                            <option key={ind.industryid} value={ind.industryid}>{ind.industry}</option>
+                                        ))}
+                                    </select>
+                                </li>
+                                <li>
+                                    {/* cannot be negative */}
+                                    <li>Estimated size</li>
+                                    <input type="number" placeholder="size" onChange={handleCompanyChange} name='size' min={1} />
+                                </li>
+                                <li>
+                                    <select name="statusid" onChange={handleCompanyChange} defaultValue="">
+                                        <option disabled value="">Select status</option>
+                                        <option value="1">Active</option>
+                                        <option value="2">Inactive</option>
+                                    </select>
+                                </li>
+                                <li>
+                                    <li>Established date</li>
+                                    <input type="date" placeholder="established date" onChange={handleCompanyChange} name='est_date' />
+                                </li>
+                            </ul>
+                            <button onClick={handleCompanyClick}>Add</button>
+                        </div>
+                    </div>
+
+                    <div className="">
+                        <h1>Company List</h1>
+                        <div className="company-list">
+                            <div className="filter-container">
+                                {/* filters by company, role*/}
+                                <div className="filter-item">
+                                    <label htmlFor="search">Search Company:</label>
+                                    <input
+                                        type="text"
+                                        id="search-company"
+                                        placeholder="Search companies..."
+                                        onChange={(e) => setCompSearch(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="filter-item">
+                                    <label htmlFor="filterIndustry">Filter by Industry:</label>
+                                    <select id="filterIndustry" onChange={(e) => setIndustryFilter(e.target.value)}>
+                                        <option value="" >All Industries</option>
+                                        {industry.map((i) => (
+                                            <option key={i.industryid} value={i.industryid}>
+                                                {i.industry}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="filter-item">
+                                    <label for="filterSize">Filter by Size:</label>
+                                    <select id="filterSize" onChange={(e) => setSizeFilter(e.target.value)}>
+                                        <option value="">All Sizes</option>
+                                        <option value="0-50">0-50</option>
+                                        <option value="51-100">51-100</option>
+                                        <option value="101-500">101-500</option>
+                                        <option value="501-10000">501-10000</option>
+                                        <option value="10001-10000">10001-10000</option>
+                                    </select>
+
+                                    {/* Filter by timestamp range */}
+                                    <div class="filter-item">
+                                        <label for="startDate">Start Date:</label>
+                                        <input type="date" id="startDate" name="startDate" onChange={(e) => setStartDateFilter(e.target.value)}/>
+                                    </div>
+                                    <div class="filter-item">
+                                        <label for="endDate">End Date:</label>
+                                        <input type="date" id="endDate" name="endDate" onChange={(e) => setEndDateFilter(e.target.value)} />
+                                    </div>
+                                </div>
+
+                                <div className="filter-item">
+                                    <label htmlFor="filterStatus">Filter by Status:</label>
+                                    <select id="filterStatus" onChange={(e) => setStatusFilter(e.target.value)}>
+                                        <option value="">All Status</option>
+                                        {status.map((s) => (
+                                            <option key={s.statusid} value={s.statusid}>
+                                                {s.status}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <table className="user-table">
+                                <thead>
+                                    <tr>
+                                        <th>Company ID</th>
+                                        <th>Company Name</th>
+                                        <th>Address</th>
+                                        <th>Contact</th>
+                                        <th>Email</th>
+                                        <th>Website</th>
+                                        <th>Industry</th>
+                                        <th>Size</th>
+                                        <th>Status</th>
+                                        <th>Est. Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {companies.map(c => (
+                                        <tr key={c.compid}>
+                                            <td>{c.compid}</td>
+                                            <td>{c.company}</td>
+                                            <td>{c.address}</td>
+                                            <td>{c.contact_num}</td>
+                                            <td>{c.email}</td>
+                                            <td>{c.website}</td>
+                                            {/* list industry where industry.industry === c.industryid */}
+                                            <td>{industry.find(ind => ind.industryid === c.industryid)?.industry}</td>
+                                            <td>{c.size}</td>
+                                            <td>{status.find(stat => stat.statusid === c.statusid)?.status}</td>
+                                            <td>{c.est_date.split('T')[0]}</td>
+                                            <td>
+                                                <button className="update">
+                                                    <Link to={`/company/${c.compid}`}>Update</Link>
+                                                </button>
+                                                <button className="delete" onClick={() => handleCompanyDelete(c.compid)}>Delete</button>
                                             </td>
                                         </tr>
                                     ))}
