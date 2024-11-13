@@ -46,42 +46,49 @@ const Payroll = () => {
     return date.getFullYear() === parseInt(selectedYear) && date.getMonth() + 1 === parseInt(selectedMonth);
   });
 
-  // Function to handle payroll record creation
-  const handleRecordPayroll = async () => {
-    if (!filteredPayrollData || filteredPayrollData.length === 0) return;
+ // Function to handle payroll record creation
+const handleRecordPayroll = async () => {
+  if (!filteredPayrollData || filteredPayrollData.length === 0) return;
 
-    // Calculate totals for payroll
-    const totalHoursWorked = filteredPayrollData.reduce((sum, data) =>
-      sum + data.regular_hours + data.weekend_hours + data.public_holiday_hours + data.overtime_hours, 0);
-    const regularHours = filteredPayrollData.reduce((sum, data) => sum + data.regular_hours, 0);
-    const weekendHours = filteredPayrollData.reduce((sum, data) => sum + data.weekend_hours, 0);
-    const publicHolidayHours = filteredPayrollData.reduce((sum, data) => sum + data.public_holiday_hours, 0);
-    const overtimeHours = filteredPayrollData.reduce((sum, data) => sum + data.overtime_hours, 0);
-    const basePay = filteredPayrollData.reduce((sum, data) => sum + data.base_pay, 0);
-    const overtimePay = filteredPayrollData.reduce((sum, data) => sum + data.overtime_pay, 0);
-    const totalPay = filteredPayrollData.reduce((sum, data) => sum + data.totalPay, 0);
+  // Calculate totals for each field in payroll
+  const totalHoursWorked = filteredPayrollData.reduce((sum, data) =>
+    sum + (parseFloat(data.regular_hours) || 0) +
+    (parseFloat(data.weekend_hours) || 0) +
+    (parseFloat(data.public_holiday_hours) || 0) +
+    (parseFloat(data.overtime_hours) || 0), 0
+  );
+  
+  const regularHours = filteredPayrollData.reduce((sum, data) => sum + (parseFloat(data.regular_hours) || 0), 0);
+  const weekendHours = filteredPayrollData.reduce((sum, data) => sum + (parseFloat(data.weekend_hours) || 0), 0);
+  const publicHolidayHours = filteredPayrollData.reduce((sum, data) => sum + (parseFloat(data.public_holiday_hours) || 0), 0);
+  const overtimeHours = filteredPayrollData.reduce((sum, data) => sum + (parseFloat(data.overtime_hours) || 0), 0);
+  const basePay = filteredPayrollData.reduce((sum, data) => sum + (parseFloat(data.base_pay) || 0), 0);
+  const overtimePay = filteredPayrollData.reduce((sum, data) => sum + (parseFloat(data.overtime_pay) || 0), 0);
+  
+  // Calculate total pay based on basePay and overtimePay
+  const totalPay = parseFloat(basePay) + parseFloat(overtimePay);
 
-    // Send the calculated payroll data to the backend
-    try {
-      const response = await axios.post(`${server}payroll`, {
-        userid: selectedUser,
-        pay_period_start: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`,
-        pay_period_end: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${new Date(selectedYear, selectedMonth, 0).getDate()}`,
-        total_hours_worked: totalHoursWorked,
-        regular_hours: regularHours,
-        weekend_hours: weekendHours,
-        public_holiday_hours: publicHolidayHours,
-        overtime_hours: overtimeHours,
-        base_pay: basePay,
-        overtime_pay: overtimePay,
-        total_pay: totalPay
-      });
-      alert(response.data.message || 'Payroll recorded successfully');
-    } catch (error) {
-      console.error('Failed to record payroll:', error);
-      alert('Failed to record payroll');
-    }
-  };
+  // Send the calculated payroll data to the backend
+  try {
+    const response = await axios.post(`${server}payroll`, {
+      userid: selectedUser,
+      pay_period_start: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`,
+      pay_period_end: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${new Date(selectedYear, selectedMonth, 0).getDate()}`,
+      total_hours_worked: totalHoursWorked,
+      regular_hours: regularHours,
+      weekend_hours: weekendHours,
+      public_holiday_hours: publicHolidayHours,
+      overtime_hours: overtimeHours,
+      base_pay: basePay,
+      overtime_pay: overtimePay,
+      total_pay: totalPay
+    });
+    alert(response.data.message || 'Payroll recorded successfully');
+  } catch (error) {
+    console.error('Failed to record payroll:', error);
+    alert('Failed to record payroll');
+  }
+};
 
   return (
     <div>
