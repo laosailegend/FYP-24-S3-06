@@ -28,16 +28,15 @@ function Assignments() {
         return date.toLocaleDateString(undefined, options);
     };
 
-    const handleDelete = (assignmentId) => {
-        axios.delete(`${server}assignments/${assignmentId}`)
-            .then(() => {
-                setAssignments(assignments.filter(a => a.assignment_id !== assignmentId));
-                console.log("Assignment deleted successfully");
-            })
-            .catch(error => {
-                console.error("Error deleting assignment:", error);
-                setError("Could not delete assignment");
-            });
+    const handleDelete = async (assignmentId) => {
+        await axios.delete(`${server}assignments/${assignmentId}`)
+        try {
+            await await axios.delete(`${server}assignments/${assignmentId}`);
+            window.alert(`Assignment ID ${assignmentId} has been deleted.`);
+            window.location.reload();
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     return (

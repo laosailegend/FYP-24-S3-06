@@ -200,6 +200,7 @@ app.delete("/deleteSchedules/:id", managerController.deleteSchedule);
 app.post("/autoSchedule", managerController.autoScheduling);
 app.get("/assignments", managerController.Assignments);
 app.get("/timeoff", managerController.getTimeoffRequests);
+app.delete("/assignments/:id", managerController.deleteAssignments);
 
 app.get("/homepage", (req, res) => {
     res.send("Homepage");
