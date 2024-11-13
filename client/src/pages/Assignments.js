@@ -29,9 +29,8 @@ function Assignments() {
     };
 
     const handleDelete = async (assignmentId) => {
-        await axios.delete(`${server}assignments/${assignmentId}`)
         try {
-            await await axios.delete(`${server}assignments/${assignmentId}`);
+            await axios.delete(`${server}assignments/${assignmentId}`);
             window.alert(`Assignment ID ${assignmentId} has been deleted.`);
             window.location.reload();
         } catch (error) {
