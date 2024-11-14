@@ -620,6 +620,45 @@ exports.submitPayrollQuery = async (req, res) => {
     });
 };
 
+exports.submitAvailability = async (req, res) => {
+    const { userid, availability } = req.body;
+  
+    if (!userid || !availability) {
+      return res.status(400).json({ error: 'User ID and availability are required' });
+    }
+  
+    const query = `UPDATE users SET availability = ? WHERE userid = ?`;
+  
+    db.query(query, [availability, userid], (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.status(201).json({ message: 'Availability submitted successfully' });
+    });
+  };
+  
+  exports.getAvailability = async (req, res) => {
+    const { userId } = req.params;  // Access userId from URL parameter
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+  
+    const query = `SELECT availability FROM users WHERE userid = ?`;
+  
+    db.query(query, [userId], (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (result.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.status(200).json({ availability: result[0].availability ? result[0].availability.split(',') : [] });
+    });
+  };
+  
 
-
+  
 

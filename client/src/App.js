@@ -32,6 +32,7 @@ import TrainingCalendar from './pages/TrainingCalendar';
 import FeedbackList from './pages/FeedbackList';
 import Assignments from './pages/Assignments';
 import UpdateCompany from './pages/UpdateCompany';
+import Availability from './pages/Availability';
 
 import { AuthContext } from './auth/AuthContext';
 function Home() {
@@ -147,6 +148,7 @@ function App() {
                 <button className="dropbtn">Employee</button>
                 <div className="dropdown-content">
                   <Link to="/Project">Project</Link>
+                  <Link to="/Availability">Availability</Link>
                   <Link to="/ClockInOut">Clock In/Clock Out</Link>
                   <Link to="/Shiftswapping">Shift Swapping</Link>
                   <Link to="/TimeOffRequest">Request Time Off</Link>
@@ -243,6 +245,7 @@ function App() {
             <Route path="/TrainingCalendar" element={<TrainingCalendar />} />
             <Route path="/FeedbackList" element={<FeedbackList />} />
             <Route path="/Assignments" element={<Assignments/>} />
+            <Route path="/Availability" element={<Availability/>} />
           </Routes>
           <div className="theme-toggle-container">
             <button onClick={toggleTheme} className="theme-toggle">
