@@ -26,5 +26,4 @@
 {"level":"error","message":"Unsuccessful login attempt for: ::1, test@gmail.com","timestamp":"2024-11-10 05:28:27"}
 {"level":"error","message":"Unsuccessful login attempt for: ::1, test@gmail.com","timestamp":"2024-11-10 05:28:35"}
 {"level":"error","message":"Failed login attempt with missing credentials from ::1","timestamp":"2024-11-12 01:26:42"}
-{"level":"error","message":"Failed login attempt with missing credentials from ::1","timestamp":"2024-11-13 21:26:20"}
-{"level":"error","message":"Failed login attempt with missing credentials from ::1","timestamp":"2024-11-13 23:46:25"}
+{"level":"error","message":"Failed login attempt with missing credentials from ::1","timestamp":"2024-11-14 22:41:59"}
