@@ -405,7 +405,11 @@ const autoScheduling = async () => {
         // Fetch all future open tasks
         const tasks = await new Promise((resolve, reject) => {
             db.query("SELECT * FROM tasks WHERE task_date >= CURDATE() AND task_status = 'open'", (err, tasks) => {
-                if (err) return reject(err);
+                if (err) {
+                    console.log('TASKS ERROR:', err);
+                    return reject(err);
+                };
+                console.log('tasks:', tasks);
                 resolve(tasks);
             });
         });
@@ -548,8 +552,8 @@ async function autoSchedule(tasks, users) {
 
                     if (existingAssignment.length === 0) {
                         const insertAssignmentQuery = `
-                            INSERT INTO assignments (taskid, userid, assigned_date, start_time, end_time, public_holiday, weekends, status, country_code) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, 'assigned', ?)`;
+                            INSERT INTO assignments (taskid, userid, assigned_date, start_time, end_time, public_holiday, weekends, country_code) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
                         await new Promise((resolve, reject) => {
                             db.query(
@@ -793,14 +797,14 @@ exports.getTimeoffRequests = (req, res) => {
 
 //update time-off request status /timeoff/:request_id
 exports.updateTimeoffStatus = (req, res) => {
-    const { request_id } = req.params;
+    const request_id = req.params.id;
     const { status } = req.body;
 
     const query = 'UPDATE requestleave SET status = ? WHERE request_id = ?';
 
     db.query(query, [status, request_id], (err, results) => {
         if (err) {
-            console.error('Error updating request status:', err);
+            console.log('Error updating request status:', err);
             return res.status(500).json({ error: 'Failed to update request status' });
         }
         res.status(200).json({ message: 'Request status updated successfully' });
