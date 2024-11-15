@@ -270,8 +270,11 @@ exports.searchCompany = (req, res) => {
     }
 
     if (size) {
-        q += " AND company.size = ?";
-        filters.push(size);
+        minSize = parseInt(size.split('-')[0]);
+        maxSize = parseInt(size.split('-')[1]);
+
+        q += " AND size BETWEEN ? AND ?";
+        filters.push(minSize, maxSize);
     }
 
     if (startDate) {

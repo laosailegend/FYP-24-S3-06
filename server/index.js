@@ -31,12 +31,12 @@ const app = express();
 //app.use(cors(corsOptions));
 
 // [COMMENT OUT IN LOCALHOST] Handle OPTIONS preflight requests explicitly (needed for Lambda URLs) 
- app.options('*', (req, res) => {
-     res.setHeader('Access-Control-Allow-Origin', '*');
-     res.setHeader('Access-Control-Allow-Methods', '*');
-     res.setHeader('Access-Control-Allow-Headers', '*');
-     res.status(204).end();  // No content for OPTIONS request
- });
+app.options('*', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.status(204).end();  // No content for OPTIONS request
+});
 
 // parse every request as json and urlencoded data
 app.use(express.json());
