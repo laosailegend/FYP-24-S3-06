@@ -70,116 +70,81 @@ exports.createPayroll = async (req, res) => {
 
 
 // Calculating payroll for a specific user based on hours worked and conditions
+// Calculating payroll for a specific user based on hours worked and conditions
 exports.calculatePayroll = (req, res) => {
     const userid = req.params.userid;
 
     const query = `
         SELECT 
-            u.userid,
-            p.position,
-            a.assigned_date,
-            -- Calculate hourly rate for FT and PT employees
-            ROUND(CASE 
-                WHEN p.type = 'FT' THEN p.pay / 160  -- Monthly pay converted to hourly for FT employees
-                ELSE p.pay  -- Part-time pay is already hourly
-            END, 2) AS hourly_rate,
-            a.public_holiday,
-            a.weekends,
-            -- Calculate hours worked
-            ROUND(CASE
-                WHEN TIME_TO_SEC(c.clock_out_time) < TIME_TO_SEC(c.clock_in_time)
-                THEN (TIME_TO_SEC(c.clock_out_time) + 86400 - TIME_TO_SEC(c.clock_in_time)) / 3600
-                ELSE (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600
-            END, 2) AS hours_worked,
-            -- Separate weekend hours calculation
-            ROUND(CASE 
-                WHEN a.weekends = 'yes' THEN
-                    CASE
-                        WHEN TIME_TO_SEC(c.clock_out_time) < TIME_TO_SEC(c.clock_in_time)
-                        THEN (TIME_TO_SEC(c.clock_out_time) + 86400 - TIME_TO_SEC(c.clock_in_time)) / 3600
-                        ELSE (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600
-                    END
-                ELSE 0
-            END, 2) AS weekend_hours,
-            -- Calculate public holiday hours
-            ROUND(CASE 
-                WHEN a.public_holiday = 'yes' THEN
-                    CASE
-                        WHEN TIME_TO_SEC(c.clock_out_time) < TIME_TO_SEC(c.clock_in_time)
-                        THEN (TIME_TO_SEC(c.clock_out_time) + 86400 - TIME_TO_SEC(c.clock_in_time)) / 3600
-                        ELSE (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600
-                    END
-                ELSE 0
-            END, 2) AS public_holiday_hours,
-            -- Calculate regular hours excluding weekends and public holidays
-            ROUND(CASE 
-                WHEN a.weekends = 'no' AND a.public_holiday = 'no' THEN
-                    CASE
-                        WHEN TIME_TO_SEC(c.clock_out_time) < TIME_TO_SEC(c.clock_in_time)
-                        THEN (TIME_TO_SEC(c.clock_out_time) + 86400 - TIME_TO_SEC(c.clock_in_time)) / 3600
-                        ELSE (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600
-                    END
-                ELSE 0
-            END, 2) AS regular_hours,
-            -- Calculate overtime hours
-            ROUND(CASE
-                WHEN (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600 > (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600
-                THEN ((TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600 - (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600)
-                ELSE 0
-            END, 2) AS overtime_hours,
-            -- Calculate base pay with multipliers for public holidays and weekends
-            ROUND(CASE 
-                WHEN a.public_holiday = 'yes' THEN 
-                    (CASE 
-                        WHEN p.type = 'FT' THEN p.pay / 160
-                        ELSE p.pay 
-                    END * 
-                    CASE
-                        WHEN TIME_TO_SEC(c.clock_out_time) < TIME_TO_SEC(c.clock_in_time)
-                        THEN (TIME_TO_SEC(c.clock_out_time) + 86400 - TIME_TO_SEC(c.clock_in_time)) / 3600
-                        ELSE (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600
-                    END) * 2
-                WHEN a.weekends = 'yes' THEN 
-                    (CASE 
-                        WHEN p.type = 'FT' THEN p.pay / 160
-                        ELSE p.pay 
-                    END * 
-                    CASE
-                        WHEN TIME_TO_SEC(c.clock_out_time) < TIME_TO_SEC(c.clock_in_time)
-                        THEN (TIME_TO_SEC(c.clock_out_time) + 86400 - TIME_TO_SEC(c.clock_in_time)) / 3600
-                        ELSE (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600
-                    END) * 1.5
-                ELSE 
-                    (CASE 
-                        WHEN p.type = 'FT' THEN p.pay / 160
-                        ELSE p.pay 
-                    END * 
-                    CASE
-                        WHEN TIME_TO_SEC(c.clock_out_time) < TIME_TO_SEC(c.clock_in_time)
-                        THEN (TIME_TO_SEC(c.clock_out_time) + 86400 - TIME_TO_SEC(c.clock_in_time)) / 3600
-                        ELSE (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600
-                    END)
-            END, 2) AS base_pay,
-            -- Calculate overtime pay
-            ROUND(CASE 
-                WHEN (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600 > (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600
-                THEN ((TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600 - (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600) * 
-                    (CASE 
-                        WHEN p.type = 'FT' THEN p.pay / 160
-                        ELSE p.pay
-                     END) * 1.5
-                ELSE 0 
-            END, 2) AS overtime_pay
-        FROM 
-            users u
-        JOIN 
-            positions p ON u.posid = p.posid
-        JOIN 
-            assignments a ON u.userid = a.userid
-        JOIN 
-            clock_times c ON a.assignment_id = c.assignment_id
-        WHERE 
-            u.userid = ?`;
+    u.userid,
+    p.position,
+    a.assigned_date,
+    ROUND(CASE 
+        WHEN p.type = 'FT' THEN p.pay / 160
+        ELSE p.pay 
+    END, 2) AS hourly_rate,
+    a.public_holiday,
+    a.weekends,
+    -- Regular Hours
+    ROUND(CASE 
+        WHEN a.weekends = 'no' AND a.public_holiday = 'no' THEN 
+            TIME_TO_SEC(a.end_time) / 3600 - TIME_TO_SEC(a.start_time) / 3600
+        ELSE 0
+    END, 2) AS regular_hours,
+    -- Weekend Hours
+    ROUND(CASE 
+        WHEN a.weekends = 'yes' THEN 
+            TIME_TO_SEC(a.end_time) / 3600 - TIME_TO_SEC(a.start_time) / 3600
+        ELSE 0
+    END, 2) AS weekend_hours,
+    -- Public Holiday Hours
+    ROUND(CASE 
+        WHEN a.public_holiday = 'yes' THEN 
+            TIME_TO_SEC(a.end_time) / 3600 - TIME_TO_SEC(a.start_time) / 3600
+        ELSE 0
+    END, 2) AS public_holiday_hours,
+    -- Overtime Hours
+    ROUND(CASE 
+        WHEN (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600 > 
+            (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600
+        THEN 
+            ((TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600 - 
+            (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600)
+        ELSE 0
+    END, 2) AS overtime_hours,
+    -- Base Pay
+    ROUND((CASE 
+        WHEN a.public_holiday = 'yes' THEN 2
+        WHEN a.weekends = 'yes' THEN 1.5
+        ELSE 1
+    END) * (CASE 
+        WHEN p.type = 'FT' THEN p.pay / 160
+        ELSE p.pay
+    END) * (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600, 2) AS base_pay,
+    -- Overtime Pay
+    ROUND((CASE 
+        WHEN p.type = 'FT' THEN p.pay / 160
+        ELSE p.pay
+    END) * 1.5 * 
+    CASE 
+        WHEN (TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600 > 
+            (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600
+        THEN 
+            ((TIME_TO_SEC(c.clock_out_time) - TIME_TO_SEC(c.clock_in_time)) / 3600 - 
+            (TIME_TO_SEC(a.end_time) - TIME_TO_SEC(a.start_time)) / 3600)
+        ELSE 0
+    END, 2) AS overtime_pay
+FROM 
+    users u
+JOIN 
+    positions p ON u.posid = p.posid
+JOIN 
+    assignments a ON u.userid = a.userid
+JOIN 
+    clock_times c ON a.assignment_id = c.assignment_id
+WHERE 
+    u.userid = ?;`
+
 
     db.query(query, [userid], (err, results) => {
         if (err) {
@@ -189,26 +154,26 @@ exports.calculatePayroll = (req, res) => {
 
         // Calculate total pay by adding base and overtime pay
         const payrollResults = results.map(result => {
-            // Log the base and overtime pay before calculation
-            console.log('Base Pay:', result.base_pay);
-            console.log('Overtime Pay:', result.overtime_pay);
-
-            // Ensure base and overtime pay are numbers, and handle NaN cases
-            const totalPay = (isNaN(result.base_pay) ? 0 : parseFloat(result.base_pay)) + (isNaN(result.overtime_pay) ? 0 : parseFloat(result.overtime_pay));
-
-            console.log('Total Pay:', totalPay);
+            const totalPay =
+                (parseFloat(result.base_pay) || 0) +
+                (parseFloat(result.overtime_pay) || 0);
 
             return {
                 ...result,
                 totalPay,
-                overtime_hours: result.overtime_hours, // Add overtime hours to the result
+                regular_hours: result.regular_hours,
+                weekend_hours: result.weekend_hours,
+                public_holiday_hours: result.public_holiday_hours,
+                overtime_hours: result.overtime_hours,
             };
         });
+
 
         // Send the payroll calculation result
         res.status(200).json({ payroll: payrollResults });
     });
 };
+
 
 
 exports.getPayrollQueries = (req, res) => {
