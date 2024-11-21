@@ -355,29 +355,31 @@ const Tasks = () => {
         <h3>Tasks</h3>
         <ul>
           {tasks && tasks.length > 0 ? (
-            tasks.map((task) => {
-              // Handle task without a company by checking if compid is null
-              const companyInfo = task.compid !== null ? company.find(company => company.compid === task.compid) : null;
-              const companyName = companyInfo ? companyInfo.company : 'No Company Info';
+            tasks
+              .filter((task) => task.compid === tokenObj.company) // Filter tasks based on compid
+              .map((task) => {
+                // Handle task without a company by checking if compid is null
+                const companyInfo = task.compid !== null ? company.find((company) => company.compid === task.compid) : null;
+                const companyName = companyInfo ? companyInfo.company : 'No Company Info';
 
-              return (
-                <li key={task.taskid}>
-                  <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
-                  <strong>Description:</strong> {task.description || 'No Description'} <br />
-                  <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
-                  <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
-                  <strong>Weekend:</strong> {task.isWeekend || 'No'} <br />
-                  <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
-                  <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
-                  <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
-                  <strong>Company:</strong> {companyName}
-                  <button onClick={() => startEditTask(task)}>Edit</button>
-                  <button onClick={() => deleteTask(task.taskid)}>Delete</button>
-                </li>
-              );
-            })
+                return (
+                  <li key={task.taskid}>
+                    <strong>Job Scope:</strong> {task.taskname || 'No Name'} <br />
+                    <strong>Description:</strong> {task.description || 'No Description'} <br />
+                    <strong>Manpower Required:</strong> {task.manpower_required || 'No Manpower Info'} <br />
+                    <strong>Task Date:</strong> {moment(task.task_date).format('YYYY-MM-DD') || 'No Date Info'} <br />
+                    <strong>Weekend:</strong> {task.isWeekend || 'No'} <br />
+                    <strong>Public Holiday:</strong> {task.isHoliday || 'No'} <br />
+                    <strong>Start Time:</strong> {task.start_time || 'No Start Time Info'} <br />
+                    <strong>End Time:</strong> {task.end_time || 'No End Time Info'} <br />
+                    <strong>Company:</strong> {companyName}
+                    <button onClick={() => startEditTask(task)}>Edit</button>
+                    <button onClick={() => deleteTask(task.taskid)}>Delete</button>
+                  </li>
+                );
+              })
           ) : (
-            <p>No tasks available.</p>
+            <p>No tasks available</p>
           )}
 
         </ul>
