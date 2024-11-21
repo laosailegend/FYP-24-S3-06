@@ -13,6 +13,7 @@ const Tasks = () => {
     const token = localStorage.getItem("token");
     return token ? JSON.parse(atob(token.split('.')[1])) : null;
   });
+
   const navigate = useNavigate();
   const [date, setDate] = useState(new Date());
   const [startTime, setStartTime] = useState(''); // Added state for start time
@@ -62,9 +63,9 @@ const Tasks = () => {
   };
 
   // Handle company change
-  const handleCompanyChange = (e) => {
-    setSelectedCompany(e.target.value); // Store the selected company ID in the state
-  };
+  // const handleCompanyChange = (e) => {
+  //   setSelectedCompany(e.target.value); // Store the selected company ID in the state
+  // };
 
 
   const fetchPublicHolidays = useCallback(async (year) => {
@@ -99,13 +100,14 @@ const Tasks = () => {
       return;
     }
 
-
     const fetchData = async () => {
       await fetchTasks();
       await fetchCompany();
+      setSelectedCompany(tokenObj.company);
     };
-
     fetchData();
+
+    console.log('selected company: ', selectedCompany);
   }, [navigate, tokenObj]);
 
   useEffect(() => {
@@ -313,15 +315,18 @@ const Tasks = () => {
 
         {/* Company Dropdown */}
         <div>
-          <label>Select Company:</label>
-          <select value={selectedCompany} onChange={handleCompanyChange}>
-            <option value="">--Select Company--</option>
+          <label>Company:</label>
+          <input type="text" disabled value={company.find((comp) => tokenObj.company === comp.compid)?.company || 'Select company'} />
+          {/* <select value={selectedCompany} onChange={handleCompanyChange}>
+            <option value={company.find((comp) => tokenObj.company === comp.compid)?.company || 'Select company'}>
+              {company.find((comp) => tokenObj.company === comp.compid)?.company || 'Select company'}
+            </option>
             {company.map((company) => (
               <option key={company.compid} value={company.compid}>
                 {company.company}
               </option>
             ))}
-          </select>
+          </select> */}
         </div>
 
         <div>
