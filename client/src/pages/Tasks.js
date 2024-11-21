@@ -228,7 +228,7 @@ const Tasks = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
 
-    const formattedDate = formatDate(date); // Use the new formatDate utility
+    const formattedDate = formatDate(taskDetails.task_date || new Date()); // Ensure the date is valid
     const updatedTask = {
       taskname: taskDetails.taskname,
       description: taskDetails.description,
@@ -239,21 +239,26 @@ const Tasks = () => {
       compid: selectedCompany,
     };
 
+    console.log("Updated Task Data:", updatedTask);
+
     try {
-      const response = await axios.put(`${server}task${editTaskId}`, updatedTask);
+      const response = await axios.put(`${server}task/${editTaskId}`, updatedTask); // Fix URL
       if (response.status === 200) {
         alert('Task updated successfully');
         setTaskDetails({ taskname: '', description: '', manpower_required: '' });
-        setStartTime(''); // Reset start time
-        setEndTime(''); // Reset end time
-        setSelectedCompany(''); // Reset the company dropdown
+        setStartTime('');
+        setEndTime('');
+        setSelectedCompany('');
         window.location.reload();
       } else {
-        alert('Failed to update task');
         console.error("Response Status:", response.status);
+        alert('Failed to update task');
       }
     } catch (error) {
       console.error('Error updating task:', error.response ? error.response.data : error.message);
+      if (error.response) {
+        console.error("Server Response:", error.response.status, error.response.data);
+      }
       alert('Error updating task');
     }
   };
@@ -270,11 +275,14 @@ const Tasks = () => {
       </select>
       {/* Calendar Component */}
       <Calendar
-        onChange={onChange}
+        onChange={(selectedDate) => {
+          setDate(selectedDate); // Update the `date` state
+          setTaskDetails({ ...taskDetails, task_date: selectedDate }); // Update `taskDetails` with the selected date
+        }}
         value={date}
         tileContent={tileContent}
         tileClassName={tileClassName}
-        onActiveStartDateChange={handleActiveStartDateChange} // Fetch holidays when month/year changes
+        onActiveStartDateChange={handleActiveStartDateChange} // Fetch holidays when the month/year changes
       />
 
       {/* Task Form */}
